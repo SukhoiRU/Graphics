@@ -59,11 +59,6 @@ QVariant TreeItem::data(int column) const
 	}
 }
 
-bool TreeItem::setData(int column, const QVariant &value)
-{
-	return false;
-}
-
 QString	TreeItem::Data::typeName() const
 {
 	switch(type)
@@ -83,7 +78,7 @@ QString	TreeItem::Data::typeName() const
 TreeItem*	TreeItem::findChild(QString name)
 {
 	//Ищем элемент с таким же именем
-	for(int i = 0; i < m_ChildItems.size(); i++)
+    for(size_t i = 0; i < m_ChildItems.size(); i++)
 	{
 		TreeItem*	pItem	= m_ChildItems.at(i);
 		if(pItem->m_Data.name == name)

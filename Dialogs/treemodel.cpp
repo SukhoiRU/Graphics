@@ -83,7 +83,7 @@ TreeModel::~TreeModel()
 
 void	TreeModel::loadAcc(const vector<Accumulation *>* pBuffer)
 {
-    for(int n = 0; n < pBuffer->size(); n++)
+    for(size_t n = 0; n < pBuffer->size(); n++)
     {
         const Accumulation*	pAcc	= pBuffer->at(n);
 
@@ -110,12 +110,12 @@ void	TreeModel::loadAcc(const vector<Accumulation *>* pBuffer)
 
         //Загружаем содержимое
         const vector<Accumulation::HeaderElement>&	header	= pAcc->GetHeader();
-        for(int i = 0; i < header.size(); i++)
+        for(size_t i = 0; i < header.size(); i++)
         {
             //Перебираем все элементы заголовка
             TreeItem* pParent	= pAccItem;
             const Accumulation::HeaderElement&	h		= header.at(i);
-            for(int j = 0; j < h.Desc.size(); j++)
+            for(size_t j = 0; j < h.Desc.size(); j++)
             {
                 //Для каждого элемента перебираем описатель
                 const Accumulation::Level&	l	= h.Desc.at(j);
@@ -220,11 +220,6 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 	}
 
 	return QVariant();
-}
-
-bool TreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-	return	false;
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const

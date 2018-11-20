@@ -29,7 +29,7 @@ public:
 	virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
 	virtual Qt::ItemFlags flags(const QModelIndex &index) const;
-	virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    virtual bool setData(const QModelIndex &, const QVariant &, int) {return false;}
 
     void	loadAcc(const std::vector<Accumulation *>* pBuffer);
 	void	UpdateModel();

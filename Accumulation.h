@@ -150,8 +150,8 @@ public:
 
 	//Константный доступ
 	const HeaderList&	GetHeader()		const	{return m_Header;}
-	const int			GetRecCount()	const	{return m_nRecCount;}
-	const int			GetRecSize()	const	{return m_nRecordSize;}
+    int                 GetRecCount()	const	{return m_nRecCount;}
+    int                 GetRecSize()	const	{return m_nRecordSize;}
 	const BYTE*			GetData()		const	{return m_pData;}
 	AccType				GetType()		const	{return m_Type;}
 	QString				GetMiGInfo()	const	{return m_MiGInfo;}

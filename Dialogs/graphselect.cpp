@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "graphselect.h"
-#include "../GeneratedFiles/ui_graphselect.h"
+#include "ui_graphselect.h"
 #include "ui_graphselect.h"
 #include "Accumulation.h"
 #include "Dialogs/treemodel.h"

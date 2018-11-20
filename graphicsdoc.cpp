@@ -47,7 +47,7 @@ GraphicsDoc::~GraphicsDoc()
     delete ui;
 
 	//Очищаем список панелей
-	for(int i = 0; i < m_PanelList.size(); i++)
+    for(size_t i = 0; i < m_PanelList.size(); i++)
 	{
 		Panel*	p	= m_PanelList.at(i);
 		delete p;
@@ -97,7 +97,7 @@ void GraphicsDoc::on_actionOpen_triggered()
 	}
 
 	//Очищаем список панелей
-	for(int i = 0; i < m_PanelList.size(); i++)
+    for(size_t i = 0; i < m_PanelList.size(); i++)
 	{
 		Panel*	p	= m_PanelList.at(i);
 		delete p;
@@ -155,7 +155,7 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
     in.close();
 
     //Обновим данные осей
-    for(int j = 0; j < m_PanelList.size(); j++)
+    for(size_t j = 0; j < m_PanelList.size(); j++)
     {
         Panel*	p	= m_PanelList.at(j);
         for(size_t pos = 0; pos < p->Axes.size(); pos++)
@@ -224,17 +224,17 @@ void	GraphicsDoc::on_PanelListChanged()
 	QComboBox*	pBox	= m_pPanelSelect->ui->comboBox;
 	pBox->clear();
 
-	for(int i = 0; i < m_PanelList.size(); i++)
+    for(size_t i = 0; i < m_PanelList.size(); i++)
 	{
 		Panel*	p = m_PanelList.at(i);
-		pBox->addItem(p->Name, i);
+        pBox->addItem(p->Name, (int)i);
 	}
 }
 
 void	GraphicsDoc::on_PanelIndexChanged(int index)
 {
 	if(index == -1)	return;
-	if(index > m_PanelList.size()-1)	return;
+    if(index > (int)(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
 }
 
@@ -246,8 +246,8 @@ void	GraphicsDoc::on_PanelAdd()
 
 	Panel*	p	= new Panel;
 	p->Name	= "Новая";
-	if(cur < m_PanelList.size())	m_PanelList.insert(m_PanelList.begin()+cur+1, p);
-	else							m_PanelList.push_back(p);
+    if(cur < (int)m_PanelList.size())	m_PanelList.insert(m_PanelList.begin()+cur+1, p);
+    else                                m_PanelList.push_back(p);
 	on_PanelListChanged();
 	pBox->setCurrentIndex(cur+1);
 }
@@ -269,7 +269,7 @@ void	GraphicsDoc::on_PanelDelete()
 		on_PanelAdd();
 	}
 	on_PanelListChanged();
-	if(cur > m_PanelList.size()-1)	cur	= m_PanelList.size()-1;
+    if(cur > (int)(m_PanelList.size()-1))	cur	= m_PanelList.size()-1;
 	pBox->setCurrentIndex(cur);
 }
 
@@ -284,7 +284,7 @@ void	GraphicsDoc::on_PanelCopy()
 	pNew->Name	= "Копия_" + p->Name;
 	
 	//Копируем оси
-	for(int i = 0; i < p->Axes.size(); i++)
+    for(size_t i = 0; i < p->Axes.size(); i++)
 	{
 		GAxe*	pAxe	= p->Axes.at(i);
 //		GAxe*	pAxe2	= new GAxe(pAxe);
@@ -302,7 +302,7 @@ void	GraphicsDoc::on_PanelRenamed(const QString &text)
 	QComboBox*	pBox	= m_pPanelSelect->ui->comboBox;
 	int	cur	= pBox->currentIndex();
 	if(cur == -1)	return;
-	if(cur > m_PanelList.size()-1)	return;
+    if(cur > (int)(m_PanelList.size()-1))	return;
 	Panel*	p	= m_PanelList.at(cur);
 	p->Name	= text;
 	pBox->setItemText(cur, text);

@@ -21,6 +21,7 @@ QGridTree::QGridTree(QWidget *parent) :
     setAutoFillBackground(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setAnimated(false);
 }
 
 void	QGridTree::paintEvent(QPaintEvent* evnt)

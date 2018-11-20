@@ -2204,10 +2204,7 @@ void	Accumulation::LoadOrion(QString& FileName)
 	for(size_t pos = 0; pos < m_OrionPacketList.size(); pos++)
 	{
 		const OrionHead&	h	= m_OrionPacketList[pos];
-		if(!m_pOrionFile->seek(h.pos))
-		{
-			int a = 0;
-		}
+		m_pOrionFile->seek(h.pos)
 		LoadOrionPacket();
 	}
 }
@@ -2366,7 +2363,7 @@ BYTE*	Accumulation::GetOrionData(const HeaderElement& h) const
 
 	//Раз не нашли, то загружаем
 	Level	L	= h.Desc.back();
-	size_t	size;
+    qint64	size;
 	switch(L.nIcon)
 	{
 	case 2:	size	= h.Length*sizeof(double);	break;
@@ -2403,7 +2400,7 @@ double*	Accumulation::GetOrionTime(const HeaderElement& h) const
 	}
 
 	//Раз не нашли, то загружаем
-	size_t	size	= h.Length*sizeof(double);
+    qint64	size	= h.Length*sizeof(double);
 
 	//Выделяем память
 	BYTE*	ptr	= new BYTE[size];
@@ -2649,11 +2646,11 @@ void	Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name, doub
 	qint64	pos_end	= pFile->pos();
 
 	//Повторно пишем заголовок для сохранения позиций элементов
-	if(!pFile->seek(head_pos))
-	{
-		int a = 0;
-	}
-	{
+    if(!pFile->seek(head_pos))
+    {
+        int a = 0;
+    }
+    {
 		size_t	nCount	= packet_list.size();
 		pFile->write((char*)&nCount, sizeof(nCount));
 		for(size_t pos = 0; pos < packet_list.size(); pos++)
@@ -2696,14 +2693,14 @@ void	Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name, doub
 	pFile->write((char*)&nRecCount, sizeof(nRecCount));
 
 	qint64	pos_cur	= pFile->pos();
-	if(pos_cur != pos_time)
-	{
-		int a = 0;
-	}
+    if(pos_cur != pos_time)
+    {
+        int a = 0;
+    }
 
 	//Восстанавливаем положение в файле
-	if(!pFile->seek(pos_end))
-	{
-		int a = 0;
-	}
+    if(!pFile->seek(pos_end))
+    {
+        int a = 0;
+    }
 }

@@ -47,9 +47,7 @@ public:
 	int 		columnCount() const	{return 2;}
 	QVariant	data(int column) const;
 	TreeItem::Data*		GetData(){return &m_Data;}
-
-	bool		setData(int column, const QVariant &value);
-	TreeItem*	findChild(QString name);
+    TreeItem*	findChild(QString name);
 
 private:
 	TreeItem*			m_pParent;

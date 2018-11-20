@@ -20,7 +20,7 @@ struct	Panel
     Panel(){};
 	~Panel()
 	{
-		for(int i = 0; i < Axes.size(); i++)	delete Axes.at(i);
+        for(size_t i = 0; i < Axes.size(); i++)	delete Axes.at(i);
 		Axes.clear();
 	}
 };

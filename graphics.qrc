@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/tree/icon_bool.bmp</file>
+        <file>Resources/tree/icon_chapter.bmp</file>
+        <file>Resources/tree/icon_context.bmp</file>
+        <file>Resources/tree/icon_double.bmp</file>
+        <file>Resources/tree/icon_enum.bmp</file>
+        <file>Resources/tree/icon_int.bmp</file>
+        <file>Resources/tree/icon_matrix2D.bmp</file>
+        <file>Resources/tree/icon_matrix3D.bmp</file>
+        <file>Resources/tree/icon_struct.bmp</file>
+        <file>Resources/tree/icon_system.bmp</file>
+        <file>Resources/tree/icon_system_has_off.bmp</file>
+        <file>Resources/tree/icon_system_off.bmp</file>
+        <file>Resources/tree/icon_vector2D.bmp</file>
+        <file>Resources/tree/icon_vector3D.bmp</file>
+        <file>Resources/tree/player_fastforward-6509213337.png</file>
+        <file>Resources/tree/player_pause-6509013283.png</file>
+        <file>Resources/tree/player_play-6507510318.png</file>
+        <file>Resources/tree/plot-opengl.png</file>
+        <file>Resources/tree/plot-playback-pause.png</file>
+        <file>Resources/tree/plot-playback-start.png</file>
+        <file>Resources/tree/plot-playback-stop.png</file>
+        <file>Resources/tree/qbvu.png</file>
+        <file>Resources/tree/Setup.png</file>
+        <file>Resources/tree/start.png</file>
+        <file>Resources/tree/stop.png</file>
+        <file>Resources/images/copy.png</file>
+        <file>Resources/images/cut.png</file>
+        <file>Resources/images/new.png</file>
+        <file>Resources/images/open.png</file>
+        <file>Resources/images/paste.png</file>
+        <file>Resources/images/save.png</file>
+    </qresource>
+</RCC>

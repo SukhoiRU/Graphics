@@ -249,6 +249,7 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) con
 		return QModelIndex();
 
 	TreeItem*	parentItem	= getItem(parent);
+	if(!parentItem->childCount())	return QModelIndex();
 	TreeItem*	childItem	= parentItem->child(row);
     
 	if(childItem)	return createIndex(row, column, childItem);

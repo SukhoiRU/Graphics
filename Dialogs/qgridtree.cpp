@@ -11,10 +11,11 @@ QGridTree::QGridTree(QWidget *parent) :
     QTreeView(parent)
 {
 	QHeaderView*	h	= header();
-    h->setSectionResizeMode(QHeaderView::ResizeToContents);
+//	h->setSectionResizeMode(QHeaderView::ResizeToContents);
+    h->setSectionResizeMode(QHeaderView::Interactive);
 	h->setMinimumSectionSize(50);
-	
-    setHeaderHidden(true);
+    
+	setHeaderHidden(false);
 	setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked);
 	setAlternatingRowColors(true);
 	setUniformRowHeights(true);
@@ -73,15 +74,32 @@ void QGridTree::drawRow(QPainter *painter, const QStyleOptionViewItem &options, 
 
 void	QGridTree::keyPressEvent(QKeyEvent* evnt)
 {
-    QModelIndex index = currentIndex();
-    if(!index.isValid())	return;
+	QModelIndex index = currentIndex();
+	if(!index.isValid())	return;
 	switch(evnt->key())
 	{
 	case Qt::Key_Enter:
-    case Qt::Key_Return:    onAccept(); break;
-    }
+	case Qt::Key_Return:    onAccept(); break;
+	case Qt::Key_C:
+	{
+		if(evnt->modifiers() == Qt::KeyboardModifier::ControlModifier)
+		{
+			//Копируем в буфер
+			TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
+			TreeItem::Data*	data	= item->GetData();
+			if(data->nBufIndex != -1 && data->nAccIndex != -1)
+			{
+				QString	line	= data->typeName() + "\t\t" + data->name + ";\t\t\t//" + data->comm + "\n";
+				QClipboard*	c	= QGuiApplication::clipboard();
+				c->setText(line);
+				evnt->accept();
+				return;
+			}
+		}
+	}break;
+	}
 
-    QTreeView::keyPressEvent(evnt);
+	QTreeView::keyPressEvent(evnt);
 }
 
 void    QGridTree::mouseDoubleClickEvent(QMouseEvent *event)

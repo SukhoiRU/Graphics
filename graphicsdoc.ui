@@ -108,6 +108,12 @@
    <property name="text">
     <string>Добавить</string>
    </property>
+   <property name="toolTip">
+    <string>Добавить график</string>
+   </property>
+   <property name="shortcut">
+    <string>Ins</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

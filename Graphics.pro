@@ -4,7 +4,8 @@
 
 TEMPLATE = app
 TARGET = Graphics
-#DESTDIR = ./Win32/Debug
+win32:CONFIG(release, debug|release): DESTDIR = ../../../bin/qtcreator
+else:win32:CONFIG(debug, debug|release): DESTDIR = ../../../bin/qtcreator/debug
 QT += core xml opengl gui widgets printsupport
 CONFIG += debug
 #DEFINES += WIN64 QT_OPENGL_LIB QT_PRINTSUPPORT_LIB QT_WIDGETS_LIB QT_XML_LIB

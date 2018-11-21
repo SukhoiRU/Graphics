@@ -2204,7 +2204,7 @@ void	Accumulation::LoadOrion(QString& FileName)
 	for(size_t pos = 0; pos < m_OrionPacketList.size(); pos++)
 	{
 		const OrionHead&	h	= m_OrionPacketList[pos];
-		m_pOrionFile->seek(h.pos)
+		m_pOrionFile->seek(h.pos);
 		LoadOrionPacket();
 	}
 }

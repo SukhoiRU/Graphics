@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "graphselect.h"
 #include "ui_graphselect.h"
-#include "ui_graphselect.h"
 #include "Accumulation.h"
 #include "Dialogs/treemodel.h"
 
@@ -10,12 +9,6 @@ GraphSelect::GraphSelect(QWidget *parent) :
     ui(new Ui::GraphSelect)
 {
     ui->setupUi(this);
-	ui->treeView->setAlternatingRowColors(true);
-	ui->treeView->setHeaderHidden(true);
-
-	QHeaderView*	h	= ui->treeView->header();
-	h->setSectionResizeMode(QHeaderView::ResizeToContents);
-
     connect(ui->treeView, &QGridTree::onSignalAccepted, this, &GraphSelect::onSignalAccepted);
     m_nBufIndex = -1;
     m_nAccIndex = -1;

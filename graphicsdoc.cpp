@@ -9,12 +9,19 @@
 #include <QSettings>
 #include "Dialogs/panelselect.h"
 #include "Dialogs/graphselect.h"
+#include "graphicsview.h"
 
 GraphicsDoc::GraphicsDoc(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
+	m_pView	= new GraphicsView(ui->centralwidget);
+	ui->gridLayout->addWidget(m_pView, 0, 0, 1, 1);
+	m_pView->vBar	= ui->verticalScrollBar;
+	m_pView->hBar	= ui->horizontalScrollBar;
+	connect(ui->actionPageInfo, &QAction::triggered, m_pView, &GraphicsView::openPageSetup);
+
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
     ui->toolBarPanel->addWidget(m_pPanelSelect);
 	connect(m_pPanelSelect->ui->pushButtonAdd, &QPushButton::clicked, this, &GraphicsDoc::on_PanelAdd);
@@ -22,14 +29,6 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(m_pPanelSelect->ui->pushButtonCopy, &QPushButton::clicked, this, &GraphicsDoc::on_PanelCopy);
 	connect(m_pPanelSelect->ui->comboBox, &QComboBox::editTextChanged, this, &GraphicsDoc::on_PanelRenamed);
 	connect(m_pPanelSelect->ui->comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &GraphicsDoc::on_PanelIndexChanged);
-	//connect(m_pPanelSelect->ui->comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),[=](int index)
-	//{
-	//	if(index == -1)	return;
-	//	if(index > m_PanelList.size()-1)	return;
-	//	m_pActivePanel	= m_PanelList.at(index);
-	//}
-	//);
-
 
     m_bAddAcc_Mode  = false;
 

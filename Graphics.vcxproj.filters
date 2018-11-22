@@ -101,6 +101,27 @@
     <ClCompile Include="Dialogs\treemodel.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphicsview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_graphicsview.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_graphicsview.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_pageSetup.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_pageSetup.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\pageSetup.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -120,6 +141,9 @@
     </ClInclude>
     <ClInclude Include="Dialogs\treeitem.h">
       <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_PageSetup.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -150,8 +174,18 @@
     <CustomBuild Include="Dialogs\treemodel.h">
       <Filter>Header Files\Dialogs</Filter>
     </CustomBuild>
+    <CustomBuild Include="graphicsview.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Dialogs\PageSetup.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Dialogs\pageSetup.h">
+      <Filter>Header Files\Dialogs</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Graphics.rc" />
+    <None Include="shaders\simple.frag" />
+    <None Include="shaders\simple.vert" />
   </ItemGroup>
 </Project>

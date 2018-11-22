@@ -31,5 +31,7 @@
         <file>Resources/images/open.png</file>
         <file>Resources/images/paste.png</file>
         <file>Resources/images/save.png</file>
+        <file>shaders/simple.frag</file>
+        <file>shaders/simple.vert</file>
     </qresource>
 </RCC>

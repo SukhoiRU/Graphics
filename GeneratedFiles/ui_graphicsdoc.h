@@ -13,12 +13,15 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QScrollBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,6 +33,11 @@ public:
     QAction *action_2;
     QAction *action_LoadOrion;
     QAction *actionAddAxe;
+    QAction *actionPageInfo;
+    QWidget *centralwidget;
+    QGridLayout *gridLayout;
+    QScrollBar *verticalScrollBar;
+    QScrollBar *horizontalScrollBar;
     QMenuBar *menuBar;
     QMenu *menu;
     QMenu *menu_2;
@@ -43,7 +51,7 @@ public:
     {
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
-        GraphicsDoc->resize(742, 630);
+        GraphicsDoc->resize(790, 602);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));
         QIcon icon;
@@ -60,9 +68,38 @@ public:
         action_LoadOrion->setObjectName(QStringLiteral("action_LoadOrion"));
         actionAddAxe = new QAction(GraphicsDoc);
         actionAddAxe->setObjectName(QStringLiteral("actionAddAxe"));
+        actionPageInfo = new QAction(GraphicsDoc);
+        actionPageInfo->setObjectName(QStringLiteral("actionPageInfo"));
+        centralwidget = new QWidget(GraphicsDoc);
+        centralwidget->setObjectName(QStringLiteral("centralwidget"));
+        gridLayout = new QGridLayout(centralwidget);
+        gridLayout->setSpacing(0);
+        gridLayout->setContentsMargins(11, 11, 11, 11);
+        gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        gridLayout->setContentsMargins(0, 0, 0, 0);
+        verticalScrollBar = new QScrollBar(centralwidget);
+        verticalScrollBar->setObjectName(QStringLiteral("verticalScrollBar"));
+        verticalScrollBar->setMaximum(297);
+        verticalScrollBar->setSingleStep(5);
+        verticalScrollBar->setPageStep(50);
+        verticalScrollBar->setOrientation(Qt::Vertical);
+
+        gridLayout->addWidget(verticalScrollBar, 0, 1, 1, 1);
+
+        horizontalScrollBar = new QScrollBar(centralwidget);
+        horizontalScrollBar->setObjectName(QStringLiteral("horizontalScrollBar"));
+        horizontalScrollBar->setMaximum(210);
+        horizontalScrollBar->setSingleStep(5);
+        horizontalScrollBar->setPageStep(50);
+        horizontalScrollBar->setOrientation(Qt::Horizontal);
+        horizontalScrollBar->setInvertedControls(false);
+
+        gridLayout->addWidget(horizontalScrollBar, 1, 0, 1, 1);
+
+        GraphicsDoc->setCentralWidget(centralwidget);
         menuBar = new QMenuBar(GraphicsDoc);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 742, 21));
+        menuBar->setGeometry(QRect(0, 0, 790, 21));
         menu = new QMenu(menuBar);
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
@@ -87,6 +124,7 @@ public:
         menuBar->addAction(menu_4->menuAction());
         menu->addAction(actionOpen);
         menu->addAction(actionSave);
+        menu->addAction(actionPageInfo);
         menu_2->addAction(menu_3->menuAction());
         menu_3->addAction(action_2);
         menu_3->addAction(action_LoadOrion);
@@ -115,6 +153,7 @@ public:
 #ifndef QT_NO_SHORTCUT
         actionAddAxe->setShortcut(QApplication::translate("GraphicsDoc", "Ins", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
+        actionPageInfo->setText(QApplication::translate("GraphicsDoc", "\320\237\320\260\321\200\320\260\320\274\320\265\321\202\321\200\321\213 \321\201\321\202\321\200\320\260\320\275\320\270\321\206\321\213", Q_NULLPTR));
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

@@ -228,7 +228,7 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation, int rol
 	{
 	case Qt::DisplayRole:
 	{
-	//	if(section == 0)	return "Имя";
+		if(section == 0)	return "Имя";
 		if(section == 1)	return "Описание";
 	}break;
 

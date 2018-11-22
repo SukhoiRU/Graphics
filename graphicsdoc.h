@@ -12,6 +12,7 @@ class GraphicsDoc;
 class PanelSelect;
 class GAxe;
 class Accumulation;
+class GraphicsView;
 
 struct	Panel
 {
@@ -41,6 +42,7 @@ private slots:
 
 private:
     Ui::GraphicsDoc *ui;
+	GraphicsView*	m_pView;
     PanelSelect*    m_pPanelSelect;
 
 private:

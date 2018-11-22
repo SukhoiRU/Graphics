@@ -10,6 +10,9 @@
     <height>597</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::CustomContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>Выбор графика</string>
   </property>
@@ -34,12 +37,6 @@
    </property>
    <item>
     <widget class="QGridTree" name="treeView" native="true">
-     <property name="uniformRowHeights" stdset="0">
-      <bool>true</bool>
-     </property>
-     <property name="headerHidden" stdset="0">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
   </layout>

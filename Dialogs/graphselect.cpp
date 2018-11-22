@@ -9,13 +9,21 @@ GraphSelect::GraphSelect(QWidget *parent) :
     ui(new Ui::GraphSelect)
 {
     ui->setupUi(this);
+	m_nBufIndex = -1;
+	m_nAccIndex = -1;
     connect(ui->treeView, &QGridTree::onSignalAccepted, this, &GraphSelect::onSignalAccepted);
-    m_nBufIndex = -1;
-    m_nAccIndex = -1;
+
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	QSize	size	= settings.value("QGridTree/size", QSize(536, 235)).toSize();
+	resize(size);
 }
 
 GraphSelect::~GraphSelect()
 {
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.setValue("QGridTree/size", size());
+	settings.sync();
+
     delete ui;
 }
 
@@ -40,3 +48,4 @@ void    GraphSelect::onSignalAccepted(int nBufIndex, int nAccIndex)
     m_nAccIndex = nAccIndex;
     accept();
 }
+

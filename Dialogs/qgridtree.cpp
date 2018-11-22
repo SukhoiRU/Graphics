@@ -10,39 +10,65 @@
 QGridTree::QGridTree(QWidget *parent) :
     QTreeView(parent)
 {
+	m_bHeader	= false;
+	m_bAutoSize	= true;
+	m_bGrid		= true;
+	m_bAnimated	= true;
+
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	m_bHeader	= settings.value("QGridTree/m_bHeader", false).toBool();
+	m_bAutoSize	= settings.value("QGridTree/m_bAutoSize", true).toBool();
+	m_bGrid		= settings.value("QGridTree/m_bGrid", false).toBool();
+	m_bAnimated	= settings.value("QGridTree/m_bAnimated", true).toBool();
+
 	QHeaderView*	h	= header();
-//	h->setSectionResizeMode(QHeaderView::ResizeToContents);
-    h->setSectionResizeMode(QHeaderView::Interactive);
 	h->setMinimumSectionSize(50);
-    
-	setHeaderHidden(false);
+	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
+	else			h->setSectionResizeMode(QHeaderView::Interactive);
+	setHeaderHidden(!m_bHeader);
 	setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked);
 	setAlternatingRowColors(true);
 	setUniformRowHeights(true);
     setAutoFillBackground(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    setAnimated(false);
+    setAnimated(m_bAnimated);
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, &QTreeView::customContextMenuRequested, this, &QGridTree::onCustomMenuRequested);
+}
+
+QGridTree::~QGridTree()
+{
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.setValue("QGridTree/m_bHeader", m_bHeader);
+	settings.setValue("QGridTree/m_bAutoSize", m_bAutoSize);
+	settings.setValue("QGridTree/m_bGrid", m_bGrid);
+	settings.setValue("QGridTree/m_bAnimated", m_bAnimated);
+
+	settings.sync();
 }
 
 void	QGridTree::paintEvent(QPaintEvent* evnt)
 {
 	QTreeView::paintEvent(evnt);
 
-	QPainter painter(viewport());
-	QPalette p = palette();
-	painter.setPen(QPen(p.color(QPalette::Dark), 1, Qt::SolidLine));
-
-	//Рисуем вертикальные линии до самого конца
-	int h	= height();
-
-	//Вертикальные линии
-	QHeaderView*	head	= header();
-	int nColumns	= head->count();
-	for(int i = 1; i < nColumns; i++)
+	if(m_bGrid)
 	{
-		int x	= head->sectionViewportPosition(i);
-		painter.drawLine(x, 0, x, h);
+		QPainter painter(viewport());
+		QPalette p = palette();
+		painter.setPen(QPen(p.color(QPalette::Dark), 1, Qt::SolidLine));
+
+		//Рисуем вертикальные линии до самого конца
+		int h	= height();
+
+		//Вертикальные линии
+		QHeaderView*	head	= header();
+		int nColumns	= head->count();
+		for(int i = 1; i < nColumns; i++)
+		{
+			int x	= head->sectionViewportPosition(i);
+			painter.drawLine(x, 0, x, h);
+		}
 	}
 }
 
@@ -50,24 +76,26 @@ void QGridTree::drawRow(QPainter *painter, const QStyleOptionViewItem &options, 
 {
 	QTreeView::drawRow(painter,options,index);
 
-	int h	= height();
-	int	w	= width();
-	int	b	= options.rect.bottom();
-	int	hl	= options.rect.height();
-	m_nRowHeight	= hl;
-
-	//Горизонтальная линия
-	QPalette p = palette();
-	painter->setPen(QPen(p.color(QPalette::Dark),1,Qt::SolidLine));
-    //painter->drawLine(0, b, w, b);
-
-	//Проверяем, что под этим рядом ничего нет
-	if(!indexAt(QPoint(0,b+hl)).isValid())
+	if(m_bGrid)
 	{
-		//Рисуем оставшиеся линии
-		for(int y = b; y < h; y += hl)
+		int h	= height();
+		int	w	= width();
+		int	b	= options.rect.bottom();
+		int	hl	= options.rect.height();
+
+		//Горизонтальная линия
+		QPalette p = palette();
+		painter->setPen(QPen(p.color(QPalette::Dark), 1, Qt::SolidLine));
+		painter->drawLine(0, b, w, b);
+
+		//Проверяем, что под этим рядом ничего нет
+		if(!indexAt(QPoint(0, b+hl)).isValid())
 		{
-			painter->drawLine(0,y,w,y);
+			//Рисуем оставшиеся линии
+			for(int y = b; y < h; y += hl)
+			{
+				painter->drawLine(0, y, w, y);
+			}
 		}
 	}
 }
@@ -120,3 +148,57 @@ void    QGridTree::onAccept()
         emit onSignalAccepted(data->nBufIndex, data->nAccIndex);
     }
 }
+
+void	QGridTree::onCustomMenuRequested(QPoint pos)
+{
+	QMenu*		menu			= new QMenu(this);
+	QAction*	actHeader		= new QAction("Заголовок", this);
+	QAction*	actAutoSize		= new QAction("Размер по содержимому", this);	
+	QAction*	actShowGrid		= new QAction("Сетка", this);		
+	QAction*	actAnimation	= new QAction("Анимация", this);	
+	QAction*	actCopyPath		= new QAction("Копировать в С++", this);
+
+	actHeader->setCheckable(true);
+	actAutoSize->setCheckable(true);
+	actShowGrid->setCheckable(true);
+	actAnimation->setCheckable(true);
+
+	actHeader->setChecked(m_bHeader);
+	actAutoSize->setChecked(m_bAutoSize);
+	actShowGrid->setChecked(m_bGrid);
+	actAnimation->setChecked(m_bAnimated);
+
+	connect(actHeader, &QAction::toggled, [=](bool bHeader){m_bHeader	= bHeader; setHeaderHidden(!m_bHeader);});
+	connect(actAutoSize, &QAction::toggled, [=](bool bAutoSize)
+	{
+		m_bAutoSize	= bAutoSize;
+		QHeaderView*	h	= header();
+		if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
+		else			h->setSectionResizeMode(QHeaderView::Interactive);
+	});
+	connect(actShowGrid, &QAction::toggled, [=](bool bGrid){m_bGrid	= bGrid;});
+	connect(actAnimation, &QAction::toggled, [=](bool bAnimation){m_bAnimated = bAnimation; setAnimated(m_bAnimated);});
+	connect(actCopyPath, &QAction::triggered, [=]()
+	{
+		//Копируем в буфер
+		QModelIndex index = currentIndex();
+		if(!index.isValid())	return;
+		TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
+		TreeItem::Data*	data	= item->GetData();
+		if(data->nBufIndex != -1 && data->nAccIndex != -1)
+		{
+			QString	line	= data->typeName() + "\t\t" + data->name + ";\t\t\t//" + data->comm + "\n";
+			QClipboard*	c	= QGuiApplication::clipboard();
+			c->setText(line);
+		}
+	});
+
+	menu->addAction(actHeader);
+	menu->addAction(actAutoSize);
+	menu->addAction(actShowGrid);
+	menu->addAction(actAnimation);
+	menu->addSeparator();
+	menu->addAction(actCopyPath);
+	menu->popup(viewport()->mapToGlobal(pos));
+}
+

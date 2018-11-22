@@ -222,6 +222,23 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 	return QVariant();
 }
 
+QVariant TreeModel::headerData(int section, Qt::Orientation orientation, int role /* = Qt::DisplayRole */) const
+{
+	switch(role)
+	{
+	case Qt::DisplayRole:
+	{
+	//	if(section == 0)	return "Имя";
+		if(section == 1)	return "Описание";
+	}break;
+
+	default:
+		break;
+	}
+
+	return QAbstractItemModel::headerData(section, orientation, role);
+}
+
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
 {
     if(!index.isValid())	return 0;

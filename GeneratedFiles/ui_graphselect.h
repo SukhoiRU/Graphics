@@ -31,6 +31,7 @@ public:
         if (GraphSelect->objectName().isEmpty())
             GraphSelect->setObjectName(QStringLiteral("GraphSelect"));
         GraphSelect->resize(535, 597);
+        GraphSelect->setContextMenuPolicy(Qt::CustomContextMenu);
         GraphSelect->setModal(true);
         horizontalLayout = new QHBoxLayout(GraphSelect);
         horizontalLayout->setSpacing(0);
@@ -38,8 +39,6 @@ public:
         horizontalLayout->setContentsMargins(0, 0, 0, 0);
         treeView = new QGridTree(GraphSelect);
         treeView->setObjectName(QStringLiteral("treeView"));
-        treeView->setProperty("uniformRowHeights", QVariant(true));
-        treeView->setProperty("headerHidden", QVariant(false));
 
         horizontalLayout->addWidget(treeView);
 

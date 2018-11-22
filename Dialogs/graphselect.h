@@ -21,7 +21,6 @@ public:
 
     int m_nBufIndex;
     int m_nAccIndex;
-
 private:
     Ui::GraphSelect *ui;
 

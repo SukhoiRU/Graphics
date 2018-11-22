@@ -7,9 +7,14 @@ class QGridTree : public QTreeView
 {
     Q_OBJECT
 private:
-	mutable int	m_nRowHeight;
+	bool	m_bHeader;
+	bool	m_bAutoSize;
+	bool	m_bGrid;
+	bool	m_bAnimated;
+
 public:
     explicit QGridTree(QWidget *parent = 0);
+	virtual ~QGridTree();
 
 private:
     virtual void	drawRow(QPainter *painter, const QStyleOptionViewItem &options, const QModelIndex &index) const;
@@ -17,6 +22,7 @@ private:
     virtual void	keyPressEvent(QKeyEvent* evnt);
     virtual void    mouseDoubleClickEvent(QMouseEvent *event);
     void    onAccept();
+	void	onCustomMenuRequested(QPoint pos);
 
 signals:
     void    onSignalAccepted(int nBufIndex, int nAccIndex);

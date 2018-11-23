@@ -6,6 +6,8 @@
 #include "treeitem.h"
 #include <QTextCodec>
 #include "treemodel.h"
+#include <QtGui>
+#include <QtWidgets>
 
 QGridTree::QGridTree(QWidget *parent) :
     QTreeView(parent)
@@ -22,7 +24,6 @@ QGridTree::QGridTree(QWidget *parent) :
 	m_bAnimated	= settings.value("QGridTree/m_bAnimated", true).toBool();
 
 	QHeaderView*	h	= header();
-	h->setMinimumSectionSize(50);
 	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
 	else			h->setSectionResizeMode(QHeaderView::Interactive);
 	setHeaderHidden(!m_bHeader);

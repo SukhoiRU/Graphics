@@ -4,13 +4,29 @@
 
 int main(int argc, char *argv[])
 {
+	QApplication a(argc, argv);
+
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
 	QCoreApplication::setApplicationName(APPLICATION_NAME);
 
-	QApplication a(argc, argv);
-    GraphicsDoc w;
-    w.show();
+	QCommandLineParser parser;
+//	parser.setApplicationDescription("Test helper");
+	parser.addHelpOption();
+	parser.addVersionOption();
 
+	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "file.orion");
+	QCommandLineOption grfOption("grf", QCoreApplication::translate("main", "Copy all source files into <directory>."), "*.grf");
+	parser.addOption(orionOption);
+	parser.addOption(grfOption);
+	parser.process(a);
+
+//	QMessageBox::information(0, "safr", parser.helpText());
+
+	GraphicsDoc w;
+	if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
+	w.show();
+
+	
     return a.exec();
 }

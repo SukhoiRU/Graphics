@@ -6,13 +6,14 @@ TEMPLATE = app
 TARGET = Graphics
 win32:CONFIG(release, debug|release): DESTDIR = ../../../bin/qtcreator
 else:win32:CONFIG(debug, debug|release): DESTDIR = ../../../bin/qtcreator/debug
-QT += core xml opengl gui widgets printsupport
+QT += core xml opengl gui widgets printsupport svg
 CONFIG += debug
 #DEFINES += WIN64 QT_OPENGL_LIB QT_PRINTSUPPORT_LIB QT_WIDGETS_LIB QT_XML_LIB
 DEFINES += QT_DEPRECATED_WARNINGS
 INCLUDEPATH += ./GeneratedFiles \
     . \
-    ./GeneratedFiles/$(ConfigurationName)
+    ./GeneratedFiles/$(ConfigurationName)\
+    ../../include/glad/include
 #LIBS += -lopengl32 \
 #    -lglu32
 PRECOMPILED_HEADER = stdafx.h
@@ -22,4 +23,4 @@ OBJECTS_DIR += debug
 #UI_DIR += ./GeneratedFiles
 #RCC_DIR += ./GeneratedFiles
 include(Graphics.pri)
-win32:RC_FILE = Graphics.rc
+

@@ -1,4 +1,6 @@
 #include <glad/glad.h>
+#include "graphicsview.h"
+#define GL_GLEXT_PROTOTYPES
 
 #include <QOpenGLShaderProgram>
 #include <QKeyEvent>
@@ -6,7 +8,6 @@
 #include <QScrollBar>
 #include <QPainter>
 #include <QSvgGenerator>
-#include "graphicsview.h"
 #include "Dialogs/pageSetup.h"
 
 #include <glm/glm.hpp>
@@ -133,19 +134,19 @@ void	GraphicsView::updatePageBuffer()
 {
 	std::vector<Vertex>	data;
 
-	//Перекрестие мыши
+	//РџРµСЂРµРєСЂРµСЃС‚РёРµ РјС‹С€Рё
 	data.push_back(Vertex(vec2(m_mousePos.x, pageBorders.bottom()+graphBorders.bottom()), vec3(0.0f, 0.0f, 1.0f)));
 	data.push_back(Vertex(vec2(m_mousePos.x, pageSize.height()-pageBorders.top()-graphBorders.top()), vec3(0.0f, 0.0f, 1.0f)));
 	data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left(), m_mousePos.y), vec3(0.0f, 0.0f, 1.0f)));
 	data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right()-graphBorders.right(), m_mousePos.y), vec3(0.0f, 0.0f, 1.0f)));
 
-	//Белый лист
+	//Р‘РµР»С‹Р№ Р»РёСЃС‚
     data.push_back(Vertex(vec2(0., 0.),																		vec3(1.0f, 1.0f, 1.0f)));
     data.push_back(Vertex(vec2(pageSize.width(), 0.),														vec3(1.0f, 1.0f, 1.0f)));
     data.push_back(Vertex(vec2(0., pageSize.height()),														vec3(1.0f, 1.0f, 1.0f)));
     data.push_back(Vertex(vec2(pageSize.width(), pageSize.height()),										vec3(1.0f, 1.0f, 1.0f)));
 
-	//Черная рамка
+	//Р§РµСЂРЅР°СЏ СЂР°РјРєР°
 /*
 	data.push_back(Vertex(vec2(pageBorders.left()-0.5f*bdWidth, pageBorders.bottom()-0.5f*bdWidth), vec3(0.0f, 0.0f, 0.0f)));
 	data.push_back(Vertex(vec2(pageBorders.left()+0.5f*bdWidth, pageBorders.bottom()+0.5f*bdWidth), vec3(0.0f, 0.0f, 0.0f)));
@@ -169,12 +170,12 @@ void	GraphicsView::updatePageBuffer()
 	data.push_back(Vertex(vec2(pageBorders.left(), pageBorders.bottom()),									vec3(0.0f, 0.0f, 0.0f)));
 
 
-	//Сетка
+	//РЎРµС‚РєР°
 	nGridCount	= data.size();
 	int n	= 0;
 	for(float x0 = pageBorders.left()+graphBorders.left(); x0 <= (pageSize.width()-pageBorders.right()-graphBorders.right()); x0 += gridStep.width())
 	{
-		//Вертикальные линии
+		//Р’РµСЂС‚РёРєР°Р»СЊРЅС‹Рµ Р»РёРЅРёРё
 		if(!(n%5))
 		{
             data.push_back(Vertex(vec2(x0, pageBorders.bottom()+graphBorders.bottom()),				0.85f*vec3(1.f)));
@@ -191,7 +192,7 @@ void	GraphicsView::updatePageBuffer()
 	n	= 0;
 	for(float y0 = pageBorders.bottom()+graphBorders.bottom(); y0 <= (pageSize.height()-pageBorders.top()-graphBorders.top()); y0 += gridStep.height())
 	{
-		//Горизонтальные линии
+		//Р“РѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅС‹Рµ Р»РёРЅРёРё
 		if(!(n%5))
 		{
             data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left(), y0),						0.85f*vec3(1.0f)));
@@ -206,7 +207,7 @@ void	GraphicsView::updatePageBuffer()
 	}
 	nGridCount	= data.size()-nGridCount;
 
-	//Пересоздаем буфер
+	//РџРµСЂРµСЃРѕР·РґР°РµРј Р±СѓС„РµСЂ
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
 }
@@ -249,13 +250,13 @@ void GraphicsView::paintGL()
 	{
 		glBindVertexArray(pageVAO);
 
-		//Два треугольника листа
+		//Р”РІР° С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° Р»РёСЃС‚Р°
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 
-		//Рамка и сетка
+		//Р Р°РјРєР° Рё СЃРµС‚РєР°
 		glDrawArrays(GL_LINES, 8, 8+nGridCount);
 		
-		//Перекрестие мыши
+		//РџРµСЂРµРєСЂРµСЃС‚РёРµ РјС‹С€Рё
 		if(m_bOnMouse)
 			glDrawArrays(GL_LINES, 0, 4);
 
@@ -274,35 +275,35 @@ void GraphicsView::paintOverGL(QPainter* p)
     p->translate(0, pageSize.height()*m_scale);
     p->scale(m_scale, -m_scale);
 
-    //Получаем доступ к буферу
+    //РџРѕР»СѓС‡Р°РµРј РґРѕСЃС‚СѓРї Рє Р±СѓС„РµСЂСѓ
     glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
     GLint   bufSize;
     glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufSize);
     char*   pBuf    = new char[bufSize];
     glGetBufferSubData(GL_ARRAY_BUFFER, 0, bufSize, pBuf);
 
-    //Читаем данные из буфера
+    //Р§РёС‚Р°РµРј РґР°РЅРЅС‹Рµ РёР· Р±СѓС„РµСЂР°
     Vertex* pData   = (Vertex*)pBuf;
     int dataSize    = bufSize/(5*sizeof(float));
 
-    //Два треугольника листа
+    //Р”РІР° С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° Р»РёСЃС‚Р°
     p->setPen(Qt::NoPen);
     p->setBrush(QBrush(getColor(pData[4].color)));
     p->drawRect(pData[4].pos.x, pData[4].pos.y, pData[7].pos.x-pData[4].pos.x, pData[7].pos.y-pData[4].pos.y);
 
-	//Рамка
+	//Р Р°РјРєР°
     p->setPen(QPen(getColor(pData[8].color), 0));
     p->setBrush(Qt::NoBrush);
     p->drawRect(pData[8].pos.x, pData[8].pos.y, pData[11].pos.x-pData[8].pos.x, pData[11].pos.y-pData[8].pos.y);
 
-    //Сетка
+    //РЎРµС‚РєР°
     for(int i = 16; i < dataSize; i += 2)
     {
         p->setPen(QPen(getColor(pData[i].color), 0));
         p->drawLine(pData[i].pos.x, pData[i].pos.y, pData[i+1].pos.x, pData[i+1].pos.y);
     }
 
-    //Перекрестие мыши
+    //РџРµСЂРµРєСЂРµСЃС‚РёРµ РјС‹С€Рё
     if(m_bOnMouse)
         for(int i = 0; i < 4; i += 2)
         {
@@ -402,20 +403,20 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
 	QPointF	pLocal	= event->pos();
 
-	//Переводим мышь в координаты модели
+	//РџРµСЂРµРІРѕРґРёРј РјС‹С€СЊ РІ РєРѕРѕСЂРґРёРЅР°С‚С‹ РјРѕРґРµР»Рё
 	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
-	//Получаем мышь в поле графиков
+	//РџРѕР»СѓС‡Р°РµРј РјС‹С€СЊ РІ РїРѕР»Рµ РіСЂР°С„РёРєРѕРІ
 	glm::mat4	graphM	= glm::translate(glm::mat4(1), glm::vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
 
-	//Сохраняем в классе
+	//РЎРѕС…СЂР°РЅСЏРµРј РІ РєР»Р°СЃСЃРµ
 	m_mousePos.x	= world.x;
 	m_mousePos.y	= world.y;
 
-	//Переключаем курсор
+	//РџРµСЂРµРєР»СЋС‡Р°РµРј РєСѓСЂСЃРѕСЂ
 	if(m_mousePos.x > pageBorders.left()+graphBorders.left() &&
 	   m_mousePos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
 	   m_mousePos.y > pageBorders.bottom()+graphBorders.bottom() &&
@@ -424,7 +425,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		setCursor(Qt::BlankCursor);
 		m_bOnMouse	= true;
 
-		//Перекрестие мыши
+		//РџРµСЂРµРєСЂРµСЃС‚РёРµ РјС‹С€Рё
 		std::vector<Vertex>	data;
         data.push_back(Vertex(vec2(m_mousePos.x, pageBorders.bottom()+graphBorders.bottom()),					vec3(0.0f, 0.0f, 1.0f)));
         data.push_back(Vertex(vec2(m_mousePos.x, pageSize.height()-pageBorders.top()-graphBorders.top()),		vec3(0.0f, 0.0f, 1.0f)));

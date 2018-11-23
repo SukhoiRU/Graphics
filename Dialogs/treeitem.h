@@ -44,7 +44,7 @@ public:
 	TreeItem*	child(int number);
 	int			childCount() const;
 	int			childNumber() const {return m_childNumber;}
-	int 		columnCount() const	{return 2;}
+	int 		columnCount() const	{return 3;}
 	QVariant	data(int column) const;
 	TreeItem::Data*		GetData(){return &m_Data;}
     TreeItem*	findChild(QString name);

@@ -1,5 +1,5 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef GRAPHICS_VIEW_H
+#define GRAPHICS_VIEW_H
 
 #include <QOpenGLWidget>
 #include <glm/glm.hpp>
@@ -43,16 +43,16 @@ protected:
     void	paintOverGL(QPainter* p);
 
 private:
-	//Информация о странице
+	//РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃС‚СЂР°РЅРёС†Рµ
 	QSize	pageSize;
 	QRect	pageBorders;
-	GLfloat	bdWidth;	//Толщина линии рамки
+	GLfloat	bdWidth;	//РўРѕР»С‰РёРЅР° Р»РёРЅРёРё СЂР°РјРєРё
 	QRect	graphBorders;
 	QSize	gridStep;
 	int		nGridCount;
 	glm::vec2	m_mousePos;
 	bool		m_bOnMouse;
-    float       m_scale;    //Масштаб [пиксель/мм]
+    float       m_scale;    //РњР°СЃС€С‚Р°Р± [РїРёРєСЃРµР»СЊ/РјРј]
 	PageSetup*	pPageSetup;
 	
 	// OpenGL State Information
@@ -67,4 +67,4 @@ private:
 	glm::mat4	m_view;
 };
 
-#endif // WINDOW_H
+#endif // GRAPHICS_VIEW_H

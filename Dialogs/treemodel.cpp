@@ -2,14 +2,16 @@
 #include "treeitem.h"
 #include "treemodel.h"
 #include "Accumulation.h"
+#include <QtGui>
+#include <QtWidgets>
 
 TreeModel::TreeModel(QObject *parent):
 QAbstractItemModel(parent)
 {
 	TreeItem::Data	data;
 	data.type	= TreeItem::Item_Chapter;
-	data.name	= "root";
-    data.comm   = "comm";
+	data.name	= "Имя";
+    data.comm   = "Описание";
 	data.nAccIndex	= -1;
     data.nBufIndex  = -1;
 	m_rootItem	= new TreeItem(data);
@@ -228,8 +230,12 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation, int rol
 	{
 	case Qt::DisplayRole:
 	{
-		if(section == 0)	return "Имя";
-		if(section == 1)	return "Описание";
+		switch(section)
+		{
+		case 0: return m_rootItem->GetData()->name;
+		case 1: return m_rootItem->GetData()->comm;
+		default:	return QVariant();
+		}
 	}break;
 
 	default:

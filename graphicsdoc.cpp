@@ -1,6 +1,7 @@
 #include "stdafx.h"
-#include <QDomDocument>
 #include "graphicsdoc.h"
+#include "graphicsview.h"
+#include <QDomDocument>
 #include "ui_graphicsdoc.h"
 #include "ui_panelselect.h"
 #include "Accumulation.h"
@@ -9,7 +10,6 @@
 #include <QSettings>
 #include "Dialogs/panelselect.h"
 #include "Dialogs/graphselect.h"
-#include "graphicsview.h"
 
 GraphicsDoc::GraphicsDoc(QWidget *parent) :
     QMainWindow(parent),
@@ -153,6 +153,11 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
     }
     in.close();
 
+	LoadOrion(FileName);
+}
+
+void	GraphicsDoc::LoadOrion(QString FileName)
+{
     //Обновим данные осей
     for(size_t j = 0; j < m_PanelList.size(); j++)
     {

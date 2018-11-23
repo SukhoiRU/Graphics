@@ -3,12 +3,16 @@
 #include "ui_graphselect.h"
 #include "Accumulation.h"
 #include "Dialogs/treemodel.h"
+#include <QtGui>
+#include <QtWidgets>
 
 GraphSelect::GraphSelect(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GraphSelect)
 {
     ui->setupUi(this);
+	ui->treeView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	ui->treeView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	m_nBufIndex = -1;
 	m_nAccIndex = -1;
     connect(ui->treeView, &QGridTree::onSignalAccepted, this, &GraphSelect::onSignalAccepted);

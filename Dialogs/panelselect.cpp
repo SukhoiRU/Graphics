@@ -7,6 +7,7 @@ PanelSelect::PanelSelect(QWidget *parent) :
     ui(new Ui::PanelSelect)
 {
     ui->setupUi(this);
+
 }
 
 PanelSelect::~PanelSelect()

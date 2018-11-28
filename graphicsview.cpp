@@ -1,7 +1,5 @@
-#include <glad/glad.h>
+#include "stdafx.h"
 #include "graphicsview.h"
-#define GL_GLEXT_PROTOTYPES
-
 #include <QOpenGLShaderProgram>
 #include <QKeyEvent>
 #include <QTime>
@@ -9,6 +7,27 @@
 #include <QPainter>
 #include <QSvgGenerator>
 #include "Dialogs/pageSetup.h"
+
+#ifdef __gl_h_
+#undef __gl_h_
+#undef GL_INVALID_INDEX
+#undef GL_TIMEOUT_IGNORED
+
+#undef GL_VERSION_1_1
+#undef GL_VERSION_1_2
+#undef GL_VERSION_1_3
+#undef GL_VERSION_1_4
+#undef GL_VERSION_1_5
+#undef GL_VERSION_2_0
+#undef GL_VERSION_2_1
+
+#undef GL_VERSION_3_0
+#undef GL_VERSION_3_1
+#undef GL_VERSION_3_2
+#undef GL_VERSION_3_3
+#endif
+
+#include <glad/glad.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>790</width>
-    <height>602</height>
+    <width>765</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,6 +65,9 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="0">
+     <widget class="GraphicsView" name="oglView" native="true"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -72,7 +75,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>790</width>
+     <width>765</width>
      <height>21</height>
     </rect>
    </property>
@@ -131,6 +134,12 @@
     <bool>false</bool>
    </attribute>
   </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents"/>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="graphics.qrc">
@@ -177,6 +186,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QWidget</extends>
+   <header>graphicsview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="graphics.qrc"/>
  </resources>

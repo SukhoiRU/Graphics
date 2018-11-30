@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "graphicsdoc.h"
 #include <QApplication>
+#include <QCommandLineParser>
 
 int main(int argc, char *argv[])
 {

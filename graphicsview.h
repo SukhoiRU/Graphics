@@ -2,13 +2,17 @@
 #define GRAPHICS_VIEW_H
 
 #include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
+#include <vector>
+using std::vector;
 
 class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
+class GAxe;
 
-class GraphicsView : public QOpenGLWidget
+class GraphicsView : public QOpenGLWidget, QOpenGLFunctions_3_3_Core
 {
 	Q_OBJECT
 
@@ -31,6 +35,7 @@ public slots:
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
+    void	on_panelChanged(vector<GAxe*>* axes);
 
 protected slots:
 	void	teardownGL();
@@ -44,16 +49,17 @@ protected:
 
 private:
 	//Информация о странице
-	QSize	pageSize;
-	QRect	pageBorders;
-	GLfloat	bdWidth;	//Толщина линии рамки
-	QRect	graphBorders;
-	QSize	gridStep;
-	int		nGridCount;
+	QSize		pageSize;
+	QRect		pageBorders;
+	GLfloat		bdWidth;	//Толщина линии рамки
+	QRect		graphBorders;
+	QSize		gridStep;
+	int			nGridCount;
 	glm::vec2	m_mousePos;
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;
+    vector<GAxe*>*  m_pPanel;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*		m_program;

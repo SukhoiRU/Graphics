@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QDockWidget>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
@@ -22,6 +23,7 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
+#include "graphicsview.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -38,6 +40,7 @@ public:
     QGridLayout *gridLayout;
     QScrollBar *verticalScrollBar;
     QScrollBar *horizontalScrollBar;
+    GraphicsView *oglView;
     QMenuBar *menuBar;
     QMenu *menu;
     QMenu *menu_2;
@@ -46,12 +49,14 @@ public:
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
     QToolBar *toolBarPanel;
+    QDockWidget *dockWidget;
+    QWidget *dockWidgetContents;
 
     void setupUi(QMainWindow *GraphicsDoc)
     {
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
-        GraphicsDoc->resize(790, 602);
+        GraphicsDoc->resize(765, 680);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));
         QIcon icon;
@@ -96,10 +101,15 @@ public:
 
         gridLayout->addWidget(horizontalScrollBar, 1, 0, 1, 1);
 
+        oglView = new GraphicsView(centralwidget);
+        oglView->setObjectName(QStringLiteral("oglView"));
+
+        gridLayout->addWidget(oglView, 0, 0, 1, 1);
+
         GraphicsDoc->setCentralWidget(centralwidget);
         menuBar = new QMenuBar(GraphicsDoc);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 790, 21));
+        menuBar->setGeometry(QRect(0, 0, 765, 21));
         menu = new QMenu(menuBar);
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
@@ -118,6 +128,12 @@ public:
         toolBarPanel = new QToolBar(GraphicsDoc);
         toolBarPanel->setObjectName(QStringLiteral("toolBarPanel"));
         GraphicsDoc->addToolBar(Qt::TopToolBarArea, toolBarPanel);
+        dockWidget = new QDockWidget(GraphicsDoc);
+        dockWidget->setObjectName(QStringLiteral("dockWidget"));
+        dockWidgetContents = new QWidget();
+        dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
+        dockWidget->setWidget(dockWidgetContents);
+        GraphicsDoc->addDockWidget(static_cast<Qt::DockWidgetArea>(2), dockWidget);
 
         menuBar->addAction(menu->menuAction());
         menuBar->addAction(menu_2->menuAction());

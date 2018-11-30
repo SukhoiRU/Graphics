@@ -16,11 +16,10 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
-	m_pView	= new GraphicsView(ui->centralwidget);
-	ui->gridLayout->addWidget(m_pView, 0, 0, 1, 1);
-	m_pView->vBar	= ui->verticalScrollBar;
-	m_pView->hBar	= ui->horizontalScrollBar;
-	connect(ui->actionPageInfo, &QAction::triggered, m_pView, &GraphicsView::openPageSetup);
+	ui->oglView->vBar	= ui->verticalScrollBar;
+	ui->oglView->hBar	= ui->horizontalScrollBar;
+	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
+	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
     ui->toolBarPanel->addWidget(m_pPanelSelect);
@@ -154,6 +153,7 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
     in.close();
 
 	LoadOrion(FileName);
+	ui->statusBar->showMessage(QString("Загружен файл %1").arg(FileName), 5000);
 }
 
 void	GraphicsDoc::LoadOrion(QString FileName)
@@ -184,6 +184,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         if(m_BufArray.size())
         {
             pAcc	= m_BufArray.back();
+			emit dataRemoved();
         }
         else
         {
@@ -196,6 +197,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         //Загружаем данные
         pAcc->LoadOrion(FileName);
     }
+	emit dataChanged();
 /*
     m_DataFileName	= FileName;
     if(m_bUseFileAsText)
@@ -240,6 +242,7 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
 	if(index == -1)	return;
     if(index > (int)(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
+    emit panelChanged(&m_pActivePanel->Axes);
 }
 
 void	GraphicsDoc::on_PanelAdd()

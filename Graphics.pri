@@ -9,7 +9,7 @@ HEADERS += ./Accumulation.h \
     ./Dialogs/pageSetup.h \
     ./Dialogs/treemodel.h
 SOURCES += ./Accumulation.cpp \
-    ./glad.c \
+#    ./glad.c \
     ./graphicsdoc.cpp \
     ./graphicsview.cpp \
     ./main.cpp \

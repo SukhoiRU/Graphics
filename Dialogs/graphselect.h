@@ -1,6 +1,8 @@
 #ifndef GRAPHSELECT_H
 #define GRAPHSELECT_H
 
+#include <QDialog>
+#include <vector>
 using std::vector;
 class Accumulation;
 

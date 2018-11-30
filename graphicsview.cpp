@@ -8,6 +8,7 @@
 #include <QSvgGenerator>
 #include "Dialogs/pageSetup.h"
 
+/*
 #ifdef __gl_h_
 #undef __gl_h_
 #undef GL_INVALID_INDEX
@@ -28,7 +29,7 @@
 #endif
 
 #include <glad/glad.h>
-
+*/
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -81,6 +82,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	setMouseTracking(true);    
 	pPageSetup	= 0;
+	m_pPanel	= 0;
 }
 
 GraphicsView::~GraphicsView()
@@ -105,7 +107,8 @@ void GraphicsView::initializeGL()
 //    FT_Init_FreeType(&ft);
 
 	// Set global information
-	gladLoadGL();
+//	gladLoadGL();
+    initializeOpenGLFunctions();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     glDisable(GL_BLEND);
@@ -369,7 +372,7 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-    GLfloat	angle	= glm::radians(0.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
+    GLfloat	angle	= glm::radians(3.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
@@ -467,3 +470,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	event->accept();
 }
 
+void	GraphicsView::on_panelChanged(vector<GAxe*>* axes)
+{
+    m_pPanel	= axes;
+}

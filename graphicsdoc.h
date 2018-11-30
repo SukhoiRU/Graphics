@@ -10,7 +10,12 @@ class GraphicsDoc;
 }
 
 class PanelSelect;
-class GAxe;
+class GAxe
+{
+public:
+    GAxe(){}
+};
+
 class Accumulation;
 class GraphicsView;
 
@@ -42,9 +47,13 @@ private slots:
 
     void on_actionAddAxe_triggered();
 
+signals:
+    void	panelChanged(vector<GAxe*>* axes);
+	void	dataChanged();	//Признак загрузки новых данных
+	void	dataRemoved();	//Признак смены данных в том же накоплении
+
 private:
     Ui::GraphicsDoc *ui;
-	GraphicsView*	m_pView;
     PanelSelect*    m_pPanelSelect;
 
 private:

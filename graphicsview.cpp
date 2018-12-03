@@ -362,7 +362,7 @@ void GraphicsView::setScale(float scale)
         vBar->setMaximum(max(0.f, pageSize.height()-height()/m_scale));
         hBar->setMaximum(max(0.f, pageSize.width()-width()/m_scale));
 
-        if(vBar->maximum() == 0)    vBar->hide();
+        if(vBar->maximum() == 1)    vBar->hide();
         else                        vBar->show();
         if(hBar->maximum() == 0)    hBar->hide();
         else                        hBar->show();

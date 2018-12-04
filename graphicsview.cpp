@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QSvgGenerator>
 #include "Dialogs/pageSetup.h"
+#include "Graph/GAxe.h"
 
 /*
 #ifdef __gl_h_
@@ -372,7 +373,7 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-    GLfloat	angle	= glm::radians(3.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
+    GLfloat	angle	= glm::radians(0.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
@@ -470,7 +471,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	event->accept();
 }
 
-void	GraphicsView::on_panelChanged(vector<GAxe*>* axes)
+void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 {
     m_pPanel	= axes;
 }

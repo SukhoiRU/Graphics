@@ -39,6 +39,12 @@
     <Filter Include="Source Files\Dialogs">
       <UniqueIdentifier>{3e395543-9b4b-4a48-9667-a98b283c665c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graph">
+      <UniqueIdentifier>{9f736a80-4613-42d1-9be8-dd1e900deabb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graph">
+      <UniqueIdentifier>{fee33aac-aec8-4aaf-8501-76fc7bbb2c74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -122,6 +128,12 @@
     <ClCompile Include="Dialogs\pageSetup.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="Graph\GAxe.cpp">
+      <Filter>Source Files\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph\GraphObject.cpp">
+      <Filter>Source Files\Graph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -144,6 +156,12 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_PageSetup.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph\GAxe.h">
+      <Filter>Header Files\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph\GraphObject.h">
+      <Filter>Header Files\Graph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

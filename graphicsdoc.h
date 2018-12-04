@@ -8,21 +8,18 @@ using std::vector;
 namespace Ui {
 class GraphicsDoc;
 }
+namespace Graph{
+	class GAxe;
+}
 
 class PanelSelect;
-class GAxe
-{
-public:
-    GAxe(){}
-};
-
 class Accumulation;
 class GraphicsView;
 
 struct	Panel
 {
-    QString				Name;		//Название панели
-    vector<GAxe*>		Axes;		//Список графиков в панели
+    QString					Name;		//Название панели
+    vector<Graph::GAxe*>	Axes;		//Список графиков в панели
     Panel(){};
 	~Panel()
 	{
@@ -48,7 +45,7 @@ private slots:
     void on_actionAddAxe_triggered();
 
 signals:
-    void	panelChanged(vector<GAxe*>* axes);
+    void	panelChanged(vector<Graph::GAxe*>* axes);
 	void	dataChanged();	//Признак загрузки новых данных
 	void	dataRemoved();	//Признак смены данных в том же накоплении
 

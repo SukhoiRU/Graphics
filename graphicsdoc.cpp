@@ -10,6 +10,7 @@
 #include <QSettings>
 #include "Dialogs/panelselect.h"
 #include "Dialogs/graphselect.h"
+#include "Graph/GAxe.h"
 
 GraphicsDoc::GraphicsDoc(QWidget *parent) :
     QMainWindow(parent),
@@ -121,9 +122,9 @@ void GraphicsDoc::on_actionOpen_triggered()
 		//Читаем оси
 		for(QDomElement g = p.firstChildElement("График"); !g.isNull(); g = g.nextSiblingElement("График"))
 		{
-			//GAxe*	pAxe	= new GAxe;
-			//if(g.hasAttribute("Название"))	pAxe->Name	= g.attribute("Название");
-			//pPanel->Axes.push_back(pAxe);
+			Graph::GAxe*	pAxe	= new Graph::GAxe;
+			pAxe->Load(&g);
+			pPanel->Axes.push_back(pAxe);
 		}
 	}
 
@@ -164,8 +165,8 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         Panel*	p	= m_PanelList.at(j);
         for(size_t pos = 0; pos < p->Axes.size(); pos++)
         {
-            GAxe*	Axe	= p->Axes[pos];
-            //Axe->ClearFiltering();
+            Graph::GAxe*	Axe	= p->Axes[pos];
+            Axe->ClearFiltering();
         }
     }
 
@@ -218,9 +219,9 @@ void	GraphicsDoc::LoadOrion(QString FileName)
     //Обновим данные осей
     for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
     {
-        GAxe*	Axe	= m_pActivePanel->Axes[pos];
-        //Axe->ClearFiltering();
-        //Axe->UpdateRecord();
+        Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
+        Axe->ClearFiltering();
+        Axe->UpdateRecord();
     }
 }
 
@@ -293,9 +294,9 @@ void	GraphicsDoc::on_PanelCopy()
 	//Копируем оси
     for(size_t i = 0; i < p->Axes.size(); i++)
 	{
-		GAxe*	pAxe	= p->Axes.at(i);
-//		GAxe*	pAxe2	= new GAxe(pAxe);
-//		pNew->Axes.push_back(pAxe2);
+		Graph::GAxe*	pAxe	= p->Axes.at(i);
+		Graph::GAxe*	pAxe2	= new Graph::GAxe(*pAxe);
+		pNew->Axes.push_back(pAxe2);
 	}
 	
 	//Добавляем панель

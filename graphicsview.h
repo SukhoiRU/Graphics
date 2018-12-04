@@ -10,7 +10,9 @@ using std::vector;
 class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
+namespace Graph{
 class GAxe;
+}
 
 class GraphicsView : public QOpenGLWidget, QOpenGLFunctions_3_3_Core
 {
@@ -35,7 +37,7 @@ public slots:
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
-    void	on_panelChanged(vector<GAxe*>* axes);
+    void	on_panelChanged(vector<Graph::GAxe*>* axes);
 
 protected slots:
 	void	teardownGL();
@@ -59,7 +61,7 @@ private:
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;
-    vector<GAxe*>*  m_pPanel;
+    vector<Graph::GAxe*>*  m_pPanel;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*		m_program;

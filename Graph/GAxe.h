@@ -2,7 +2,7 @@
 #define GAXE_H
 
 #include "GraphObject.h"
-#include "..\Accumulation.h"
+//#include "..\Accumulation.h"
 #include <QColor>
 class QCursor;
 class QDomElement;
@@ -32,8 +32,8 @@ private:
 	double			m_K_short;		//Масштаб для записей *.mig
 
 	double*			m_pOrionTime;	//Время Ориона из большого файла
-	BYTE*			m_pOrionData;	//Данные Ориона
-	BYTE*			m_pOriginal;	//Копия исходного сигнала
+        char*			m_pOrionData;	//Данные Ориона
+        char*			m_pOriginal;	//Копия исходного сигнала
 
 public:
 	QString			m_Name;			//Название оси
@@ -88,7 +88,7 @@ public:
 	//Мышиные дела
 	virtual bool	HitTest(const vec2& pt);//Проверка на попадание курсора
 //	virtual HCURSOR	GetCursorHandle(const vec2& pt, UINT nFlags);		//Получение типа курсора
-	virtual bool	MoveOffset(const vec2& pt, UINT nFlags);	//Перемещение на заданное расстояние
+        virtual bool	MoveOffset(const vec2& pt, quint32 nFlags);	//Перемещение на заданное расстояние
 	virtual void	OnDoubleClick();				//Реакция на щелчок мышью
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
 	virtual void	OnStopMoving() {};				//Реакция на конец перетаскивания

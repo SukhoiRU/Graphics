@@ -92,34 +92,30 @@ void	GAxe::Save(QDomElement* node)
 void	GAxe::Load(QDomElement* node)
 {
 	//Получаем набор полей
-	if(node->hasAttribute("Название"))		m_Name	= node->attribute("Название");
-	if(node->hasAttribute("Путь"))			m_Path	= node->attribute("Путь");
-	if(node->hasAttribute("Накопление"))	m_nAcc	= node->attribute("Накопление").toInt();
-	if(node->hasAttribute("Имя_накопления"))m_AccName	= node->attribute("Имя_накопления");
-	if(node->hasAttribute("Цвет"))			m_Color	= node->attribute("Цвет");
-	/*
-	if(!FAILED(pXml->GetNodeItem(map, "Цвет", value)))		m_Color		= StrToColor(value);
-	if(!FAILED(pXml->GetNodeItem(map, "Маркер", value)))	m_nMarker	= atoi(value);		
-	if(!FAILED(pXml->GetNodeItem(map, "Минимум", value)))	m_Min		= atof(value);		
-	if(!FAILED(pXml->GetNodeItem(map, "Шаг", value)))		m_Scale		= atof(value);		
-	if(!FAILED(pXml->GetNodeItem(map, "Длина", value)))		m_Length	= atoi(value);		
-	if(!FAILED(pXml->GetNodeItem(map, "X_мм", value)))		m_BottomRight.x	= atof(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "Y_мм", value)))		m_BottomRight.y	= atof(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "Тип", value)))		m_DataType	= (DataType)atoi(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "Толщина", value)))	m_SpecWidth	= atof(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "СРК", value)))		m_bSRK		= StrToBool(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "Бит_СРК", value)))	m_nBitSRK	= atoi(value);	
-	if(!FAILED(pXml->GetNodeItem(map, "Формат", value)))	m_TextFormat	= value;	
-	
-	if(!FAILED(pXml->GetNodeItem(map, "Апериодика", value)))	m_bAperiodic	= true;
-	if(!FAILED(pXml->GetNodeItem(map, "T_Aperiodic", value)))	m_Aperiodic_T	= atof(value);
-	if(!FAILED(pXml->GetNodeItem(map, "Колебательное", value)))	m_bOscill		= true;
-	if(!FAILED(pXml->GetNodeItem(map, "T_Oscill", value)))		m_Oscill_T		= atof(value);
-	if(!FAILED(pXml->GetNodeItem(map, "Ksi_Oscill", value)))	m_Oscill_Ksi	= atof(value);
+	if(node->hasAttribute("Название"))		m_Name			= node->attribute("Название");
+	if(node->hasAttribute("Путь"))			m_Path			= node->attribute("Путь");
+	if(node->hasAttribute("Накопление"))	m_nAcc			= node->attribute("Накопление").toInt();
+	if(node->hasAttribute("Имя_накопления"))m_AccName		= node->attribute("Имя_накопления");
+	if(node->hasAttribute("Цвет"))			m_Color			= node->attribute("Цвет");
+	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
+	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
+	if(node->hasAttribute("Шаг"))			m_Scale			= node->attribute("Шаг").toDouble();
+	if(node->hasAttribute("Длина"))			m_Length		= node->attribute("Длина").toInt();
+	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
+	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= node->attribute("Y_мм").toDouble();
+	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
+	if(node->hasAttribute("Толщина"))		m_SpecWidth		= node->attribute("Толщина").toDouble();
+	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
+	if(node->hasAttribute("Бит_СРК"))		m_nBitSRK		= node->attribute("Бит_СРК").toInt();
+	if(node->hasAttribute("Формат"))		m_TextFormat	= node->attribute("Формат");
+	if(node->hasAttribute("Апериодика"))	m_bAperiodic	= true;
+	if(node->hasAttribute("T_Aperiodic"))	m_Aperiodic_T	= node->attribute("T_Aperiodic").toDouble();
+	if(node->hasAttribute("Колебательное"))	m_bOscill		= true;
+	if(node->hasAttribute("T_Oscill"))		m_Oscill_T		= node->attribute("T_Oscill").toDouble();
+	if(node->hasAttribute("Ksi_Oscill"))	m_Oscill_Ksi	= node->attribute("Ksi_Oscill").toDouble();
+	if(node->hasAttribute("Интерполяция"))	m_bInterpol		= node->attribute("Интерполяция").toInt();
 
 	if(m_bAperiodic || m_bOscill)	UpdateFiltering();
-
-	if(!FAILED(pXml->GetNodeItem(map, "Интерполяция", value)))	m_bInterpol		= StrToBool(value);	*/
 }
 
 void	GAxe::SetPosition(double x, double y)
@@ -956,7 +952,7 @@ HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)
 		return NULL;
 }
 */
-bool	GAxe::MoveOffset(const vec2& pt, UINT nFlags)
+bool	GAxe::MoveOffset(const vec2& pt, quint32 nFlags)
 {
 	bool Res = false;
 /*

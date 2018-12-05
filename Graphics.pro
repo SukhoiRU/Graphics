@@ -23,4 +23,3 @@ OBJECTS_DIR += debug
 #UI_DIR += ./GeneratedFiles
 #RCC_DIR += ./GeneratedFiles
 include(Graphics.pri)
-

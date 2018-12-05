@@ -141,7 +141,8 @@ void GraphicsDoc::on_actionOpen_triggered()
 
 void GraphicsDoc::on_action_LoadOrion_triggered()
 {
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления Орион", "", "*.orion");
+    QString     path;
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления Орион", path, "*.orion");
     if(FileName.isEmpty())  return;
 
     // TODO: Add your dispatch handler code here

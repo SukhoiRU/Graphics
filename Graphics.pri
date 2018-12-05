@@ -7,9 +7,10 @@ HEADERS += ./Accumulation.h \
     ./Dialogs/panelselect.h \
     ./Dialogs/qgridtree.h \
     ./Dialogs/pageSetup.h \
-    ./Dialogs/treemodel.h
+    ./Dialogs/treemodel.h \
+    ./Graph/GraphObject.h \
+    ./Graph/GAxe.h
 SOURCES += ./Accumulation.cpp \
-#    ./glad.c \
     ./graphicsdoc.cpp \
     ./graphicsview.cpp \
     ./main.cpp \
@@ -19,7 +20,9 @@ SOURCES += ./Accumulation.cpp \
     ./Dialogs/panelselect.cpp \
     ./Dialogs/qgridtree.cpp \
     ./Dialogs/treeitem.cpp \
-    ./Dialogs/treemodel.cpp
+    ./Dialogs/treemodel.cpp \
+    ./Graph/GraphObject.cpp \
+    ./Graph/GAxe.cpp
 FORMS += ./Dialogs/graphselect.ui \
     ./Dialogs/panelselect.ui \
     ./graphicsdoc.ui \

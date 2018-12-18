@@ -2,11 +2,6 @@
 #define GAXE_H
 
 #include "GraphObject.h"
-#include <vector>
-using std::vector;
-#include <glm/glm.hpp>
-using glm::vec2;
-
 
 class QCursor;
 class QDomElement;
@@ -31,6 +26,8 @@ private:
 	Direction		m_Direction;	//Направление перетаскивания объекта
 
 	DataType		m_DataType;		//Тип отображаемых данных
+	int				m_AxeLength;	//Длина оси в клетках	
+	int				m_Axe_nCount;	//Количество точек в буфере отрисовки шкалы
 
 	int				m_Offset;		//Смещение в записи		
 	int				m_Data_Len;		//Длина для Орион
@@ -45,8 +42,6 @@ private:
 	vector<vec2>	m_data;
 	GLuint	dataVAO, dataVBO;
 	GLuint	axeVAO, axeVBO;
-	mat4	dataModel;
-	mat4	axeModel;
 
 	//Shader Information
 	static QOpenGLShaderProgram*	m_program;
@@ -63,7 +58,6 @@ public:
 	int				m_nAcc;			//Номер накопления
 	QString			m_AccName;		//Имя накопления
 
-	int				m_Length;		//Длина оси в клетках	
 	double			m_Min;			//Минимальное значение на оси
 	double			m_Scale;		//Цена деления, физическая величина клетки
 	int				m_nSubTicks;	//Количество мелких штрихов	
@@ -102,8 +96,9 @@ public:
 	void			UpdateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
 	
 	//Рисование
-	virtual void	Draw(double t0, double t1, QRect area);					//Полное рисование
-	virtual void	DrawFrame();			//Отрисовка только рамки
+	virtual void	initializeGL();
+	virtual void	Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area);					//Полное рисование
+//	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела
 	virtual bool	HitTest(const vec2& pt);//Проверка на попадание курсора
@@ -140,6 +135,8 @@ public:
 	void		UpdateFiltering();						//Фильтрация сигнала
 	void		ClearFiltering();						//Очистка фильтра
 	void		Zoom(bool bUp);							//Растяжение/сжатие
+	int			getAxeLength(){return m_AxeLength;}
+	void		setAxeLength(int len);
 };
 }
 

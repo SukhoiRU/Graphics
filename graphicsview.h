@@ -15,9 +15,10 @@ class PageSetup;
 namespace Graph{
 class GraphObject;
 class GAxe;
+class GAxeArg;
 }
 
-class GraphicsView : public QOpenGLWidget, QOpenGLFunctions_3_3_Core
+class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
 {
 	Q_OBJECT
 
@@ -64,13 +65,18 @@ private:
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;
-    vector<Graph::GAxe*>*  m_pPanel;	//Указатель на панель
+	Graph::GAxeArg*				axeArg;		//Отрисовка времени
+    vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
+	
+	//Начальное время и масштаб
 	double		Time0;
+	double		TimeScale;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*		m_program;
 	GLuint	pageVAO, pageVBO;
+	bool	oglInited;
 
 	//Shader Information
 	int		u_modelToWorld;

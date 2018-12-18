@@ -8,6 +8,7 @@ mat4	GraphObject::m_view;	//Общая матрица камеры
 
 GraphObject::GraphObject()
 {
+	m_bOpenGL_inited	= false;
 	m_IsSelected	= false;
 	m_IsMoving		= false;
 	m_Type			= FIELD;

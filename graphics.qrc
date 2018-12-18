@@ -35,5 +35,7 @@
         <file>shaders/simple.vert</file>
         <file>shaders/gaxe.frag</file>
         <file>shaders/gaxe.vert</file>
+        <file>shaders/gaxearg.frag</file>
+        <file>shaders/gaxearg.vert</file>
     </qresource>
 </RCC>

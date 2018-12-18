@@ -1,32 +1,8 @@
 #include "stdafx.h"
 #include "GAxe.h"
-#include <float.h>
-#include <QCursor>
 #include <QDomElement>
 #include "../Accumulation.h"
 
-/*
-#ifdef __gl_h_
-#undef __gl_h_
-#undef GL_INVALID_INDEX
-#undef GL_TIMEOUT_IGNORED
-
-#undef GL_VERSION_1_1
-#undef GL_VERSION_1_2
-#undef GL_VERSION_1_3
-#undef GL_VERSION_1_4
-#undef GL_VERSION_1_5
-#undef GL_VERSION_2_0
-#undef GL_VERSION_2_1
-
-#undef GL_VERSION_3_0
-#undef GL_VERSION_3_1
-#undef GL_VERSION_3_2
-#undef GL_VERSION_3_3
-#endif
-
-#include <glad/glad.h>
-*/
 QColor	GetColor(int n);
 int		GetMarker(int n);
 
@@ -57,7 +33,6 @@ GAxe::GAxe()
 	m_Offset	= -1;
 	m_Data_Len	= 0;
 	m_bShowNum	= false;
-	m_Length	= 3;
 	m_SpecWidth	= m_Width;
 	m_bSRK		= false;
 	m_MaskSRK	= 0;
@@ -76,46 +51,92 @@ GAxe::GAxe()
 	m_Oscill_Ksi	= 0.7;
 	m_pOriginal		= 0;
 	m_bInterpol		= true;
-
-	//Программа шейдеров
-	initializeOpenGLFunctions();
-	if(m_program == 0)
-	{
-		m_program = new QOpenGLShaderProgram();
-		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
-		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
-		m_program->link();
-		m_program->bind();
-
-		//Cache Uniform Locations
-		u_modelToWorld	= m_program->uniformLocation("modelToWorld");
-		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
-		u_cameraToView	= m_program->uniformLocation("cameraToView");
-		u_color			= m_program->uniformLocation("color");
-		m_program->release();
-	}
-	{
-		m_program->bind();
-		//Create Buffer (Do not release until VAO is created)
-		glGenVertexArrays(1, &dataVAO);
-		glBindVertexArray(dataVAO);
-		glGenBuffers(1, &dataVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-		//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		m_program->release();
-	}
+	m_AxeLength		= 0;
 }
 
 GAxe::~GAxe()
 {
 	glDeleteVertexArrays(1, &dataVAO);
 	glDeleteBuffers(1, &dataVBO);
+
+	glDeleteVertexArrays(1, &axeVAO);
+	glDeleteBuffers(1, &axeVBO);
 }
 
+void	GAxe::initializeGL()
+{
+	if(m_program == 0)
+	{
+		m_program	= new QOpenGLShaderProgram;
+		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
+		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
+		m_program->link();
+
+		m_program->bind();
+		u_modelToWorld	= m_program->uniformLocation("modelToWorld");
+		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
+		u_cameraToView	= m_program->uniformLocation("cameraToView");
+		u_color			= m_program->uniformLocation("color");
+		m_program->release();
+	}
+
+	if(m_bOpenGL_inited)	return;
+	m_bOpenGL_inited	= true;
+
+	//Буфер для графика
+	glGenVertexArrays(1, &dataVAO);
+	glBindVertexArray(dataVAO);
+	glGenBuffers(1, &dataVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//Буфер для оси
+	glGenVertexArrays(1, &axeVAO);
+	glBindVertexArray(axeVAO);
+	glGenBuffers(1, &axeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	setAxeLength(3);
+}
+
+void	GAxe::setAxeLength(int len)
+{
+	//Установка длины оси
+	m_AxeLength	= len;
+
+	//Заливка данных в видеопамять
+	vector<vec2>	data;
+	for(int i = 0; i < m_AxeLength; i++)
+	{
+		data.push_back(vec2(-1.0f, 0 + 5.f*i));	data.push_back(vec2(0.f, 0 + 5.f*i));
+		data.push_back(vec2(-0.5f, 1 + 5.f*i));	data.push_back(vec2(0.f, 1 + 5.f*i));
+		data.push_back(vec2(-0.5f, 2 + 5.f*i));	data.push_back(vec2(0.f, 2 + 5.f*i));
+		data.push_back(vec2(-0.5f, 3 + 5.f*i));	data.push_back(vec2(0.f, 3 + 5.f*i));
+		data.push_back(vec2(-0.5f, 4 + 5.f*i));	data.push_back(vec2(0.f, 4 + 5.f*i));
+	}
+
+	//Верхний штрих
+	data.push_back(vec2(-1.0f, 5.f*m_AxeLength));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
+
+	//Вертикальная линия
+	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
+	m_Axe_nCount	= data.size();
+
+	glBindVertexArray(axeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
 
 void	GAxe::Save(QDomElement* node)
 {/*
@@ -175,7 +196,7 @@ void	GAxe::Load(QDomElement* node)
 	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
 	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
 	if(node->hasAttribute("Шаг"))			m_Scale			= node->attribute("Шаг").toDouble();
-	if(node->hasAttribute("Длина"))			m_Length		= node->attribute("Длина").toInt();
+	if(node->hasAttribute("Длина"))			setAxeLength(node->attribute("Длина").toInt());
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
 	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= 297 + node->attribute("Y_мм").toDouble();
 	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
@@ -205,18 +226,24 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(double t0, double t1, QRect area)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area)
 {
+	//Контроль деления на ноль
+	if(!TimeScale)	return;
+	if(!grid.height())	return;
+	if(!m_Scale)	return;
+
+	//Отрисовка только double
 	if(m_DataType != Double)	return;
 
 	//Определяем диапазон индексов
 	int nMin	= 0;
-	int nCount	= 0;
+	int nCount	= m_data.size()-1;
 	for(int i = 0; i < m_Data_Len; i++)
 	{
 		const vec2&	v	= m_data.at(i);
 		if(v.x < t0)	nMin	= i;
-		if(v.x > t1)
+		if(v.x > t0 + TimeScale*(area.width()/grid.width()))
 		{
 			nCount	= i - nMin;
 			break;
@@ -224,26 +251,30 @@ void	GAxe::Draw(double t0, double t1, QRect area)
 	}
 
 	//Формируем модельную матрицу
-	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(area.left(), m_BottomRight.y, 0.f));
-	dataModel	= scale(dataModel, vec3(5./50., 5./m_Scale, 0.f));
+	mat4 dataModel	= mat4(1.0f);
+	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
+	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
-//	dataModel	= translate(dataModel, vec3(0, m_Min, 0.f));
-
-	//glm::vec4	pt	= dataModel*glm::vec4(m_data.at(0).x, m_data.at(0).y, 0.f, 1.f);
-
-	m_program->bind();
 
 	//Заливаем матрицы в шейдер
+	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
+	//Рисуем график
 	glBindVertexArray(dataVAO);
 	glDrawArrays(GL_LINE_STRIP, nMin, nCount);
-	glBindVertexArray(0);
 	
+	//Рисуем шкалу
+	dataModel	= mat4(1.0f);
+	dataModel	= translate(dataModel, vec3(m_BottomRight, 0.f));
+	dataModel	= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glBindVertexArray(axeVAO);
+	glDrawArrays(GL_LINES, 0, m_Axe_nCount);
+	glBindVertexArray(0);
 	m_program->release();
 
 	/*
@@ -864,8 +895,9 @@ void	GAxe::Draw_DEC_S()
 	pDC->RestoreDC(-1);*/
 }
 
-void	GAxe::DrawFrame()
-{/*
+//void	GAxe::DrawFrame()
+//{
+/*
 	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
 
 	//Готовим графическое устройство
@@ -996,8 +1028,8 @@ void	GAxe::DrawFrame()
 		}
 	}
 
-	pDC->RestoreDC(-1);*/
-}
+	pDC->RestoreDC(-1);
+}*/
 
 void	GAxe::OnDoubleClick()
 {
@@ -1534,7 +1566,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 
 			if(m_DataType == Bool)
 			{
-				m_Length	= 1;
+				setAxeLength(1);
 				m_Min		= 0;
 				m_Scale		= 1;
 			}

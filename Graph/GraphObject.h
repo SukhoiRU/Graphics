@@ -1,6 +1,5 @@
 #ifndef GRAPH_OBJECT_H
 #define GRAPH_OBJECT_H
-#include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,16 +9,21 @@ using glm::mat4;
 using glm::scale;
 using glm::translate;
 using glm::rotate;
+#include <vector>
+using std::vector;
 
 namespace Graph{
 
 enum	GraphType {FIELD = 0, MARKER = 1, AXEARG = 2, AXE = 3, TEXT = 4};
 
-class GraphObject : public QOpenGLFunctions_3_3_Core
+class GraphObject// : public QOpenGLFunctions_3_3_Core
 {
 //////////////////////////////////////////////////////////////////////////////////
 //		Данные
 //////////////////////////////////////////////////////////////////////////////////
+protected:
+	bool			m_bOpenGL_inited;
+
 public:
 	bool			m_IsSelected;		//Признак выделения объекта
 	bool			m_IsMoving;			//Признак перетаскивания объекта
@@ -37,10 +41,11 @@ public:
 	GraphObject();
 	virtual ~GraphObject();
 
+	virtual void	initializeGL(){};
 	virtual void	UpdateRecord(bool bLoad = true){};					//Обновление данных о массиве
 
 	//Рисование
-	virtual void	Draw(double t0, double t1, QRect area){};					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area){};					//Полное рисование
 	virtual void	DrawFrame(){};				//Отрисовка только рамки
 
 	//Мышиные дела

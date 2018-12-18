@@ -33,5 +33,7 @@
         <file>Resources/images/save.png</file>
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
+        <file>shaders/gaxe.frag</file>
+        <file>shaders/gaxe.vert</file>
     </qresource>
 </RCC>

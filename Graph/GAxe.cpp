@@ -3,7 +3,30 @@
 #include <float.h>
 #include <QCursor>
 #include <QDomElement>
+#include "../Accumulation.h"
 
+/*
+#ifdef __gl_h_
+#undef __gl_h_
+#undef GL_INVALID_INDEX
+#undef GL_TIMEOUT_IGNORED
+
+#undef GL_VERSION_1_1
+#undef GL_VERSION_1_2
+#undef GL_VERSION_1_3
+#undef GL_VERSION_1_4
+#undef GL_VERSION_1_5
+#undef GL_VERSION_2_0
+#undef GL_VERSION_2_1
+
+#undef GL_VERSION_3_0
+#undef GL_VERSION_3_1
+#undef GL_VERSION_3_2
+#undef GL_VERSION_3_3
+#endif
+
+#include <glad/glad.h>
+*/
 QColor	GetColor(int n);
 int		GetMarker(int n);
 
@@ -14,6 +37,11 @@ double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
 double	GAxe::m_Width		= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
+QOpenGLShaderProgram*	GAxe::m_program	= 0;
+int		GAxe::u_modelToWorld	= 0;
+int		GAxe::u_worldToCamera	= 0;
+int		GAxe::u_cameraToView	= 0;
+int		GAxe::u_color			= 0;
 
 GAxe::GAxe()
 {
@@ -27,7 +55,7 @@ GAxe::GAxe()
 	m_OldPoint	= {0,0};
 	m_nSubTicks	= 5;
 	m_Offset	= -1;
-	m_KARP_Len	= 0;
+	m_Data_Len	= 0;
 	m_bShowNum	= false;
 	m_Length	= 3;
 	m_SpecWidth	= m_Width;
@@ -48,10 +76,44 @@ GAxe::GAxe()
 	m_Oscill_Ksi	= 0.7;
 	m_pOriginal		= 0;
 	m_bInterpol		= true;
+
+	//Программа шейдеров
+	initializeOpenGLFunctions();
+	if(m_program == 0)
+	{
+		m_program = new QOpenGLShaderProgram();
+		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
+		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
+		m_program->link();
+		m_program->bind();
+
+		//Cache Uniform Locations
+		u_modelToWorld	= m_program->uniformLocation("modelToWorld");
+		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
+		u_cameraToView	= m_program->uniformLocation("cameraToView");
+		u_color			= m_program->uniformLocation("color");
+		m_program->release();
+	}
+	{
+		m_program->bind();
+		//Create Buffer (Do not release until VAO is created)
+		glGenVertexArrays(1, &dataVAO);
+		glBindVertexArray(dataVAO);
+		glGenBuffers(1, &dataVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+		//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		m_program->release();
+	}
 }
 
 GAxe::~GAxe()
 {
+	glDeleteVertexArrays(1, &dataVAO);
+	glDeleteBuffers(1, &dataVBO);
 }
 
 
@@ -96,13 +158,26 @@ void	GAxe::Load(QDomElement* node)
 	if(node->hasAttribute("Путь"))			m_Path			= node->attribute("Путь");
 	if(node->hasAttribute("Накопление"))	m_nAcc			= node->attribute("Накопление").toInt();
 	if(node->hasAttribute("Имя_накопления"))m_AccName		= node->attribute("Имя_накопления");
-	if(node->hasAttribute("Цвет"))			m_Color			= node->attribute("Цвет");
+	if(node->hasAttribute("Цвет"))			
+	{
+		//Разбираем текст на компоненты
+		QString	colorText	= node->attribute("Цвет");
+		colorText.remove('(');
+		colorText.remove(')');
+		QStringList	colors	= colorText.split(",");
+		if(colors.size() == 3)
+		{
+			m_Color.r	= colors.at(0).toInt()/255.;
+			m_Color.g	= colors.at(1).toInt()/255.;
+			m_Color.b	= colors.at(2).toInt()/255.;
+		}
+	}
 	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
 	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
 	if(node->hasAttribute("Шаг"))			m_Scale			= node->attribute("Шаг").toDouble();
 	if(node->hasAttribute("Длина"))			m_Length		= node->attribute("Длина").toInt();
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
-	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= node->attribute("Y_мм").toDouble();
+	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= 297 + node->attribute("Y_мм").toDouble();
 	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
 	if(node->hasAttribute("Толщина"))		m_SpecWidth		= node->attribute("Толщина").toDouble();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
@@ -130,8 +205,48 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw()
-{/*
+void	GAxe::Draw(double t0, double t1, QRect area)
+{
+	if(m_DataType != Double)	return;
+
+	//Определяем диапазон индексов
+	int nMin	= 0;
+	int nCount	= 0;
+	for(int i = 0; i < m_Data_Len; i++)
+	{
+		const vec2&	v	= m_data.at(i);
+		if(v.x < t0)	nMin	= i;
+		if(v.x > t1)
+		{
+			nCount	= i - nMin;
+			break;
+		}
+	}
+
+	//Формируем модельную матрицу
+	dataModel	= mat4(1.0f);
+	dataModel	= translate(dataModel, vec3(area.left(), m_BottomRight.y, 0.f));
+	dataModel	= scale(dataModel, vec3(5./50., 5./m_Scale, 0.f));
+	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
+//	dataModel	= translate(dataModel, vec3(0, m_Min, 0.f));
+
+	//glm::vec4	pt	= dataModel*glm::vec4(m_data.at(0).x, m_data.at(0).y, 0.f, 1.f);
+
+	m_program->bind();
+
+	//Заливаем матрицы в шейдер
+	glUniform3fv(u_color, 1, &m_Color.r);
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+
+	glBindVertexArray(dataVAO);
+	glDrawArrays(GL_LINE_STRIP, nMin, nCount);
+	glBindVertexArray(0);
+	
+	m_program->release();
+
+	/*
 	if(!m_pDoc->m_pArg->m_bUseTime)
 	{
 		Draw_DEC_S(pDC);
@@ -1361,16 +1476,16 @@ void	GAxe::FitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	}*/
 }
 
-void	GAxe::UpdateRecord(bool bLoad)
-{/*
+void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
+{
 	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
-	if(m_nAcc == -1 || m_nAcc >= m_pDoc->GetBufArray().size())
+	if(m_nAcc == -1 || m_nAcc >= pData->size())
 	{
 		m_Record	= -1;
 		return;
 	}
 
-	const Accumulation*				pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
+	const Accumulation*				pBuffer		= pData->at(m_nAcc);
 	const Accumulation::HeaderList&	Head		= pBuffer->GetHeader();
 
 	//Перебираем все элементы заголовка накопления
@@ -1380,7 +1495,7 @@ void	GAxe::UpdateRecord(bool bLoad)
 		const Accumulation::HeaderElement&	H	= Head[posHead];
 		
 		//Для каждого элемента собираем путь
-		CString	Path;
+		QString	Path;
 		for(size_t pos = 0; pos < H.Desc.size(); pos++)
 		{
 			const Accumulation::Level& L	= H.Desc[pos];
@@ -1392,7 +1507,7 @@ void	GAxe::UpdateRecord(bool bLoad)
 		{
 			m_Record	= AccIndex;
 			m_Offset	= H.Offset;
-			m_KARP_Len	= H.Length;
+			m_Data_Len	= H.Length;
 			m_K_short	= H.K;
 
 			//Тут же уточняем тип данных
@@ -1425,24 +1540,38 @@ void	GAxe::UpdateRecord(bool bLoad)
 			}
 		
 			//Для Ориона подгружаем данные из большого файла
-			if(pBuffer->GetType() == Acc_Orion && bLoad)
+			if(pBuffer->GetType() == Acc_Orion)
 			{
 				m_pOrionTime	= pBuffer->GetOrionTime(H);
 				m_pOrionData	= pBuffer->GetOrionData(H);
 
+				m_data.clear();
+				for(int i = 0; i < m_Data_Len; i++)
+				{
+					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));
+				}
+
+				//Загружаем данные в видеопамять
+				glBindVertexArray(dataVAO);
+				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glBindVertexArray(0);
+
+				//Обработка ошибок памяти
 				if(!m_pOrionTime || !m_pOrionData)
 				{
 					m_pOrionTime	= 0;
 					m_pOrionData	= 0;
 
 					//Выставляем признак недействительности указателей в текущей панели
-					if(!m_pDoc->IsInvalidOrion())
-						m_pDoc->InvalidatePanel(m_nAcc);
-					else
-					{
-						//Обновление текущей панели не удалось
-						AfxMessageBox("На текущей панели слишком много графиков!", MB_ICONERROR);
-					}
+					//if(!m_pDoc->IsInvalidOrion())
+					//	m_pDoc->InvalidatePanel(m_nAcc);
+					//else
+					//{
+					//	//Обновление текущей панели не удалось
+					//	QMessageBox::critical(nullptr, "Орион", "На текущей панели слишком много графиков!");
+					//}
 				}
 			}
 
@@ -1454,7 +1583,7 @@ void	GAxe::UpdateRecord(bool bLoad)
 	}
 
 	//Раз не нашли, то...
-	m_Record	= -1;*/
+	m_Record	= -1;
 }
 
 //Отрисовка маркера в заданных координатах

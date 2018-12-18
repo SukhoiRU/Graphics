@@ -2,10 +2,16 @@
 #define GAXE_H
 
 #include "GraphObject.h"
-//#include "..\Accumulation.h"
-#include <QColor>
+#include <vector>
+using std::vector;
+#include <glm/glm.hpp>
+using glm::vec2;
+
+
 class QCursor;
 class QDomElement;
+class Accumulation;
+class QOpenGLShaderProgram;
 
 namespace Graph{
 
@@ -27,13 +33,27 @@ private:
 	DataType		m_DataType;		//Тип отображаемых данных
 
 	int				m_Offset;		//Смещение в записи		
-	int				m_KARP_Len;		//Длина для КАРП-Р
+	int				m_Data_Len;		//Длина для Орион
 	int				m_MaskSRK;		//Маска СРК
 	double			m_K_short;		//Масштаб для записей *.mig
 
 	double*			m_pOrionTime;	//Время Ориона из большого файла
-        char*			m_pOrionData;	//Данные Ориона
-        char*			m_pOriginal;	//Копия исходного сигнала
+    BYTE*			m_pOrionData;	//Данные Ориона
+    BYTE*			m_pOriginal;	//Копия исходного сигнала
+
+	//Данные для OpenGL
+	vector<vec2>	m_data;
+	GLuint	dataVAO, dataVBO;
+	GLuint	axeVAO, axeVBO;
+	mat4	dataModel;
+	mat4	axeModel;
+
+	//Shader Information
+	static QOpenGLShaderProgram*	m_program;
+	static int		u_modelToWorld;
+	static int		u_worldToCamera;
+	static int		u_cameraToView;
+	static int		u_color;
 
 public:
 	QString			m_Name;			//Название оси
@@ -48,7 +68,7 @@ public:
 	double			m_Scale;		//Цена деления, физическая величина клетки
 	int				m_nSubTicks;	//Количество мелких штрихов	
 
-	QColor	  		m_Color;		//Цвет графика
+	vec3	  		m_Color;		//Цвет графика
 	bool			m_bShowNum;		//Признак отрисовки номера накопления
 	static double 	m_FontScale;	//Масштабный коэффициент шрифта
 	static double 	m_TickSize;		//Размер штриха, мм
@@ -79,10 +99,10 @@ public:
 	//Запись-чтение
 	virtual void	Save(QDomElement* node);		//Сохранение XML
 	virtual void	Load(QDomElement* node);		//Чтение XML
-	virtual void	UpdateRecord(bool bLoad = true);//Обновление данных о массиве
+	void			UpdateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
 	
 	//Рисование
-	virtual void	Draw();					//Полное рисование
+	virtual void	Draw(double t0, double t1, QRect area);					//Полное рисование
 	virtual void	DrawFrame();			//Отрисовка только рамки
 
 	//Мышиные дела
@@ -104,8 +124,8 @@ public:
 	//Служебные функции
 private:
 //	GRect	GetFrameRect();							//Получение обрамляющего прямоугольника
-	void	DrawMarker(int x, int y);		//Отрисовка маркера в заданных координатах
-	void	Draw_DEC_S();					//Отрисовка для вторички
+	void	DrawMarker(int x, int y);				//Отрисовка маркера в заданных координатах
+	void	Draw_DEC_S();							//Отрисовка для вторички
 
 public:
 	void		SetPosition(double x, double y);		//Начальная установка координат

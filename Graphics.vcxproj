@@ -481,6 +481,8 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\gaxe.frag" />
+    <None Include="shaders\gaxe.vert" />
     <None Include="shaders\simple.frag" />
     <None Include="shaders\simple.vert" />
   </ItemGroup>

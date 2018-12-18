@@ -36,6 +36,7 @@ public:
     explicit GraphicsDoc(QWidget *parent = 0);
     ~GraphicsDoc();
 
+	void LoadScreen(QString FileName);
 	void LoadOrion(QString FileName);
 
 private slots:

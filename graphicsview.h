@@ -4,6 +4,8 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
+using glm::vec2;
+using glm::mat4;
 #include <vector>
 using std::vector;
 
@@ -11,6 +13,7 @@ class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
 namespace Graph{
+class GraphObject;
 class GAxe;
 }
 
@@ -57,22 +60,24 @@ private:
 	QRect		graphBorders;
 	QSize		gridStep;
 	int			nGridCount;
-	glm::vec2	m_mousePos;
+	vec2		m_mousePos;
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;
-    vector<Graph::GAxe*>*  m_pPanel;
+    vector<Graph::GAxe*>*  m_pPanel;	//Указатель на панель
+	vector<Graph::GraphObject*>	m_GraphObjects;
+	double		Time0;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*		m_program;
 	GLuint	pageVAO, pageVBO;
 
-	// Shader Information
-	int u_modelToWorld;
-	int u_worldToCamera;
-	int u_cameraToView;
-	glm::mat4	m_proj;
-	glm::mat4	m_view;
+	//Shader Information
+	int		u_modelToWorld;
+	int		u_worldToCamera;
+	int		u_cameraToView;
+	mat4	m_proj;
+	mat4	m_view;
 };
 
 #endif // GRAPHICS_VIEW_H

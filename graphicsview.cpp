@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QSvgGenerator>
 #include "Dialogs/pageSetup.h"
+#include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
 
 /*
@@ -108,11 +109,11 @@ void GraphicsView::initializeGL()
 //    FT_Init_FreeType(&ft);
 
 	// Set global information
-//	gladLoadGL();
+	//gladLoadGL();
     initializeOpenGLFunctions();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-    glDisable(GL_BLEND);
+    glEnable(GL_BLEND);
     glEnable(GL_MULTISAMPLE);
 
 	// Application-specific initialization
@@ -261,12 +262,23 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-	// Clear
+	//Очистка вида
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	// Render using our shader
 	m_program->bind();
-	glm::mat4	m_model(1.0f);
+	
+	//Модельная матрица без сдвигов
+	mat4	m_model(1.0f);
+
+	//Устанавливаем матрицы для объектов
+	Graph::GraphObject::m_proj	= m_proj;
+	Graph::GraphObject::m_view	= m_view;
+
+	QRect	rc;
+	rc.setBottomLeft(pageBorders.topLeft()+graphBorders.topLeft());
+	rc.setWidth(graphBorders.width());
+	rc.setHeight(graphBorders.height());
+
+	//Заливаем матрицы в шейдер
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
     glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
     glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
@@ -279,9 +291,25 @@ void GraphicsView::paintGL()
 		//Рамка и сетка
 		glDrawArrays(GL_LINES, 8, 8+nGridCount);
 		
+		//Рисуем список графических объектов
+		for(size_t i = 0; i < m_GraphObjects.size(); i++)
+		{
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			pGraph->Draw(Time0, 2800, rc);
+		}
+
+		m_program->bind();
+
+		//Заливаем матрицы в шейдер
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
+		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+		glBindVertexArray(pageVAO);
+
 		//Перекрестие мыши
 		if(m_bOnMouse)
 			glDrawArrays(GL_LINES, 0, 4);
+
 
 		glBindVertexArray(0);
 	}
@@ -373,19 +401,20 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-    GLfloat	angle	= glm::radians(0.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
-    GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
-    GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	angle	= glm::radians(5.)*sin(0.3*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
+	Time0	= 200 + 50*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
 
-    m_view  = glm::mat4(1.0f);
-    m_view	= glm::scale(m_view, glm::vec3(m_scale,m_scale,1.f));
-    m_view	= glm::translate(m_view, -glm::vec3(0.f, pageSize.height(), dist));
-    m_view	= glm::translate(m_view, -glm::vec3(hBar->value(), -vBar->value(), 0.f));
+    m_view  = mat4(1.0f);
+    m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
+    m_view	= translate(m_view, -vec3(0.f, pageSize.height(), dist));
+    m_view	= translate(m_view, -vec3(hBar->value(), -vBar->value(), 0.f));
 
-    m_view  = translate(m_view, glm::vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
-    m_view  = rotate(m_view, angle, glm::vec3(0.f,0.f,1.0f));
-    m_view  = translate(m_view, -glm::vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
+    m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
+    m_view  = rotate(m_view, angle, vec3(0.f,0.f,1.0f));
+    m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
 	QOpenGLWidget::update();
@@ -432,7 +461,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
 	//Получаем мышь в поле графиков
-	glm::mat4	graphM	= glm::translate(glm::mat4(1), glm::vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+	glm::mat4	graphM	= glm::translate(mat4(1), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
 
 	//Сохраняем в классе
@@ -473,5 +502,13 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 {
+	//Запоминаем новый список осей
     m_pPanel	= axes;
+
+	//Перестраиваем список графических объектов
+	m_GraphObjects.clear();
+	for(size_t i = 0; i < axes->size(); i++)
+	{
+		m_GraphObjects.push_back(axes->at(i));
+	}
 }

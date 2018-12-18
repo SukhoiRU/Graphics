@@ -60,6 +60,11 @@ void GraphicsDoc::on_actionOpen_triggered()
     QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
     if(FileName.isEmpty())  return;
 
+	LoadScreen(FileName);
+}
+
+void GraphicsDoc::LoadScreen(QString FileName)
+{
     // TODO: Add your dispatch handler code here
     QFile	file(FileName);
     if(!file.open(QFile::ReadOnly))
@@ -222,7 +227,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
     {
         Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
         Axe->ClearFiltering();
-        Axe->UpdateRecord();
+        Axe->UpdateRecord(&m_BufArray);
     }
 }
 
@@ -244,6 +249,15 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
 	if(index == -1)	return;
     if(index > (int)(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
+
+	//Обновим данные осей
+	for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
+	{
+		Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
+		Axe->ClearFiltering();
+		Axe->UpdateRecord(&m_BufArray);
+	}
+
     emit panelChanged(&m_pActivePanel->Axes);
 }
 

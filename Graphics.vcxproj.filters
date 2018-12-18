@@ -205,5 +205,7 @@
   <ItemGroup>
     <None Include="shaders\simple.frag" />
     <None Include="shaders\simple.vert" />
+    <None Include="shaders\gaxe.frag"  />
+    <None Include="shaders\gaxe.vert"  />
   </ItemGroup>
 </Project>

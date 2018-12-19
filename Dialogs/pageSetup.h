@@ -17,10 +17,10 @@ public:
 	~PageSetup();
 
 	void	load_data();
-	QSize	pageSize;
-	QRect	pageBorders;
-	QRect	graphBorders;
-	QSize	gridStep;
+	QSizeF	pageSize;
+	QRectF	pageBorders;
+	QRectF	graphBorders;
+	QSizeF	gridStep;
     float   zoom;
 
 private slots:

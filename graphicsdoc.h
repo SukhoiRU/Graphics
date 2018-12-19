@@ -1,7 +1,6 @@
 #ifndef GRAPHICSDOC_H
 #define GRAPHICSDOC_H
 
-#include <QMainWindow>
 #include <vector>
 using std::vector;
 

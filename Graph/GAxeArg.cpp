@@ -29,6 +29,7 @@ void	GAxeArg::initializeGL()
 {
 	if(m_bOpenGL_inited)	return;
 	m_bOpenGL_inited	= true;
+//	initializeOpenGLFunctions();
 
 	m_program	= new QOpenGLShaderProgram;
 	m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxearg.vert");
@@ -76,7 +77,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
@@ -91,8 +92,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, c
 	//Проверяем, надо ли обновлять данные
 	if((TimeScale != oldTimeScale) ||
 		(grid.width()	!= oldGrid.width()) ||
-	   (area.width() != oldArea.width()) ||
-	   t0 != oldTime)
+	   (area.width() != oldArea.width()))
 	{
 		//Запоминаем предыдущие значения
 		oldTimeScale	= TimeScale;
@@ -102,6 +102,13 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, c
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
 		vector<Vertex>	dataAxe;
+
+		//Квадрат для трафарета
+		vec3	color(1.0f);
+		dataGrid.push_back(Vertex(vec2(1.f, 0.f), color));
+		dataGrid.push_back(Vertex(vec2(0.f, 0.f), color));
+		dataGrid.push_back(Vertex(vec2(1.f, 1.f), color));
+		dataGrid.push_back(Vertex(vec2(0.f, 1.f), color));
 
 		//Вертикальные линии
 		int n	= 0;
@@ -114,7 +121,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, c
 			if(!(n%5))
 			{
 				//Каждый пятый штрих оси рисуем вертикальную линию
-				vec3	color	= (0.85f - 0.55f*(((n+5*nSkip)%25) == 0))*vec3(1.f);
+				vec3	color	= (0.85f - 0.0f*(((n+5*nSkip)%25) == 0))*vec3(1.f);
 				dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
 				dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
 			}
@@ -148,7 +155,6 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, c
 	//Заливаем матрицы
 	mat4	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
-//	dataModel	= scale(dataModel, vec3(grid.width(), grid.height(), 0.0f));
 
 	m_program->bind();
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
@@ -157,15 +163,41 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSize& grid, c
 
 	//Рисуем сетку
 	glBindVertexArray(gridVAO);
-	glDrawArrays(GL_LINES, 0, nCountGrid);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glDrawArrays(GL_LINES, 4, nCountGrid-4);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	//Рисуем ось
+	{
+		//Трафарет для оси
+		glStencilMask(0xFF);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+		//Растягиваем прямоугольник на всю область
+		mat4	areaMat(1.0f);
+		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= scale(areaMat, vec3(area.width(), -1.5f, 1.0f));
+
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+	}
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
 	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.5f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glBindVertexArray(axeVAO);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	m_program->release();
 }
 

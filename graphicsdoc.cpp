@@ -19,6 +19,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui->setupUi(this);
 	ui->oglView->vBar	= ui->verticalScrollBar;
 	ui->oglView->hBar	= ui->horizontalScrollBar;
+
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 
@@ -43,8 +44,6 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 
 GraphicsDoc::~GraphicsDoc()
 {
-    delete ui;
-
 	//Очищаем список панелей
     for(size_t i = 0; i < m_PanelList.size(); i++)
 	{
@@ -52,6 +51,9 @@ GraphicsDoc::~GraphicsDoc()
 		delete p;
 	}
 	m_PanelList.clear();
+
+	delete ui->oglView;
+	delete ui;
 }
 
 void GraphicsDoc::on_actionOpen_triggered()
@@ -255,6 +257,7 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
 	{
 		Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
 		Axe->ClearFiltering();
+		Axe->initializeGL();
 		Axe->UpdateRecord(&m_BufArray);
 	}
 

@@ -1,5 +1,7 @@
 #include <QtGui>
 #include <QtWidgets>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_3_Core>
 
 #ifdef __gl_h_
 #undef __gl_h_

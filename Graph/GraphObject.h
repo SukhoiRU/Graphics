@@ -45,7 +45,7 @@ public:
 	virtual void	UpdateRecord(bool bLoad = true){};					//Обновление данных о массиве
 
 	//Рисование
-	virtual void	Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area){};					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area){};					//Полное рисование
 	virtual void	DrawFrame(){};				//Отрисовка только рамки
 
 	//Мышиные дела

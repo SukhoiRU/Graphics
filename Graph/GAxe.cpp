@@ -13,11 +13,11 @@ double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
 double	GAxe::m_Width		= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
-QOpenGLShaderProgram*	GAxe::m_program	= 0;
-int		GAxe::u_modelToWorld	= 0;
-int		GAxe::u_worldToCamera	= 0;
-int		GAxe::u_cameraToView	= 0;
-int		GAxe::u_color			= 0;
+//QOpenGLShaderProgram*	GAxe::m_program	= 0;
+//int		GAxe::u_modelToWorld	= 0;
+//int		GAxe::u_worldToCamera	= 0;
+//int		GAxe::u_cameraToView	= 0;
+//int		GAxe::u_color			= 0;
 
 GAxe::GAxe()
 {
@@ -61,11 +61,14 @@ GAxe::~GAxe()
 
 	glDeleteVertexArrays(1, &axeVAO);
 	glDeleteBuffers(1, &axeVBO);
+	delete m_program;
 }
 
 void	GAxe::initializeGL()
 {
-	if(m_program == 0)
+//	initializeOpenGLFunctions();
+
+//	if(m_program == 0)
 	{
 		m_program	= new QOpenGLShaderProgram;
 		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
@@ -88,7 +91,7 @@ void	GAxe::initializeGL()
 	glBindVertexArray(dataVAO);
 	glGenBuffers(1, &dataVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
@@ -131,6 +134,7 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
 	m_Axe_nCount	= data.size();
 
+	if(!m_bOpenGL_inited) return;
 	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
@@ -226,7 +230,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
@@ -250,23 +254,42 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSize& grid, cons
 		}
 	}
 
+	//Заливаем матрицы в шейдер
+	m_program->bind();
+	glUniform3fv(u_color, 1, &m_Color.r);
+	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glBindVertexArray(dataVAO);
+
+	//Область графиков для трафарета
+	{
+		mat4	areaMat(1.0f);
+		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+
+		glStencilMask(0xFF);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	}
+
 	//Формируем модельную матрицу
 	mat4 dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
-
-	//Заливаем матрицы в шейдер
-	m_program->bind();
-	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 	//Рисуем график
-	glBindVertexArray(dataVAO);
-	glDrawArrays(GL_LINE_STRIP, nMin, nCount);
-	
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	if(nCount > 0)	glDrawArrays(GL_LINE_STRIP, nMin+4, nCount-4);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
 	//Рисуем шкалу
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(m_BottomRight, 0.f));
@@ -1578,6 +1601,10 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				m_pOrionData	= pBuffer->GetOrionData(H);
 
 				m_data.clear();
+				m_data.push_back(vec2(1.f, 0.f));
+				m_data.push_back(vec2(0.f, 0.f));
+				m_data.push_back(vec2(1.f, 1.f));
+				m_data.push_back(vec2(0.f, 1.f));
 				for(int i = 0; i < m_Data_Len; i++)
 				{
 					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));

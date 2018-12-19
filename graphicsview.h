@@ -1,8 +1,6 @@
 #ifndef GRAPHICS_VIEW_H
 #define GRAPHICS_VIEW_H
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions_3_3_Core>
 #include <glm/glm.hpp>
 using glm::vec2;
 using glm::mat4;
@@ -12,6 +10,7 @@ using std::vector;
 class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
+
 namespace Graph{
 class GraphObject;
 class GAxe;
@@ -55,12 +54,11 @@ protected:
 
 private:
 	//Информация о странице
-	QSize		pageSize;
-	QRect		pageBorders;
+	QSizeF		pageSize;
+	QRectF		pageBorders;
 	GLfloat		bdWidth;	//Толщина линии рамки
-	QRect		graphBorders;
-	QSize		gridStep;
-	int			nGridCount;
+	QRectF		graphBorders;
+	QSizeF		gridStep;
 	vec2		m_mousePos;
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]

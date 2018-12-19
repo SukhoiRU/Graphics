@@ -44,11 +44,11 @@ private:
 	GLuint	axeVAO, axeVBO;
 
 	//Shader Information
-	static QOpenGLShaderProgram*	m_program;
-	static int		u_modelToWorld;
-	static int		u_worldToCamera;
-	static int		u_cameraToView;
-	static int		u_color;
+	QOpenGLShaderProgram*	m_program;
+	int		u_modelToWorld;
+	int		u_worldToCamera;
+	int		u_cameraToView;
+	int		u_color;
 
 public:
 	QString			m_Name;			//Название оси
@@ -97,7 +97,7 @@ public:
 	
 	//Рисование
 	virtual void	initializeGL();
-	virtual void	Draw(const double t0, const double TimeScale, const QSize& grid, const QRect& area);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);					//Полное рисование
 //	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела

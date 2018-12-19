@@ -27,7 +27,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(16);
+    format.setSamples(4);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -47,6 +47,14 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	gridStep.setWidth(5);
 
     m_scale = 4.0f;
+
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	pageSize	= settings.value("GraphicsView/pageSize", pageSize).toSize();
+	pageBorders	= settings.value("GraphicsView/pageBorders", pageBorders).toRectF();
+	graphBorders	= settings.value("GraphicsView/graphBorders", graphBorders).toRectF();
+	gridStep	= settings.value("GraphicsView/gridStep", gridStep).toSize();
+	m_scale		= settings.value("GraphicsView/m_scale", m_scale).toFloat();
+
 	bdWidth	= 0.1f;
 
 	setMouseTracking(true);    
@@ -62,7 +70,17 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 GraphicsView::~GraphicsView()
 {
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.setValue("GraphicsView/pageSize", pageSize);
+	settings.setValue("GraphicsView/pageBorders", pageBorders);
+	settings.setValue("GraphicsView/graphBorders", graphBorders);
+	settings.setValue("GraphicsView/gridStep", gridStep);
+	settings.setValue("GraphicsView/m_scale", m_scale);
+	settings.sync();
+
 	delete	axeArg;
+	if(pPageSetup)
+		delete pPageSetup;
 	teardownGL();
 }
 
@@ -84,13 +102,10 @@ void GraphicsView::initializeGL()
 
 	// Set global information
 	gladLoadGL();
+	//initializeOpenGLFunctions();
 	oglInited	= true;
-    //initializeOpenGLFunctions();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-    glEnable(GL_BLEND);
-    glEnable(GL_MULTISAMPLE);
-
+	 
 	// Application-specific initialization
 	{
 		//Create Shader (Do not release until VAO is created)
@@ -131,66 +146,33 @@ QColor  getColor(vec3 c)    {return QColor(c.r*255, c.g*255, c.b*255);}
 void	GraphicsView::updatePageBuffer()
 {
 	std::vector<Vertex>	data;
+	vec3	color(1.0f);
 
 	//Перекрестие мыши
-	data.push_back(Vertex(vec2(m_mousePos.x, pageBorders.bottom()+graphBorders.bottom()), vec3(0.0f, 0.0f, 1.0f)));
-	data.push_back(Vertex(vec2(m_mousePos.x, pageSize.height()-pageBorders.top()-graphBorders.top()), vec3(0.0f, 0.0f, 1.0f)));
-	data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left(), m_mousePos.y), vec3(0.0f, 0.0f, 1.0f)));
-	data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right()-graphBorders.right(), m_mousePos.y), vec3(0.0f, 0.0f, 1.0f)));
+	color	= vec3(0.0f, 0.0f, 1.0f);
+	data.push_back(Vertex(vec2(-1.f, 0.f), color));
+	data.push_back(Vertex(vec2(1.f, 0.f), color));
+	data.push_back(Vertex(vec2(0.f, -1.f), color));
+	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
 	//Белый лист
-    data.push_back(Vertex(vec2(0., 0.),																		vec3(1.0f, 1.0f, 1.0f)));
-    data.push_back(Vertex(vec2(pageSize.width(), 0.),														vec3(1.0f, 1.0f, 1.0f)));
-    data.push_back(Vertex(vec2(0., pageSize.height()),														vec3(1.0f, 1.0f, 1.0f)));
-    data.push_back(Vertex(vec2(pageSize.width(), pageSize.height()),										vec3(1.0f, 1.0f, 1.0f)));
+    data.push_back(Vertex(vec2(0., 0.),																		vec3(1.0f)));
+    data.push_back(Vertex(vec2(pageSize.width(), 0.),														vec3(1.0f)));
+    data.push_back(Vertex(vec2(0., pageSize.height()),														vec3(1.0f)));
+    data.push_back(Vertex(vec2(pageSize.width(), pageSize.height()),										vec3(1.0f)));
 
 	//Черная рамка
-	data.push_back(Vertex(vec2(pageBorders.left(), pageBorders.bottom()),									vec3(0.0f, 0.0f, 0.0f)));
-    data.push_back(Vertex(vec2(pageBorders.left(), pageSize.height()-pageBorders.top()),					vec3(0.0f, 0.0f, 0.0f)));    
-	data.push_back(Vertex(vec2(pageBorders.left(), pageSize.height()-pageBorders.top()),					vec3(0.0f, 0.0f, 0.0f)));    
-    data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageSize.height()-pageBorders.top()),	vec3(0.0f, 0.0f, 0.0f)));    
-    data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageSize.height()-pageBorders.top()),	vec3(0.0f, 0.0f, 0.0f)));    
-    data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageBorders.bottom()),					vec3(0.0f, 0.0f, 0.0f)));
-	data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageBorders.bottom()),					vec3(0.0f, 0.0f, 0.0f)));	
-	data.push_back(Vertex(vec2(pageBorders.left(), pageBorders.bottom()),									vec3(0.0f, 0.0f, 0.0f)));
+	data.push_back(Vertex(vec2(pageBorders.left(), pageBorders.bottom()),									vec3(0.0f)));
+    data.push_back(Vertex(vec2(pageBorders.left(), pageSize.height()-pageBorders.top()),					vec3(0.0f)));    
+    data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageSize.height()-pageBorders.top()),	vec3(0.0f)));    
+    data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right(), pageBorders.bottom()),					vec3(0.0f)));
 
-
-	//Сетка
-	nGridCount	= data.size();
-	int n	= 0;
-	for(float x0 = pageBorders.left()+graphBorders.left(); x0 <= (pageSize.width()-pageBorders.right()-graphBorders.right()); x0 += gridStep.width())
-	{
-		//Вертикальные линии
-		if(!(n%5))
-		{
-            data.push_back(Vertex(vec2(x0, pageBorders.bottom()+graphBorders.bottom()),				0.85f*vec3(1.f)));
-            data.push_back(Vertex(vec2(x0, pageSize.height()-pageBorders.top()-graphBorders.top()), 0.85f*vec3(1.f)));
-		}
-		else
-		{
-			data.push_back(Vertex(vec2(x0, pageBorders.bottom()+graphBorders.bottom()),				0.9f*vec3(1.f)));
-			data.push_back(Vertex(vec2(x0, pageSize.height()-pageBorders.top()-graphBorders.top()), 0.9f*vec3(1.f)));
-		}
-		n++;
-	}
-
-	n	= 0;
-	for(float y0 = pageBorders.bottom()+graphBorders.bottom(); y0 <= (pageSize.height()-pageBorders.top()-graphBorders.top()); y0 += gridStep.height())
-	{
-		//Горизонтальные линии
-		if(!(n%5))
-		{
-            data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left(), y0),						0.85f*vec3(1.0f)));
-            data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right()-graphBorders.right(), y0),	0.85f*vec3(1.0f)));
-		}
-		else
-		{
-            data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left(), y0),						0.9f*vec3(1.0f)));
-            data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right()-graphBorders.right(), y0),	0.9f*vec3(1.0f)));
-		}
-		n++;
-	}
-	nGridCount	= data.size()-nGridCount;
+	//Область графиков
+	color	= vec3(1.0f);
+	data.push_back(Vertex(vec2(1.f, 0.f), color));
+	data.push_back(Vertex(vec2(0.f, 0.f), color));
+	data.push_back(Vertex(vec2(1.f, 1.f), color));
+	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
 	//Пересоздаем буфер
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
@@ -200,12 +182,12 @@ void	GraphicsView::updatePageBuffer()
 void GraphicsView::resizeGL(int width, int height)
 {
     vBar->setMinimum(0);
-    vBar->setMaximum(max(0.f, pageSize.height()-height/m_scale));
+    vBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
     vBar->setPageStep(50);
     vBar->setSingleStep(1);
 
     hBar->setMinimum(0);
-    hBar->setMaximum(max(0.f, pageSize.width()-width/m_scale));
+    hBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
     hBar->setPageStep(50);
     hBar->setSingleStep(1);
 
@@ -223,24 +205,28 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
+	glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_STENCIL_TEST);
+
 	//Очистка вида
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	//Модельная матрица без сдвигов
-	mat4	m_model(1.0f);
+	glStencilMask(0xFF);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	//Устанавливаем матрицы для объектов
 	Graph::GraphObject::m_proj	= m_proj;
 	Graph::GraphObject::m_view	= m_view;
 
-	QRect	rc;
-	rc.setX(pageBorders.left()+graphBorders.left());
-	rc.setY(pageBorders.bottom()+graphBorders.bottom());
-	rc.setWidth(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right());
-	rc.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
+	QRectF	area;
+	area.moveBottomLeft(pageBorders.bottomLeft() + graphBorders.bottomLeft());
+	area.setWidth(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right());
+	area.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
 
 	//Заливаем матрицы в шейдер
 	m_program->bind();
+
+	//Модельная матрица без сдвигов
+	mat4	m_model(1.0f);
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
     glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
     glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
@@ -250,33 +236,62 @@ void GraphicsView::paintGL()
 		//Два треугольника листа
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 
-		//Рамка и сетка
-		glDrawArrays(GL_LINES, 8, 8+0*nGridCount);
-		
+		//Рамка
+		glDrawArrays(GL_LINE_LOOP, 8, 4);
+	
 		//Рисуем список графических объектов
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			pGraph->Draw(Time0, TimeScale, gridStep, rc);
+			pGraph->Draw(Time0, TimeScale, gridStep, area);
 		}
 
 		//Рисуем мышь
-		m_program->bind();
-
-		//Заливаем матрицы в шейдер
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
-		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-		glBindVertexArray(pageVAO);
-
-		//Перекрестие мыши
 		if(m_bOnMouse)
+		{
+			m_program->bind();
+			//Заливаем матрицы в шейдер
+			glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+			glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+
+			//Растягиваем прямоугольник на всю область
+			QRectF	area;
+			area.moveBottomLeft(pageBorders.bottomLeft() + QPointF(0, graphBorders.bottom()));
+			area.setWidth(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.right());
+			area.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
+
+			mat4	areaMat(1.0f);
+			areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+
+			//Трафарет для оси
+			glBindVertexArray(pageVAO);
+			glStencilMask(0xFF);
+			glClear(GL_STENCIL_BUFFER_BIT);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+			glStencilMask(0x00);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+			//Растягиваем единичные палки мыши во всю область
+			areaMat	= mat4(1.0f);
+			areaMat	= translate(areaMat, vec3(m_mousePos.x, m_mousePos.y, 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+			glStencilFunc(GL_EQUAL, 1, 0xFF);			
 			glDrawArrays(GL_LINES, 0, 4);
-		glBindVertexArray(0);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glBindVertexArray(0);
+		}
 	}
 	m_program->release();
 
-
+/*
     QPainter    painter(this);
 	painter.translate(0, pageSize.height()*m_scale);
 	painter.scale(m_scale, m_scale);
@@ -289,7 +304,7 @@ void GraphicsView::paintGL()
 	painter.drawText(pageBorders.left()+graphBorders.left(), -150, 50, 50, 0, "Привет");
 
 //    paintOverGL(&painter);
-
+*/
 }
 
 void GraphicsView::paintOverGL(QPainter* p)
@@ -339,7 +354,7 @@ void GraphicsView::paintOverGL(QPainter* p)
 
 void GraphicsView::saveSVG()
 {
-    QSvgGenerator generator;
+/*  QSvgGenerator generator;
     generator.setFileName("c:\\Users\\zasovin\\Documents\\Visual Studio 2015\\Projects\\MFC_GLFW\\3b_CameraControl_07.10.2018\\my_svg.svg");
     generator.setSize(pageSize*m_scale);
 //    generator.setViewBox(QRect(0, 0, pageSize.width(), pageSize.height()));
@@ -351,7 +366,7 @@ void GraphicsView::saveSVG()
     QPainter painter;
     painter.begin(&generator);
     paintOverGL(&painter);
-    painter.end();
+    painter.end();*/
 }
 
 void GraphicsView::setScale(float scale)
@@ -359,8 +374,8 @@ void GraphicsView::setScale(float scale)
     if(scale != m_scale)
     {
         m_scale = scale;
-        vBar->setMaximum(max(0.f, pageSize.height()-height()/m_scale));
-        hBar->setMaximum(max(0.f, pageSize.width()-width()/m_scale));
+        vBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
+        hBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
 
         if(vBar->maximum() == 0)    vBar->hide();
         else                        vBar->show();
@@ -372,12 +387,12 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-	GLfloat	angle	= glm::radians(0.)*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	angle	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
-	Time0	= 200 + 1000*sin(0.05*time.msecsSinceStartOfDay()/1000.*6.28);
-	TimeScale	= 20;
+	Time0	= 200 + 100*sin(0.5*time.msecsSinceStartOfDay()/1000.*6.28);
+	TimeScale	= 50;
 
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
@@ -432,9 +447,11 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
+/*
 	//Получаем мышь в поле графиков
 	glm::mat4	graphM	= glm::translate(mat4(1), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
+*/
 
 	//Сохраняем в классе
 	m_mousePos.x	= world.x;
@@ -456,8 +473,8 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
         data.push_back(Vertex(vec2(pageBorders.left()+graphBorders.left()*0, m_mousePos.y),						vec3(0.0f, 0.0f, 1.0f)));
         data.push_back(Vertex(vec2(pageSize.width()-pageBorders.right()-graphBorders.right(), m_mousePos.y),	vec3(0.0f, 0.0f, 1.0f)));
 
-		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, 4*sizeof(Vertex), data.data());
+//		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+//		glBufferSubData(GL_ARRAY_BUFFER, 0, 4*sizeof(Vertex), data.data());
 	}
 	else
 	{

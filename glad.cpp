@@ -18,11 +18,11 @@
     Online:
         http://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D3.3
 */
-
+#include "stdafx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/glad.h>
+//#include <glad/glad.h>
 
 static void* get_proc(const char *namez);
 

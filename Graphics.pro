@@ -14,10 +14,11 @@ INCLUDEPATH += ./GeneratedFiles \
     . \
     ./GeneratedFiles/$(ConfigurationName)\
     ../../include/glad/include
-#LIBS += -lopengl32 \
+LIBS += -ldl
+#LIBS += -lopengl32
 #    -lglu32
 PRECOMPILED_HEADER = stdafx.h
-DEPENDPATH += .
+#DEPENDPATH += .
 #MOC_DIR += ./GeneratedFiles/$(ConfigurationName)
 OBJECTS_DIR += debug
 #UI_DIR += ./GeneratedFiles

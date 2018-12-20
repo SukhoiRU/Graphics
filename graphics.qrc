@@ -37,5 +37,9 @@
         <file>shaders/gaxe.vert</file>
         <file>shaders/gaxearg.frag</file>
         <file>shaders/gaxearg.vert</file>
+        <file>shaders/text.frag</file>
+        <file>shaders/text.vert</file>
+        <file>Resources/fonts/arial.ttf</file>
+        <file>Resources/fonts/cour.ttf</file>
     </qresource>
 </RCC>

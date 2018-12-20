@@ -74,8 +74,10 @@ private:
 	double		curTime;
 	
 	// OpenGL State Information
-	QOpenGLShaderProgram*		m_program;
+	QOpenGLShaderProgram*	m_program;
+	QOpenGLShaderProgram*	textShader;
 	GLuint	pageVAO, pageVBO;
+	GLuint	textVAO, textVBO;
 	bool	oglInited;
 
 	//Shader Information

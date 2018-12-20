@@ -45,9 +45,9 @@ private slots:
     void on_actionAddAxe_triggered();
 
 signals:
-    void	panelChanged(vector<Graph::GAxe*>* axes);
-	void	dataChanged();	//Признак загрузки новых данных
-	void	dataRemoved();	//Признак смены данных в том же накоплении
+    void	panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+	void	dataChanged(std::vector<Accumulation*>* pBuffer);	//Признак загрузки новых данных
+	void	dataRemoved(std::vector<Accumulation*>* pBuffer);	//Признак смены данных в том же накоплении
 
 private:
     Ui::GraphicsDoc *ui;

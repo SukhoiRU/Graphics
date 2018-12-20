@@ -10,6 +10,7 @@ using std::vector;
 class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
+class Accumulation;
 
 namespace Graph{
 class GraphObject;
@@ -40,7 +41,7 @@ public slots:
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
-    void	on_panelChanged(vector<Graph::GAxe*>* axes);
+    void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
 
 protected slots:
 	void	teardownGL();
@@ -70,6 +71,7 @@ private:
 	//Начальное время и масштаб
 	double		Time0;
 	double		TimeScale;
+	double		curTime;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*		m_program;

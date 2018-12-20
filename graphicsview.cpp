@@ -27,7 +27,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(4);
+    format.setSamples(16);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -61,8 +61,9 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	pPageSetup	= 0;
 	m_pPanel	= 0;
 
-	Time0		= 0;
-	TimeScale	= 1;
+	Time0		= 200;
+	TimeScale	= 20;
+	curTime		= Time0;
 
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
@@ -391,8 +392,8 @@ void GraphicsView::update()
 	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
-	Time0	= 200 + 100*sin(0.5*time.msecsSinceStartOfDay()/1000.*6.28);
-	TimeScale	= 50;
+//	Time0	= 200 + 0*100*sin(0.5*time.msecsSinceStartOfDay()/1000.*6.28);
+//	TimeScale	= 50;
 
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
@@ -447,11 +448,10 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
-/*
 	//Получаем мышь в поле графиков
-	glm::mat4	graphM	= glm::translate(mat4(1), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
-*/
+	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
 	//Сохраняем в классе
 	m_mousePos.x	= world.x;
@@ -485,11 +485,45 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
 {
-	QPoint numDegrees = event->angleDelta();
+	QPoint numDegrees			= event->angleDelta();
+	Qt::KeyboardModifiers	mdf	= event->modifiers();
+
+	if(mdf.testFlag(Qt::NoModifier))
+	{
+		if(numDegrees.y() < 0)	Time0	+= TimeScale;
+		else					Time0	-= TimeScale;
+	}
+	else if(mdf.testFlag(Qt::ControlModifier))
+	{
+		//Нормализуем масштаб
+		double	Power	= floor(log10(TimeScale));
+		double	Mantiss	= TimeScale / pow(10., Power);
+		double	dLen	= (curTime - Time0)/TimeScale;
+
+		//Изменяем масштаб в нужную сторону
+		if(numDegrees.y() > 0)
+		{
+			if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
+			else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
+			else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
+			else					TimeScale	= 5*pow(10., Power);
+		}
+		else
+		{
+			if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
+			else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
+			else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
+			else					TimeScale	= 20*pow(10., Power);
+		}
+
+		//Двигаем ноль так, чтобы попасть в то же время
+		Time0	= curTime - dLen*TimeScale;
+	}
+
 	event->accept();
 }
 
-void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
+void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
 {
 	//Запоминаем новый список осей
     m_pPanel	= axes;
@@ -501,7 +535,10 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 	m_GraphObjects.push_back(axeArg);
 	for(size_t i = 0; i < axes->size(); i++)
 	{
-		axes->at(i)->initializeGL();
+		Graph::GAxe*	pAxe	= axes->at(i);
+		pAxe->initializeGL();
+		pAxe->ClearFiltering();
+		pAxe->UpdateRecord(pBuffer);
 		m_GraphObjects.push_back(axes->at(i));
 	}
 }

@@ -68,6 +68,8 @@ void	GAxe::initializeGL()
 {
 //	initializeOpenGLFunctions();
 
+	if(m_bOpenGL_inited)	return;
+	m_bOpenGL_inited	= true;
 //	if(m_program == 0)
 	{
 		m_program	= new QOpenGLShaderProgram;
@@ -83,8 +85,6 @@ void	GAxe::initializeGL()
 		m_program->release();
 	}
 
-	if(m_bOpenGL_inited)	return;
-	m_bOpenGL_inited	= true;
 
 	//Буфер для графика
 	glGenVertexArrays(1, &dataVAO);
@@ -108,7 +108,7 @@ void	GAxe::initializeGL()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	setAxeLength(3);
+	setAxeLength(m_AxeLength);
 }
 
 void	GAxe::setAxeLength(int len)
@@ -118,6 +118,12 @@ void	GAxe::setAxeLength(int len)
 
 	//Заливка данных в видеопамять
 	vector<vec2>	data;
+
+	//Прямоугольник трафарета
+	data.push_back(vec2(1.f, 0.f));
+	data.push_back(vec2(0.f, 0.f));
+	data.push_back(vec2(1.f, 1.f));
+	data.push_back(vec2(0.f, 1.f));
 	for(int i = 0; i < m_AxeLength; i++)
 	{
 		data.push_back(vec2(-1.0f, 0 + 5.f*i));	data.push_back(vec2(0.f, 0 + 5.f*i));
@@ -134,7 +140,6 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
 	m_Axe_nCount	= data.size();
 
-	if(!m_bOpenGL_inited) return;
 	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
@@ -241,25 +246,40 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(m_DataType != Double)	return;
 
 	//Определяем диапазон индексов
-	int nMin	= 0;
-	int nCount	= m_data.size()-1;
-	for(int i = 0; i < m_Data_Len; i++)
+	int	nMin	= 0;
+	int	nMax	= m_data.size()-1;
+	while(nMax - nMin > 1)
 	{
-		const vec2&	v	= m_data.at(i);
-		if(v.x < t0)	nMin	= i;
-		if(v.x > t0 + TimeScale*(area.width()/grid.width()))
-		{
-			nCount	= i - nMin;
-			break;
-		}
+		int n	= (nMin+nMax)/2;
+		if(m_data.at(n).x <= t0)	nMin	= n;
+		else						nMax	= n;
 	}
+
+	int	nStartIndex	= max(0, nMin);
+
+	nMin	= 0;
+	nMax	= m_data.size()-1;
+	while(nMax - nMin > 1)
+	{
+		int n	= (nMin+nMax)/2;
+		if(m_data.at(n).x <= t0 + TimeScale*(area.width()/grid.width()))	nMin	= n;
+		else																nMax	= n;
+	}
+	int	nStopIndex	= min(int(m_data.size()-1), nMax);
 
 	//Заливаем матрицы в шейдер
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-	glBindVertexArray(dataVAO);
+
+	//Рисуем шкалу
+	glBindVertexArray(axeVAO);
+	mat4 dataModel	= mat4(1.0f);
+	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
+	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
 	//Область графиков для трафарета
 	{
@@ -278,8 +298,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
 
+	//Рисуем график
+	glBindVertexArray(dataVAO);
+
 	//Формируем модельную матрицу
-	mat4 dataModel	= mat4(1.0f);
+	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
@@ -287,17 +310,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Рисуем график
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	if(nCount > 0)	glDrawArrays(GL_LINE_STRIP, nMin+4, nCount-4);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-
-	//Рисуем шкалу
-	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(m_BottomRight, 0.f));
-	dataModel	= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glBindVertexArray(axeVAO);
-	glDrawArrays(GL_LINES, 0, m_Axe_nCount);
 	glBindVertexArray(0);
+
 	m_program->release();
 
 	/*
@@ -1601,10 +1617,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				m_pOrionData	= pBuffer->GetOrionData(H);
 
 				m_data.clear();
-				m_data.push_back(vec2(1.f, 0.f));
-				m_data.push_back(vec2(0.f, 0.f));
-				m_data.push_back(vec2(1.f, 1.f));
-				m_data.push_back(vec2(0.f, 1.f));
 				for(int i = 0; i < m_Data_Len; i++)
 				{
 					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));

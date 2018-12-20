@@ -193,7 +193,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         if(m_BufArray.size())
         {
             pAcc	= m_BufArray.back();
-			emit dataRemoved();
+			emit dataRemoved(&m_BufArray);
         }
         else
         {
@@ -206,7 +206,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         //Загружаем данные
         pAcc->LoadOrion(FileName);
     }
-	emit dataChanged();
+	emit dataChanged(&m_BufArray);
 /*
     m_DataFileName	= FileName;
     if(m_bUseFileAsText)
@@ -252,16 +252,7 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
     if(index > (int)(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
 
-	//Обновим данные осей
-	for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
-	{
-		Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
-		Axe->ClearFiltering();
-		Axe->initializeGL();
-		Axe->UpdateRecord(&m_BufArray);
-	}
-
-    emit panelChanged(&m_pActivePanel->Axes);
+    emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 }
 
 void	GraphicsDoc::on_PanelAdd()

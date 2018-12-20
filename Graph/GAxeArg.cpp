@@ -104,7 +104,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		vector<Vertex>	dataAxe;
 
 		//Квадрат для трафарета
-		vec3	color(1.0f);
+		vec3	color(1.0f,0,0);
 		dataGrid.push_back(Vertex(vec2(1.f, 0.f), color));
 		dataGrid.push_back(Vertex(vec2(0.f, 0.f), color));
 		dataGrid.push_back(Vertex(vec2(1.f, 1.f), color));
@@ -112,7 +112,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Вертикальные линии
 		int n	= 0;
-		for(int x0 = 0; x0 <= area.width(); x0 += 1)
+		for(int x0 = 0; x0 <= 1.2*area.width(); x0 += 1)
 		{
 			//Штрихи для оси
 			dataAxe.push_back(Vertex(vec2(x0, 0.f), vec3(0.f)));
@@ -130,7 +130,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Горизонтальная линия оси
 		dataAxe.push_back(Vertex(vec2(0.f, 0.f), vec3(0.f)));
-		dataAxe.push_back(Vertex(vec2(area.width(), 0.f), vec3(0.f)));
+		dataAxe.push_back(Vertex(vec2(1.2*area.width(), 0.f), vec3(0.f)));
 		nCountAxe	= dataAxe.size();
 
 		n	= 0;
@@ -138,7 +138,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		for(float y0 = 0; y0 <= area.height(); y0 += grid.height())
 		{
 			dataGrid.push_back(Vertex(vec2(0, y0),				(0.85f - 0.0f*(n%5 == 0))*vec3(1.0f)));
-			dataGrid.push_back(Vertex(vec2(area.width(), y0),	(0.85f - 0.0f*(n%5 == 0))*vec3(1.0f)));
+			dataGrid.push_back(Vertex(vec2(1.2*area.width(), y0),	(0.85f - 0.0f*(n%5 == 0))*vec3(1.0f)));
 			n++;
 		}
 		nCountGrid	= dataGrid.size();
@@ -157,13 +157,34 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
 
 	m_program->bind();
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 	//Рисуем сетку
 	glBindVertexArray(gridVAO);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	{
+		//Трафарет для сетки
+		glStencilMask(0xFF);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+		//Растягиваем прямоугольник на всю область
+		mat4	areaMat(1.0f);
+		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	}
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 4, nCountGrid-4);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
@@ -179,9 +200,9 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		//Растягиваем прямоугольник на всю область
 		mat4	areaMat(1.0f);
 		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
-		areaMat	= scale(areaMat, vec3(area.width(), -1.5f, 1.0f));
-
+		areaMat	= scale(areaMat, vec3(area.width(), -2.0f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -190,11 +211,12 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	}
+
+	glBindVertexArray(axeVAO);
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
 	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.5f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glBindVertexArray(axeVAO);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);

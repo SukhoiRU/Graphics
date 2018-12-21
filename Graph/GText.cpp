@@ -167,3 +167,38 @@ void	GText::RenderText(const QString& str, GLfloat x, GLfloat y)
 
 	textShader->release();
 }
+
+glm::vec2	GText::TextSize(const QString& str)
+{
+	GLfloat	x	= 0;
+	GLfloat	y	= 0;
+	// Iterate through all characters
+	std::wstring	text	= str.toStdWString();
+	std::wstring::const_iterator c;
+	for(c = text.begin(); c != text.end(); c++)
+	{
+		GLuint	cc	= *c;
+		Character ch = Characters[cc];
+
+		GLfloat xpos = x + ch.Bearing.x * scale;
+		GLfloat ypos = 0 - (ch.Size.y - ch.Bearing.y) * scale;
+
+		GLfloat w = ch.Size.x * scale;
+		GLfloat h = ch.Size.y * scale;
+		if(h > y)	y = h;
+		// Update VBO for each character
+		GLfloat vertices[6][4] ={
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos,     ypos,       0.0, 1.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+			{ xpos + w, ypos + h,   1.0, 0.0 }
+		};
+		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+	}
+
+	return	glm::vec2(x, y);
+}

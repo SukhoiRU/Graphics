@@ -304,7 +304,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textRender->setColor(m_Color);
 	textRender->setMatrix(dataModel, m_view, m_proj);
-	textRender->RenderText(m_Name, 0, m_AxeLength*grid.height() + 1);
+	vec2	size	= textRender->TextSize(m_Name);
+	textRender->RenderText(m_Name, -size.x, m_AxeLength*grid.height() + 1);
 	m_program->bind();
 
 	//Рисуем график

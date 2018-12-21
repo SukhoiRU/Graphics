@@ -35,6 +35,7 @@ public:
 	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 	void	setColor(glm::vec3 c){color = c;}
 	void	RenderText(const QString& str, GLfloat x, GLfloat y);
+	glm::vec2	TextSize(const QString& str);
 };
 
 #endif // GTEXT_H

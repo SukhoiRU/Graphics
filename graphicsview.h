@@ -18,6 +18,8 @@ class GAxe;
 class GAxeArg;
 }
 
+class GText;
+
 class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
 {
 	Q_OBJECT
@@ -67,6 +69,7 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
+	GText*		textRender;
 	
 	//Начальное время и масштаб
 	double		Time0;
@@ -75,9 +78,7 @@ private:
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*	m_program;
-	QOpenGLShaderProgram*	textShader;
 	GLuint	pageVAO, pageVBO;
-	GLuint	textVAO, textVBO;
 	bool	oglInited;
 
 	//Shader Information

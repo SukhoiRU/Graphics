@@ -77,7 +77,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;

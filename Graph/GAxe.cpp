@@ -235,7 +235,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
@@ -297,6 +297,15 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
+
+	//Печатаем текст шкалы
+	vec4 	pt(m_BottomRight.x, m_BottomRight.y + (m_AxeLength+1)*grid.height(), 0.0f, 1.0f);
+	vec4	pt_w	= m_view*pt;	
+	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	textRender->setColor(m_Color);
+	textRender->setMatrix(dataModel, m_view, m_proj);
+	textRender->RenderText(m_Name, 0, m_AxeLength*grid.height() + 1);
+	m_program->bind();
 
 	//Рисуем график
 	glBindVertexArray(dataVAO);

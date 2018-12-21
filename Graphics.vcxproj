@@ -233,6 +233,7 @@
     <ClCompile Include="Graph\GAxe.cpp" />
     <ClCompile Include="Graph\GAxeArg.cpp" />
     <ClCompile Include="Graph\GraphObject.cpp" />
+    <ClCompile Include="Graph\GText.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -377,6 +378,7 @@
     <ClInclude Include="Graph\GAxe.h" />
     <ClInclude Include="Graph\GAxeArg.h" />
     <ClInclude Include="Graph\GraphObject.h" />
+    <ClInclude Include="Graph\GText.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

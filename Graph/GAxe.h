@@ -97,7 +97,7 @@ public:
 	
 	//Рисование
 	virtual void	initializeGL();
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender);					//Полное рисование
 //	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела

@@ -7,6 +7,7 @@ class QCursor;
 class QDomElement;
 class Accumulation;
 class QOpenGLShaderProgram;
+class GTextLabel;
 
 namespace Graph{
 
@@ -42,6 +43,7 @@ private:
 	vector<vec2>	m_data;
 	GLuint	dataVAO, dataVBO;
 	GLuint	axeVAO, axeVBO;
+	GTextLabel*		textLabel;
 
 	//Shader Information
 	QOpenGLShaderProgram*	m_program;

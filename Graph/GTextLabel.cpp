@@ -2,10 +2,30 @@
 #include "GTextLabel.h"
 #include <QDomDocument>
 
+bool	GTextLabel::bFontLoaded	= false;
+vector<GTextLabel::FontInfo*>	GTextLabel::fonts;
+
+bool	GTextLabel::bTextureLoaded	= false;
+GLuint	GTextLabel::texture;
+ivec2	GTextLabel::texSize;
+
+QOpenGLShaderProgram*	GTextLabel::textShader;
+int					GTextLabel::u_modelToWorld;
+int					GTextLabel::u_worldToCamera;
+int					GTextLabel::u_cameraToView;
+int					GTextLabel::u_color;
+
 GTextLabel::GTextLabel()
 {
 	scale		= 4.0f;
 	fontIndex	= 0;
+	if(!bFontLoaded)
+		loadFontInfo();
+}
+
+void	GTextLabel::loadFontInfo()
+{
+	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
 	QFile file(":/Resources/fonts/courier.xml");
@@ -88,36 +108,41 @@ void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
 
 void	GTextLabel::initializeGL()
 {
-	textShader = new QOpenGLShaderProgram();
-	textShader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/textlabel.vert");
-	textShader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/textlabel.frag");
-	textShader->link();
+	if(!bTextureLoaded)
+	{
+		bTextureLoaded	= true;
 
-	textShader->bind();
-	u_modelToWorld	= textShader->uniformLocation("modelToWorld");
-	u_worldToCamera	= textShader->uniformLocation("worldToCamera");
-	u_cameraToView	= textShader->uniformLocation("cameraToView");
-	u_color			= textShader->uniformLocation("textColor");
-	textShader->release();
+		textShader = new QOpenGLShaderProgram();
+		textShader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/textlabel.vert");
+		textShader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/textlabel.frag");
+		textShader->link();
 
-	// Prepare texture
-	QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/courier.png"));
-	texSize.x	= gl_texture->width();
-	texSize.y	= gl_texture->height();
-	texture	= gl_texture->textureId();
+		textShader->bind();
+		u_modelToWorld	= textShader->uniformLocation("modelToWorld");
+		u_worldToCamera	= textShader->uniformLocation("worldToCamera");
+		u_cameraToView	= textShader->uniformLocation("cameraToView");
+		u_color			= textShader->uniformLocation("textColor");
+		textShader->release();
 
-	// Disable byte-alignment restriction
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		// Prepare texture
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/courier.png"));
+		texSize.x	= gl_texture->width();
+		texSize.y	= gl_texture->height();
+		texture	= gl_texture->textureId();
 
-	// Generate texture
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// Set texture options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	
+		// Disable byte-alignment restriction
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		// Generate texture
+		glBindTexture(GL_TEXTURE_2D, texture);
+		// Set texture options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
 	// Configure VAO/VBO for texture quads
 	glGenVertexArrays(1, &textVAO);
 	glGenBuffers(1, &textVBO);
@@ -237,9 +262,38 @@ vec2	GTextLabel::textSize(const QString& str)
 	
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);
-	const QChar		c		= str.at(0);
-	const CharInfo&	info	= font->charMap.at(c.unicode());
+	const QChar		c0		= *str.begin();
+	const QChar		c1		= *(str.end()-1);
+	const CharInfo&	info0	= font->charMap.at(c0.unicode());
+	const CharInfo&	info1	= font->charMap.at(c1.unicode());
 
 	//Определяем размер
-	return	vec2(info.origSize.x*str.length(), info.origSize.y);
+	return	vec2((info0.origSize.x*str.length()-info0.offset.x-info1.offset.x)/scale, info0.origSize.y/scale);
+}
+
+GLfloat	GTextLabel::baseLine()
+{
+	//Выбираем шрифт
+	FontInfo*		font	= fonts.at(fontIndex);
+	const CharInfo&	info	= font->charMap.at('0');
+
+	return (info.origSize.y - info.offset.y - info.size.y)/scale;
+}
+
+GLfloat	GTextLabel::midLine()
+{
+	//Выбираем шрифт
+	FontInfo*		font	= fonts.at(fontIndex);
+	const CharInfo&	info	= font->charMap.at('0');
+
+	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/scale;
+}
+
+GLfloat	GTextLabel::topLine()
+{
+	//Выбираем шрифт
+	FontInfo*		font	= fonts.at(fontIndex);
+	const CharInfo&	info	= font->charMap.at('0');
+
+	return (info.origSize.y - info.offset.y)/scale;
 }

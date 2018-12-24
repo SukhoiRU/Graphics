@@ -11,7 +11,6 @@ using glm::vec4;
 using std::vector;
 using std::map;
 
-
 class QOpenGLShaderProgram;
 
 class GTextLabel
@@ -32,25 +31,28 @@ private:
 		int			size;	//Размер в пикселях
 		map<int, CharInfo>	charMap;	//Описатель шрифта
 	};
-	vector<FontInfo*>	fonts;
 
-	struct VertexInfo
-	{
-		vec2	pt0;
-	};
+	//Общие данные
+	static	bool				bFontLoaded;
+	static	vector<FontInfo*>	fonts;
+	static	bool				bTextureLoaded;
+	static	GLuint				texture;
+	static	ivec2				texSize;
+	static	QOpenGLShaderProgram*	textShader;
+	static	int					u_modelToWorld;
+	static	int					u_worldToCamera;
+	static	int					u_cameraToView;
+	static	int					u_color;
+
+	//Данные для каждого объекта
 	vector<vec4>	m_data;
 
-	QOpenGLShaderProgram*	textShader;
 	GLuint	textVAO, textVBO;
-	GLuint	texture;
-	ivec2	texSize;
-	int		u_modelToWorld;
-	int		u_worldToCamera;
-	int		u_cameraToView;
-	int		u_color;
 	glm::vec3	color;
 	int		fontIndex;
 	GLfloat	scale;
+
+	void	loadFontInfo();
 
 public:
 	GTextLabel();
@@ -62,6 +64,9 @@ public:
 	void	setFont(int size, vec3 color);
 	void	renderText();
 	vec2	textSize(const QString& str);
+	GLfloat	baseLine();
+	GLfloat	midLine();
+	GLfloat	topLine();
 };
 
 #endif // GTEXTLABEL_H

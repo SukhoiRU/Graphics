@@ -68,6 +68,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	axeArg		= new Graph::GAxeArg;
 	textRender	= new GText;
 	textLabel	= new GTextLabel;
+	textLabel2	= new GTextLabel;
 	oglInited	= false;
 }
 
@@ -138,9 +139,17 @@ void GraphicsView::initializeGL()
 
 	textLabel->initializeGL();
 	textLabel->setFont(16, vec3(0.8,0,1.0f));
-	textLabel->addString("Съешь ещё_этих мягких 012345789", 65.0f, 262.0f);
+	QString	txt("Съешь ещё_этих мягких! 012345789");
+	vec2	sz		= textLabel->textSize(txt);
+	GLfloat	base	= textLabel->baseLine();
+	textLabel->addString(txt, 65.0f, 262.0f - textLabel->midLine());
 	textLabel->addString("Vy_f Vh_SNP Vh_b", 21.f, 267.f);
 	textLabel->prepare();
+
+	textLabel2->initializeGL();
+	textLabel2->setFont(24, vec3(0, 1.0, 0.0f));
+	textLabel2->addString(txt, 100, 292.0f - textLabel2->topLine());
+	textLabel2->prepare();
 }
 
 struct Vertex
@@ -325,8 +334,13 @@ void GraphicsView::paintGL()
 	//RenderText(textShader, textVAO, textVBO, L"(C) LearnOpenGL.com", 210., 260.f, 0.2f, glm::vec3(0.3, 0.7f, 0.9f));
 	//textShader->release();
 
+/*
 	textLabel->setMatrix(m_model, m_view, m_proj);
 	textLabel->renderText();
+
+	textLabel2->setMatrix(m_model, m_view, m_proj);
+	textLabel2->renderText();
+*/
 
 //    paintOverGL(&painter);
 	emit dt(t0.elapsed());

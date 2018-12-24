@@ -2,6 +2,7 @@
 #include "GAxe.h"
 #include <QDomElement>
 #include "../Accumulation.h"
+#include "GTextLabel.h"
 
 QColor	GetColor(int n);
 int		GetMarker(int n);
@@ -52,6 +53,8 @@ GAxe::GAxe()
 	m_pOriginal		= 0;
 	m_bInterpol		= true;
 	m_AxeLength		= 0;
+
+	textLabel	= new GTextLabel;
 }
 
 GAxe::~GAxe()
@@ -62,12 +65,11 @@ GAxe::~GAxe()
 	glDeleteVertexArrays(1, &axeVAO);
 	glDeleteBuffers(1, &axeVBO);
 	delete m_program;
+	delete textLabel;
 }
 
 void	GAxe::initializeGL()
 {
-//	initializeOpenGLFunctions();
-
 	if(m_bOpenGL_inited)	return;
 	m_bOpenGL_inited	= true;
 //	if(m_program == 0)
@@ -84,7 +86,6 @@ void	GAxe::initializeGL()
 		u_color			= m_program->uniformLocation("color");
 		m_program->release();
 	}
-
 
 	//Буфер для графика
 	glGenVertexArrays(1, &dataVAO);
@@ -108,6 +109,7 @@ void	GAxe::initializeGL()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	textLabel->initializeGL();
 	setAxeLength(m_AxeLength);
 }
 
@@ -145,6 +147,19 @@ void	GAxe::setAxeLength(int len)
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	//Текстовые метки
+	QSizeF grid(5.0f, 5.0f);
+	textLabel->setFont(14, m_Color);
+	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+	for(int i = 0; i <= m_AxeLength; i++)
+	{
+		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
+		vec2	size	= textLabel->textSize(txt);
+		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+	}
+
+	textLabel->prepare();
 }
 
 void	GAxe::Save(QDomElement* node)
@@ -299,6 +314,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 
 	//Печатаем текст шкалы
+/*
 	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textRender->setColor(m_Color);
 	textRender->setMatrix(dataModel, m_view, m_proj);
@@ -310,7 +326,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		vec2	size	= textRender->TextSize(txt);
 		textRender->RenderText(txt, -size.x - 2., -size.y/2. + i*grid.height());
 	}
+*/
 	
+	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	textLabel->setMatrix(dataModel, m_view, m_proj);
+	textLabel->renderText();
+
 	m_program->bind();
 
 	//Рисуем график

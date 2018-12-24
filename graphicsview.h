@@ -74,6 +74,7 @@ private:
 	vector<Graph::GraphObject*>	m_GraphObjects;
 	GText*		textRender;
 	GTextLabel*	textLabel;
+	GTextLabel*	textLabel2;
 	
 	//Начальное время и масштаб
 	double		Time0;

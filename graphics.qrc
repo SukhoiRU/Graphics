@@ -31,6 +31,10 @@
         <file>Resources/images/open.png</file>
         <file>Resources/images/paste.png</file>
         <file>Resources/images/save.png</file>
+        <file>Resources/fonts/arial.ttf</file>
+        <file>Resources/fonts/cour.ttf</file>
+        <file>Resources/fonts/courier.png</file>
+        <file>Resources/fonts/courier.xml</file>
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
         <file>shaders/gaxe.frag</file>
@@ -39,7 +43,7 @@
         <file>shaders/gaxearg.vert</file>
         <file>shaders/text.frag</file>
         <file>shaders/text.vert</file>
-        <file>Resources/fonts/arial.ttf</file>
-        <file>Resources/fonts/cour.ttf</file>
+        <file>shaders/textlabel.frag</file>
+        <file>shaders/textlabel.vert</file>
     </qresource>
 </RCC>

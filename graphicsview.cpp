@@ -15,6 +15,8 @@
 #include <vector>
 using std::max;
 
+#include "Graph/GTextLabel.h"
+
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
@@ -25,7 +27,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(1);
+    format.setSamples(16);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -65,6 +67,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	axeArg		= new Graph::GAxeArg;
 	textRender	= new GText;
+	textLabel	= new GTextLabel;
 	oglInited	= false;
 }
 
@@ -132,6 +135,12 @@ void GraphicsView::initializeGL()
 
 		textRender->initializeGL();
 	}
+
+	textLabel->initializeGL();
+	textLabel->setFont(16, vec3(0.8,0,1.0f));
+	textLabel->addString("Съешь ещё_этих мягких 012345789", 65.0f, 262.0f);
+	textLabel->addString("Vy_f Vh_SNP Vh_b", 21.f, 267.f);
+	textLabel->prepare();
 }
 
 struct Vertex
@@ -205,6 +214,9 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
+	QTime	t0;
+	t0.start();
+
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -313,10 +325,11 @@ void GraphicsView::paintGL()
 	//RenderText(textShader, textVAO, textVBO, L"(C) LearnOpenGL.com", 210., 260.f, 0.2f, glm::vec3(0.3, 0.7f, 0.9f));
 	//textShader->release();
 
-
+	textLabel->setMatrix(m_model, m_view, m_proj);
+	textLabel->renderText();
 
 //    paintOverGL(&painter);
-
+	emit dt(t0.elapsed());
 }
 
 void GraphicsView::paintOverGL(QPainter* p)
@@ -491,8 +504,8 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 	if(mdf.testFlag(Qt::NoModifier))
 	{
-		if(numDegrees.y() < 0)	Time0	+= TimeScale;
-		else					Time0	-= TimeScale;
+		if(numDegrees.y() < 0)	Time0	+= 0.2*TimeScale;
+		else					Time0	-= 0.2*TimeScale;
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{

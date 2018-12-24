@@ -143,6 +143,9 @@
     <ClCompile Include="Graph\GText.cpp">
       <Filter>Source Files\Graph</Filter>
     </ClCompile>
+    <ClCompile Include="Graph\GTextLabel.cpp">
+      <Filter>Source Files\Graph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -176,6 +179,9 @@
       <Filter>Header Files\Graph</Filter>
     </ClInclude>
     <ClInclude Include="Graph\GText.h">
+      <Filter>Header Files\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph\GTextLabel.h">
       <Filter>Header Files\Graph</Filter>
     </ClInclude>
   </ItemGroup>
@@ -240,6 +246,12 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="shaders\text.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\textlabel.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\textlabel.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

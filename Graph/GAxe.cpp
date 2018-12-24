@@ -299,13 +299,18 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 
 	//Печатаем текст шкалы
-	vec4 	pt(m_BottomRight.x, m_BottomRight.y + (m_AxeLength+1)*grid.height(), 0.0f, 1.0f);
-	vec4	pt_w	= m_view*pt;	
 	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textRender->setColor(m_Color);
 	textRender->setMatrix(dataModel, m_view, m_proj);
 	vec2	size	= textRender->TextSize(m_Name);
-	textRender->RenderText(m_Name, -size.x, m_AxeLength*grid.height() + 1);
+	textRender->RenderText(m_Name, -size.x, m_AxeLength*grid.height() + 2.5);
+	for(int i = 0; i <= m_AxeLength; i++)
+	{
+		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
+		vec2	size	= textRender->TextSize(txt);
+		textRender->RenderText(txt, -size.x - 2., -size.y/2. + i*grid.height());
+	}
+	
 	m_program->bind();
 
 	//Рисуем график

@@ -19,6 +19,7 @@ class GAxeArg;
 }
 
 class GText;
+class GTextLabel;
 
 class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
 {
@@ -49,6 +50,8 @@ protected slots:
 	void	teardownGL();
 	void	update();
 	void	updatePageBuffer();
+signals:
+	void	dt(int msecs);
 
 protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
@@ -70,6 +73,7 @@ private:
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
 	GText*		textRender;
+	GTextLabel*	textLabel;
 	
 	//Начальное время и масштаб
 	double		Time0;

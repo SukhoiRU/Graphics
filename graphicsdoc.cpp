@@ -40,6 +40,9 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	m_PanelList.push_back(p);
 	on_PanelListChanged();
 	m_pActivePanel	= p;
+
+	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
+
 }
 
 GraphicsDoc::~GraphicsDoc()

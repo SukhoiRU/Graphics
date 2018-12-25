@@ -28,7 +28,7 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/courier.xml");
+	QFile file(":/Resources/fonts/arial.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
 		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/courier.xml").arg(file.errorString()));
@@ -125,7 +125,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/courier.png"));
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial.png"));
 		texSize.x	= gl_texture->width();
 		texSize.y	= gl_texture->height();
 		texture	= gl_texture->textureId();

@@ -150,7 +150,7 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(14, m_Color);
+	textLabel->setFont(12, m_Color);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{

@@ -13,13 +13,14 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QColumnView>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QScrollBar>
+#include <QtWidgets/QSplitter>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
@@ -36,11 +37,13 @@ public:
     QAction *action_LoadOrion;
     QAction *actionAddAxe;
     QAction *actionPageInfo;
+    QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
     QScrollBar *verticalScrollBar;
     QScrollBar *horizontalScrollBar;
     GraphicsView *oglView;
+    QColumnView *columnView;
     QMenuBar *menuBar;
     QMenu *menu;
     QMenu *menu_2;
@@ -49,14 +52,12 @@ public:
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
     QToolBar *toolBarPanel;
-    QDockWidget *dockWidget;
-    QWidget *dockWidgetContents;
 
     void setupUi(QMainWindow *GraphicsDoc)
     {
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
-        GraphicsDoc->resize(765, 680);
+        GraphicsDoc->resize(653, 638);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));
         QIcon icon;
@@ -75,7 +76,10 @@ public:
         actionAddAxe->setObjectName(QStringLiteral("actionAddAxe"));
         actionPageInfo = new QAction(GraphicsDoc);
         actionPageInfo->setObjectName(QStringLiteral("actionPageInfo"));
-        centralwidget = new QWidget(GraphicsDoc);
+        splitter = new QSplitter(GraphicsDoc);
+        splitter->setObjectName(QStringLiteral("splitter"));
+        splitter->setOrientation(Qt::Horizontal);
+        centralwidget = new QWidget(splitter);
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         gridLayout = new QGridLayout(centralwidget);
         gridLayout->setSpacing(0);
@@ -89,7 +93,7 @@ public:
         verticalScrollBar->setPageStep(50);
         verticalScrollBar->setOrientation(Qt::Vertical);
 
-        gridLayout->addWidget(verticalScrollBar, 0, 1, 1, 1);
+        gridLayout->addWidget(verticalScrollBar, 0, 2, 1, 1);
 
         horizontalScrollBar = new QScrollBar(centralwidget);
         horizontalScrollBar->setObjectName(QStringLiteral("horizontalScrollBar"));
@@ -106,10 +110,15 @@ public:
 
         gridLayout->addWidget(oglView, 0, 0, 1, 1);
 
-        GraphicsDoc->setCentralWidget(centralwidget);
+        splitter->addWidget(centralwidget);
+        columnView = new QColumnView(splitter);
+        columnView->setObjectName(QStringLiteral("columnView"));
+        columnView->setFrameShape(QFrame::NoFrame);
+        splitter->addWidget(columnView);
+        GraphicsDoc->setCentralWidget(splitter);
         menuBar = new QMenuBar(GraphicsDoc);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 765, 21));
+        menuBar->setGeometry(QRect(0, 0, 653, 21));
         menu = new QMenu(menuBar);
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
@@ -128,12 +137,6 @@ public:
         toolBarPanel = new QToolBar(GraphicsDoc);
         toolBarPanel->setObjectName(QStringLiteral("toolBarPanel"));
         GraphicsDoc->addToolBar(Qt::TopToolBarArea, toolBarPanel);
-        dockWidget = new QDockWidget(GraphicsDoc);
-        dockWidget->setObjectName(QStringLiteral("dockWidget"));
-        dockWidgetContents = new QWidget();
-        dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
-        dockWidget->setWidget(dockWidgetContents);
-        GraphicsDoc->addDockWidget(static_cast<Qt::DockWidgetArea>(2), dockWidget);
 
         menuBar->addAction(menu->menuAction());
         menuBar->addAction(menu_2->menuAction());

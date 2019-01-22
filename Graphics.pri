@@ -10,9 +10,11 @@ HEADERS += ./Accumulation.h \
     ./Dialogs/treemodel.h \
     ./Graph/GAxe.h \
     ./Graph/GAxeArg.h \
+    ./Graph/GText.h \
+    ./Graph/GTextLabel.h \
     ./Graph/GraphObject.h
 SOURCES += ./Accumulation.cpp \
-    ./glad.c \
+    ./glad.cpp \
     ./graphicsdoc.cpp \
     ./graphicsview.cpp \
     ./main.cpp \
@@ -25,6 +27,8 @@ SOURCES += ./Accumulation.cpp \
     ./Dialogs/treemodel.cpp \
     ./Graph/GAxe.cpp \
     ./Graph/GAxeArg.cpp \
+    ./Graph/GText.cpp \
+    ./Graph/GTextLabel.cpp \
     ./Graph/GraphObject.cpp
 FORMS += ./Dialogs/graphselect.ui \
     ./Dialogs/panelselect.ui \

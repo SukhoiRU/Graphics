@@ -19,6 +19,8 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui->setupUi(this);
 	ui->oglView->vBar	= ui->verticalScrollBar;
 	ui->oglView->hBar	= ui->horizontalScrollBar;
+	ui->splitter->setStretchFactor(0, 1);
+	ui->splitter->setStretchFactor(1, 0);
 
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);

@@ -44,6 +44,7 @@ public:
 	virtual ~GraphObject();
 
 	virtual void	initializeGL(){};
+	virtual void	clearGL(){};
 	virtual void	UpdateRecord(bool bLoad = true){};					//Обновление данных о массиве
 
 	//Рисование

@@ -29,7 +29,6 @@ void	GAxeArg::initializeGL()
 {
 	if(m_bOpenGL_inited)	return;
 	m_bOpenGL_inited	= true;
-//	initializeOpenGLFunctions();
 
 	m_program	= new QOpenGLShaderProgram;
 	m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxearg.vert");
@@ -47,7 +46,7 @@ void	GAxeArg::initializeGL()
 	glBindVertexArray(gridVAO);
 	glGenBuffers(1, &gridVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
@@ -60,7 +59,7 @@ void	GAxeArg::initializeGL()
 	glBindVertexArray(axeVAO);
 	glGenBuffers(1, &axeVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
@@ -199,7 +198,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Растягиваем прямоугольник на всю область
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= translate(areaMat, vec3(area.x(), area.y()+0.5f, 0));
 		areaMat	= scale(areaMat, vec3(area.width(), -2.0f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 

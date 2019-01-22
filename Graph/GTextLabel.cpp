@@ -17,7 +17,7 @@ int					GTextLabel::u_color;
 
 GTextLabel::GTextLabel()
 {
-	scale		= 4.0f;
+	scale		= 3.5f;
 	fontIndex	= 0;
 	if(!bFontLoaded)
 		loadFontInfo();
@@ -28,7 +28,7 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial.xml");
+	QFile file(":/Resources/fonts/arial_s.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
 		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/courier.xml").arg(file.errorString()));
@@ -125,7 +125,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial.png"));
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial_s.png"));
 		texSize.x	= gl_texture->width();
 		texSize.y	= gl_texture->height();
 		texture	= gl_texture->textureId();
@@ -155,6 +155,12 @@ void	GTextLabel::initializeGL()
 	glBindVertexArray(0);
 
 	m_data.clear();
+}
+
+void	GTextLabel::clearGL()
+{
+	glDeleteVertexArrays(1, &textVAO);
+	glDeleteBuffers(1, &textVBO);
 }
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
@@ -207,7 +213,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		m_data.push_back(point);
 
 		//Продвигаемся на символ дальше
-		x += info.origSize.x/scale;
+		x += (info.origSize.x +0)/scale;
 	}
 }
 
@@ -258,17 +264,28 @@ void	GTextLabel::setFont(int size, vec3 color)
 
 vec2	GTextLabel::textSize(const QString& str)
 {
+	vec2	size(0.0f);
 	if(str.isEmpty())	return vec2(0.0f);
 	
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);
-	const QChar		c0		= *str.begin();
-	const QChar		c1		= *(str.end()-1);
-	const CharInfo&	info0	= font->charMap.at(c0.unicode());
-	const CharInfo&	info1	= font->charMap.at(c1.unicode());
+	for(int i = 0; i < str.length(); i++)
+	{
+		//Получаем информацию о символе
+		const QChar		c		= str.at(i);
+		const CharInfo&	info	= font->charMap.at(c.unicode());
 
-	//Определяем размер
-	return	vec2((info0.origSize.x*str.length()-info0.offset.x-info1.offset.x)/scale, info0.origSize.y/scale);
+		//Для первого и последнего символа вычтем смещение
+		if(i == 0)	size.x	= -info.offset.x;
+		//if(i == str.length()-1)	size.x -= (info.origSize.x - info.offset.x - info.size.x);
+		
+		//Продвигаемся на символ дальше
+		size.x += info.origSize.x;
+
+		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
+	}
+
+	return	size/scale;
 }
 
 GLfloat	GTextLabel::baseLine()

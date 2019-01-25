@@ -12,15 +12,20 @@ GAxeArg::GAxeArg()
 	oldArea		= QRect();
 	nCountGrid	= 0;
 	nCountAxe	= 0;
+
+	gridVAO	= 0;
+	gridVBO	= 0;
+	axeVAO	= 0;
+	axeVBO	= 0;
 }
 
 GAxeArg::~GAxeArg()
 {
-	glDeleteVertexArrays(1, &gridVAO);
-	glDeleteBuffers(1, &gridVBO);
+	if(gridVAO)	{glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
+	if(gridVBO)	{glDeleteBuffers(1, &gridVBO); gridVBO	= 0;}
 
-	glDeleteVertexArrays(1, &axeVAO);
-	glDeleteBuffers(1, &axeVBO);
+	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO = 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
 
 	delete m_program;
 }
@@ -143,11 +148,17 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		nCountGrid	= dataGrid.size();
 
 		//Пересоздаем буфер
+		glBindVertexArray(gridVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		glBindVertexArray(axeVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 

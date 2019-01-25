@@ -55,15 +55,19 @@ GAxe::GAxe()
 	m_AxeLength		= 0;
 
 	textLabel	= new GTextLabel;
+	dataVAO		= 0;
+	dataVBO		= 0;
+	axeVAO		= 0;
+	axeVBO		= 0;
 }
 
 GAxe::~GAxe()
 {
-	glDeleteVertexArrays(1, &dataVAO);
-	glDeleteBuffers(1, &dataVBO);
+	if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
+	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
 
-	glDeleteVertexArrays(1, &axeVAO);
-	glDeleteBuffers(1, &axeVBO);
+	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
 	delete m_program;
 	delete textLabel;
 }
@@ -116,11 +120,11 @@ void	GAxe::clearGL()
 {
 	if(m_bOpenGL_inited)
 	{
-		glDeleteVertexArrays(1, &dataVAO);
-		glDeleteBuffers(1, &dataVBO);
+		if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
+		if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
 
-		glDeleteVertexArrays(1, &axeVAO);
-		glDeleteBuffers(1, &axeVBO);
+		if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
+		if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
 		textLabel->clearGL();
 	}
 }
@@ -158,8 +162,8 @@ void	GAxe::setAxeLength(int len)
 	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
@@ -1686,8 +1690,8 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				glBindVertexArray(dataVAO);
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				glBindVertexArray(0);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 				//Обработка ошибок памяти
 				if(!m_pOrionTime || !m_pOrionData)

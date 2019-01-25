@@ -19,6 +19,9 @@ GTextLabel::GTextLabel()
 {
 	scale		= 3.5f;
 	fontIndex	= 0;
+	textVAO		= 0;
+	textVBO		= 0;
+
 	if(!bFontLoaded)
 		loadFontInfo();
 }
@@ -151,16 +154,16 @@ void	GTextLabel::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_data.clear();
 }
 
 void	GTextLabel::clearGL()
 {
-	glDeleteVertexArrays(1, &textVAO);
-	glDeleteBuffers(1, &textVBO);
+	if(textVAO)	{glDeleteVertexArrays(1, &textVAO); textVAO = 0;}
+	if(textVBO)	{glDeleteBuffers(1, &textVBO); textVBO = 0;}
 }
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
@@ -223,8 +226,8 @@ void	GTextLabel::prepare()
 	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec4), m_data.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void	GTextLabel::renderText()

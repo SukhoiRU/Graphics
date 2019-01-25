@@ -22,13 +22,14 @@ QGridTree::QGridTree(QWidget *parent) :
 	m_bAutoSize	= settings.value("QGridTree/m_bAutoSize", true).toBool();
 	m_bGrid		= settings.value("QGridTree/m_bGrid", false).toBool();
 	m_bAnimated	= settings.value("QGridTree/m_bAnimated", true).toBool();
+	m_bAlternate	= settings.value("QGridTree/m_bAlternate", true).toBool();
 
 	QHeaderView*	h	= header();
 	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
 	else			h->setSectionResizeMode(QHeaderView::Interactive);
 	setHeaderHidden(!m_bHeader);
 	setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked);
-	setAlternatingRowColors(true);
+	setAlternatingRowColors(m_bAlternate);
 	setUniformRowHeights(true);
     setAutoFillBackground(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -157,17 +158,20 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 	QAction*	actAutoSize		= new QAction("Размер по содержимому", this);	
 	QAction*	actShowGrid		= new QAction("Сетка", this);		
 	QAction*	actAnimation	= new QAction("Анимация", this);	
+	QAction*	actAlternate	= new QAction("Полоски", this);	
 	QAction*	actCopyPath		= new QAction("Копировать в С++", this);
 
 	actHeader->setCheckable(true);
 	actAutoSize->setCheckable(true);
 	actShowGrid->setCheckable(true);
 	actAnimation->setCheckable(true);
+	actAlternate->setCheckable(true);
 
 	actHeader->setChecked(m_bHeader);
 	actAutoSize->setChecked(m_bAutoSize);
 	actShowGrid->setChecked(m_bGrid);
 	actAnimation->setChecked(m_bAnimated);
+	actAlternate->setChecked(m_bAlternate);
 
 	connect(actHeader, &QAction::toggled, [=](bool bHeader){m_bHeader	= bHeader; setHeaderHidden(!m_bHeader);});
 	connect(actAutoSize, &QAction::toggled, [=](bool bAutoSize)
@@ -179,6 +183,7 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 	});
 	connect(actShowGrid, &QAction::toggled, [=](bool bGrid){m_bGrid	= bGrid;});
 	connect(actAnimation, &QAction::toggled, [=](bool bAnimation){m_bAnimated = bAnimation; setAnimated(m_bAnimated);});
+	connect(actAlternate, &QAction::toggled, [=](bool bAlternate){m_bAlternate = bAlternate; setAlternatingRowColors(m_bAlternate);});
 	connect(actCopyPath, &QAction::triggered, [=]()
 	{
 		//Копируем в буфер
@@ -198,6 +203,7 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 	menu->addAction(actAutoSize);
 	menu->addAction(actShowGrid);
 	menu->addAction(actAnimation);
+	menu->addAction(actAlternate);
 	menu->addSeparator();
 	menu->addAction(actCopyPath);
 	menu->popup(viewport()->mapToGlobal(pos));

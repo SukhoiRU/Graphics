@@ -92,8 +92,8 @@ GraphicsView::~GraphicsView()
 void GraphicsView::teardownGL()
 {
     // Actually destroy our OpenGL information
-    glDeleteVertexArrays(1, &pageVAO);
-    glDeleteBuffers(1, &pageVBO);
+	if(pageVAO)	{glDeleteVertexArrays(1, &pageVAO); pageVAO = 0;}
+	if(pageVBO)	{glDeleteBuffers(1, &pageVBO); pageVBO = 0;}
     delete m_program;
 }
 

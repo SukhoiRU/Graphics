@@ -65,8 +65,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	curTime		= Time0;
 
 	axeArg		= new Graph::GAxeArg;
-	textLabel	= new GTextLabel;
-	textLabel2	= new GTextLabel;
+//	textLabel	= new GTextLabel;
+//	textLabel2	= new GTextLabel;
 	oglInited	= false;
 }
 
@@ -131,7 +131,7 @@ void GraphicsView::initializeGL()
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-
+/*
 	textLabel->initializeGL();
 	textLabel->setFont(16, vec3(0.8,0,1.0f));
 	QString	txt("Съешь ещё_этих мягких! 012345789");
@@ -145,6 +145,7 @@ void GraphicsView::initializeGL()
 	textLabel2->setFont(24, vec3(0, 1.0, 0.0f));
 	textLabel2->addString(txt, 100, 292.0f - textLabel2->topLine());
 	textLabel2->prepare();
+*/
 }
 
 struct Vertex
@@ -606,7 +607,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		{
 			Graph::GAxe*	pAxe	= m_pPanel->at(i);
 			pAxe->ClearFiltering();
-			//pAxe->clearGL();
+			pAxe->clearGL();
 		}
 	}
 

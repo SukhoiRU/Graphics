@@ -72,8 +72,8 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
-	GTextLabel*	textLabel;
-	GTextLabel*	textLabel2;
+//	GTextLabel*	textLabel;
+//	GTextLabel*	textLabel2;
 	
 	//Начальное время и масштаб
 	double		Time0;

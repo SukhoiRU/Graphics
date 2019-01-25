@@ -54,7 +54,7 @@ GAxe::GAxe()
 	m_bInterpol		= true;
 	m_AxeLength		= 0;
 
-	textLabel	= new GTextLabel;
+//	textLabel	= new GTextLabel;
 	dataVAO		= 0;
 	dataVBO		= 0;
 	axeVAO		= 0;
@@ -69,7 +69,7 @@ GAxe::~GAxe()
 	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
 	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
 	delete m_program;
-	delete textLabel;
+//	delete textLabel;
 }
 
 void	GAxe::initializeGL()
@@ -95,9 +95,9 @@ void	GAxe::initializeGL()
 	glBindVertexArray(dataVAO);
 	glGenBuffers(1, &dataVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-//	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
-//	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-//	glEnableVertexAttribArray(0);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -106,13 +106,13 @@ void	GAxe::initializeGL()
 	glBindVertexArray(axeVAO);
 	glGenBuffers(1, &axeVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	//glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	textLabel->initializeGL();
+//	textLabel->initializeGL();
 	setAxeLength(m_AxeLength);
 }
 
@@ -125,7 +125,7 @@ void	GAxe::clearGL()
 
 		if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
 		if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
-		textLabel->clearGL();
+//		textLabel->clearGL();
 	}
 }
 
@@ -169,16 +169,16 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(12, m_Color);
-	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+//	textLabel->setFont(12, m_Color);
+//	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
 		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
-		vec2	size	= textLabel->textSize(txt);
-		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+//		vec2	size	= textLabel->textSize(txt);
+//		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
 	}
 
-	textLabel->prepare();
+//	textLabel->prepare();
 }
 
 void	GAxe::Save(QDomElement* node)
@@ -331,25 +331,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
+	glBindVertexArray(0);
 
-	//Печатаем текст шкалы
-/*
-	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textRender->setColor(m_Color);
-	textRender->setMatrix(dataModel, m_view, m_proj);
-	vec2	size	= textRender->TextSize(m_Name);
-	textRender->RenderText(m_Name, -size.x, m_AxeLength*grid.height() + 2.5);
-	for(int i = 0; i <= m_AxeLength; i++)
-	{
-		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
-		vec2	size	= textRender->TextSize(txt);
-		textRender->RenderText(txt, -size.x - 2., -size.y/2. + i*grid.height());
-	}
-*/
-	
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText();
+//	textLabel->setMatrix(dataModel, m_view, m_proj);
+//	textLabel->renderText();
 
 	m_program->bind();
 

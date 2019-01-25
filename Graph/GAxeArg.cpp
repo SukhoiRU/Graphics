@@ -238,6 +238,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glBindVertexArray(0);
 	m_program->release();
 }
 

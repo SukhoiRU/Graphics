@@ -235,7 +235,6 @@
     <ClCompile Include="Graph\GAxe.cpp" />
     <ClCompile Include="Graph\GAxeArg.cpp" />
     <ClCompile Include="Graph\GraphObject.cpp" />
-    <ClCompile Include="Graph\GText.cpp" />
     <ClCompile Include="Graph\GTextLabel.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -381,7 +380,6 @@
     <ClInclude Include="Graph\GAxe.h" />
     <ClInclude Include="Graph\GAxeArg.h" />
     <ClInclude Include="Graph\GraphObject.h" />
-    <ClInclude Include="Graph\GText.h" />
     <ClInclude Include="Graph\GTextLabel.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

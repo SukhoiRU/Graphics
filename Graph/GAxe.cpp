@@ -269,7 +269,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;

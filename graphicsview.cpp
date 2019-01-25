@@ -10,7 +10,6 @@
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
 #include "Graph/GAxeArg.h"
-#include "Graph/GText.h"
 
 #include <vector>
 using std::max;
@@ -66,7 +65,6 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	curTime		= Time0;
 
 	axeArg		= new Graph::GAxeArg;
-	textRender	= new GText;
 	textLabel	= new GTextLabel;
 	textLabel2	= new GTextLabel;
 	oglInited	= false;
@@ -83,7 +81,6 @@ GraphicsView::~GraphicsView()
 	settings.sync();
 
 	delete	axeArg;
-	delete	textRender;
 	if(pPageSetup)
 		delete pPageSetup;
 	teardownGL();
@@ -133,8 +130,6 @@ void GraphicsView::initializeGL()
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		textRender->initializeGL();
 	}
 
 	textLabel->initializeGL();
@@ -269,7 +264,7 @@ void GraphicsView::paintGL()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			pGraph->Draw(Time0, TimeScale, gridStep, area, textRender);
+			pGraph->Draw(Time0, TimeScale, gridStep, area);
 		}
 
 		//Рисуем мышь

@@ -140,9 +140,6 @@
     <ClCompile Include="glad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Graph\GText.cpp">
-      <Filter>Source Files\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="Graph\GTextLabel.cpp">
       <Filter>Source Files\Graph</Filter>
     </ClCompile>
@@ -176,9 +173,6 @@
       <Filter>Header Files\Graph</Filter>
     </ClInclude>
     <ClInclude Include="Graph\GAxeArg.h">
-      <Filter>Header Files\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph\GText.h">
       <Filter>Header Files\Graph</Filter>
     </ClInclude>
     <ClInclude Include="Graph\GTextLabel.h">

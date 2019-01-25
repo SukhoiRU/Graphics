@@ -18,7 +18,6 @@ class GAxe;
 class GAxeArg;
 }
 
-class GText;
 class GTextLabel;
 
 class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
@@ -73,7 +72,6 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
-	GText*		textRender;
 	GTextLabel*	textLabel;
 	GTextLabel*	textLabel2;
 	

@@ -117,6 +117,7 @@ void	GAxe::setAxeLength(int len)
 {
 	//Установка длины оси
 	m_AxeLength	= len;
+	if(!m_bOpenGL_inited)	return;
 
 	//Заливка данных в видеопамять
 	vector<vec2>	data;
@@ -150,7 +151,7 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(12, m_Color);
+	textLabel->setFont(14, m_Color);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
@@ -334,6 +335,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	m_program->bind();
 
+	if(!m_data.size())	return;
 	//Рисуем график
 	glBindVertexArray(dataVAO);
 
@@ -1657,6 +1659,8 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				{
 					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));
 				}
+
+				if(!m_bOpenGL_inited)	return;
 
 				//Загружаем данные в видеопамять
 				glBindVertexArray(dataVAO);

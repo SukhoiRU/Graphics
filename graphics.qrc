@@ -47,5 +47,7 @@
         <file>shaders/textlabel.vert</file>
         <file>Resources/fonts/arial.png</file>
         <file>Resources/fonts/arial.xml</file>
+        <file>Resources/fonts/arial_s.png</file>
+        <file>Resources/fonts/arial_s.xml</file>
     </qresource>
 </RCC>

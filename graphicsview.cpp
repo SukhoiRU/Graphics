@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QPainter>
 #include <QSvgGenerator>
+#include <QCursor>
 #include "Dialogs/pageSetup.h"
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
@@ -27,7 +28,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(16);
+    format.setSamples(1);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -57,7 +58,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	bdWidth	= 0.1f;
 
-	setMouseTracking(true);    
+	setMouseTracking(true);
 	pPageSetup	= 0;
 	m_pPanel	= 0;
 
@@ -70,6 +71,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	textLabel	= new GTextLabel;
 	textLabel2	= new GTextLabel;
 	oglInited	= false;
+
+	m_bStopDraw	= false;
 }
 
 GraphicsView::~GraphicsView()
@@ -223,13 +226,12 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-	QTime	t0;
+	if(m_bStopDraw)	return;
 	t0.start();
-
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 
 	//Очистка вида
@@ -301,6 +303,41 @@ void GraphicsView::paintGL()
 			glStencilMask(0x00);
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
+			glFinish();
+			//Получаем мышь
+			QPointF	pLocal	= mapFromGlobal(QCursor::pos());
+
+			//Переводим мышь в координаты модели
+			vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+			mat4	iView	= glm::inverse(m_proj*m_view);
+			vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
+
+			//Получаем мышь в поле графиков
+			glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+			glm::vec4	graph	= glm::inverse(graphM)*world;
+			curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
+
+			QTime	time	= QTime::currentTime();
+			GLfloat	angle1	= 0.*sin(time.msecsSinceStartOfDay()/1000.*6.28);
+			GLfloat	angle2	= 0.*cos(time.msecsSinceStartOfDay()/1000.*6.28);
+
+			//Сохраняем в классе
+			m_mousePos.x	= world.x + angle1;
+			m_mousePos.y	= world.y + angle2;
+
+			//Переключаем курсор
+			if(m_mousePos.x > pageBorders.left()+graphBorders.left() &&
+			   m_mousePos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
+			   m_mousePos.y > pageBorders.bottom()+graphBorders.bottom() &&
+			   m_mousePos.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+			{
+				m_bOnMouse	= true;
+			}
+			else
+			{
+				m_bOnMouse	= false;
+			}
+
 			//Растягиваем единичные палки мыши во всю область
 			areaMat	= mat4(1.0f);
 			areaMat	= translate(areaMat, vec3(m_mousePos.x, m_mousePos.y, 0));
@@ -313,7 +350,9 @@ void GraphicsView::paintGL()
 		}
 	}
 	m_program->release();
+	emit dt(t0.elapsed());
 
+/*
 	textRender->setColor(vec3(0.0f, 0.f, 0.f));
 	mat4	m(1.);
 	static float kx	= 1;
@@ -322,7 +361,9 @@ void GraphicsView::paintGL()
 	QTime	time	= QTime::currentTime();
 	GLfloat	y = 150. +150.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
 
-	textRender->RenderText("Съешь еще этих мягких 0123456789", 0,y);
+	textRender->RenderText("Съешь еще этих мягких 0123456789", 0, y);
+	textRender->RenderText("Vh_b", 0, y+20);
+*/
 
 	//textShader->bind();
 	//glUniformMatrix4fv(glGetUniformLocation(textShader->programId(),"worldToCamera"), 1, GL_FALSE, &m_view[0][0]);
@@ -430,8 +471,11 @@ void GraphicsView::update()
 	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
-//	Time0	= 200 + 0*100*sin(0.5*time.msecsSinceStartOfDay()/1000.*6.28);
+//	Time0	= 500 + 500*sin(0.1f*time.msecsSinceStartOfDay()/1000.*6.28);
 //	TimeScale	= 50;
+	//QPoint	cur	= QCursor::pos();
+	//cur.setX(cur.x() + 2.0f*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28));
+	//QCursor::setPos(cur);
 
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
@@ -492,6 +536,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
 	//Сохраняем в классе
+	//vec2 m_mousePos;
 	m_mousePos.x	= world.x;
 	m_mousePos.y	= world.y;
 
@@ -509,6 +554,8 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
         setCursor(Qt::ArrowCursor);
 		m_bOnMouse	= false;
 	}
+
+	event->accept();
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -518,8 +565,11 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 	if(mdf.testFlag(Qt::NoModifier))
 	{
-		if(numDegrees.y() < 0)	Time0	+= 0.2*TimeScale;
-		else					Time0	-= 0.2*TimeScale;
+		Time0 += -0.02*numDegrees.x()*TimeScale - 0.02*numDegrees.y()*TimeScale;
+		//{
+		//	if(numDegrees.y() < 0)	Time0	+= 1.0*TimeScale;
+		//	else					Time0	-= 1.0*TimeScale;
+		//}
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{
@@ -553,6 +603,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
 {
+	m_bStopDraw	= true;
 	//Запоминаем новый список осей
     m_pPanel	= axes;
 	if(!oglInited)	return;
@@ -569,5 +620,6 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		pAxe->UpdateRecord(pBuffer);
 		m_GraphObjects.push_back(axes->at(i));
 	}
+	m_bStopDraw	= false;
 }
 

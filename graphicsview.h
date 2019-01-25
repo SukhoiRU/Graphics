@@ -26,6 +26,8 @@ class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
 	Q_OBJECT
 
 // OpenGL Events
+QTime	t0;
+	bool	m_bStopDraw;
 public:
 	explicit GraphicsView(QWidget* parent = 0, Qt::WindowFlags f = 0);
     virtual ~GraphicsView();

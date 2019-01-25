@@ -611,7 +611,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		{
 			Graph::GAxe*	pAxe	= m_pPanel->at(i);
 			pAxe->ClearFiltering();
-			pAxe->clearGL();
+			//pAxe->clearGL();
 		}
 	}
 

@@ -18,7 +18,6 @@ class GAxe;
 class GAxeArg;
 }
 
-class GText;
 class GTextLabel;
 
 class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
@@ -27,7 +26,6 @@ class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
 
 // OpenGL Events
 QTime	t0;
-	bool	m_bStopDraw;
 public:
 	explicit GraphicsView(QWidget* parent = 0, Qt::WindowFlags f = 0);
     virtual ~GraphicsView();
@@ -74,9 +72,8 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
-	GText*		textRender;
-	GTextLabel*	textLabel;
-	GTextLabel*	textLabel2;
+//	GTextLabel*	textLabel;
+//	GTextLabel*	textLabel2;
 	
 	//Начальное время и масштаб
 	double		Time0;

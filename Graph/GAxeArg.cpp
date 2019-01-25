@@ -12,15 +12,20 @@ GAxeArg::GAxeArg()
 	oldArea		= QRect();
 	nCountGrid	= 0;
 	nCountAxe	= 0;
+
+	gridVAO	= 0;
+	gridVBO	= 0;
+	axeVAO	= 0;
+	axeVBO	= 0;
 }
 
 GAxeArg::~GAxeArg()
 {
-	glDeleteVertexArrays(1, &gridVAO);
-	glDeleteBuffers(1, &gridVBO);
+	if(gridVAO)	{glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
+	if(gridVBO)	{glDeleteBuffers(1, &gridVBO); gridVBO	= 0;}
 
-	glDeleteVertexArrays(1, &axeVAO);
-	glDeleteBuffers(1, &axeVBO);
+	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO = 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
 
 	delete m_program;
 }
@@ -29,7 +34,6 @@ void	GAxeArg::initializeGL()
 {
 	if(m_bOpenGL_inited)	return;
 	m_bOpenGL_inited	= true;
-//	initializeOpenGLFunctions();
 
 	m_program	= new QOpenGLShaderProgram;
 	m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxearg.vert");
@@ -47,11 +51,11 @@ void	GAxeArg::initializeGL()
 	glBindVertexArray(gridVAO);
 	glGenBuffers(1, &gridVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -60,11 +64,11 @@ void	GAxeArg::initializeGL()
 	glBindVertexArray(axeVAO);
 	glGenBuffers(1, &axeVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -77,7 +81,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
@@ -144,11 +148,25 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		nCountGrid	= dataGrid.size();
 
 		//Пересоздаем буфер
+		glBindVertexArray(gridVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		glBindVertexArray(axeVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 
@@ -199,7 +217,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Растягиваем прямоугольник на всю область
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= translate(areaMat, vec3(area.x(), area.y()+0.5f, 0));
 		areaMat	= scale(areaMat, vec3(area.width(), -2.0f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
@@ -220,6 +238,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glBindVertexArray(0);
 	m_program->release();
 }
 

@@ -1,6 +1,5 @@
 #ifndef GRAPH_OBJECT_H
 #define GRAPH_OBJECT_H
-#include "GText.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -44,10 +43,11 @@ public:
 	virtual ~GraphObject();
 
 	virtual void	initializeGL(){};
+	virtual void	clearGL(){};
 	virtual void	UpdateRecord(bool bLoad = true){};					//Обновление данных о массиве
 
 	//Рисование
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender){};					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area){};					//Полное рисование
 	virtual void	DrawFrame(){};				//Отрисовка только рамки
 
 	//Мышиные дела

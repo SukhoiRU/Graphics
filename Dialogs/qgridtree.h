@@ -11,6 +11,7 @@ private:
 	bool	m_bAutoSize;
 	bool	m_bGrid;
 	bool	m_bAnimated;
+	bool	m_bAlternate;
 
 public:
     explicit QGridTree(QWidget *parent = 0);

@@ -58,6 +58,7 @@ public:
 	GTextLabel();
 	~GTextLabel();
 	void	initializeGL();
+	void	clearGL();
 	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();

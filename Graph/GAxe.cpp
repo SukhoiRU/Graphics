@@ -54,23 +54,26 @@ GAxe::GAxe()
 	m_bInterpol		= true;
 	m_AxeLength		= 0;
 
-	textLabel	= new GTextLabel;
+//	textLabel	= new GTextLabel;
+	dataVAO		= 0;
+	dataVBO		= 0;
+	axeVAO		= 0;
+	axeVBO		= 0;
 }
 
 GAxe::~GAxe()
 {
-	glDeleteVertexArrays(1, &dataVAO);
-	glDeleteBuffers(1, &dataVBO);
+	if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
+	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
 
-	glDeleteVertexArrays(1, &axeVAO);
-	glDeleteBuffers(1, &axeVBO);
+	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
 	delete m_program;
-	delete textLabel;
+//	delete textLabel;
 }
 
 void	GAxe::initializeGL()
 {
-	if(m_bOpenGL_inited)	return;
 	m_bOpenGL_inited	= true;
 //	if(m_program == 0)
 	{
@@ -103,14 +106,27 @@ void	GAxe::initializeGL()
 	glBindVertexArray(axeVAO);
 	glGenBuffers(1, &axeVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	//glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	textLabel->initializeGL();
+//	textLabel->initializeGL();
 	setAxeLength(m_AxeLength);
+}
+
+void	GAxe::clearGL()
+{
+	if(m_bOpenGL_inited)
+	{
+		if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
+		if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
+
+		if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
+		if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
+//		textLabel->clearGL();
+	}
 }
 
 void	GAxe::setAxeLength(int len)
@@ -146,21 +162,23 @@ void	GAxe::setAxeLength(int len)
 	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(14, m_Color);
-	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+//	textLabel->setFont(12, m_Color);
+//	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
 		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
-		vec2	size	= textLabel->textSize(txt);
-		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+//		vec2	size	= textLabel->textSize(txt);
+//		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
 	}
 
-	textLabel->prepare();
+//	textLabel->prepare();
 }
 
 void	GAxe::Save(QDomElement* node)
@@ -251,7 +269,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, GText* textRender)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
@@ -313,25 +331,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
+	glBindVertexArray(0);
 
-	//Печатаем текст шкалы
-/*
-	dataModel		= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textRender->setColor(m_Color);
-	textRender->setMatrix(dataModel, m_view, m_proj);
-	vec2	size	= textRender->TextSize(m_Name);
-	textRender->RenderText(m_Name, -size.x, m_AxeLength*grid.height() + 2.5);
-	for(int i = 0; i <= m_AxeLength; i++)
-	{
-		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
-		vec2	size	= textRender->TextSize(txt);
-		textRender->RenderText(txt, -size.x - 2., -size.y/2. + i*grid.height());
-	}
-*/
-	
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText();
+//	textLabel->setMatrix(dataModel, m_view, m_proj);
+//	textLabel->renderText();
 
 	m_program->bind();
 
@@ -344,10 +348,18 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
-	//Рисуем график
+	//Рисуем график со смещением
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	mat4	data2	= translate(dataModel, vec3(0.0f, -0.05f, 0.0f));
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+	vec3	color2	= m_Color*0.5f;
+	glUniform3fv(u_color, 1, &color2.r);
+	//glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+
+	//Рисуем основной график
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glUniform3fv(u_color, 1, &m_Color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
@@ -1666,8 +1678,10 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				glBindVertexArray(dataVAO);
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+				glEnableVertexAttribArray(0);
 				glBindVertexArray(0);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 				//Обработка ошибок памяти
 				if(!m_pOrionTime || !m_pOrionData)

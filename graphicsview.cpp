@@ -6,12 +6,10 @@
 #include <QScrollBar>
 #include <QPainter>
 #include <QSvgGenerator>
-#include <QCursor>
 #include "Dialogs/pageSetup.h"
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
 #include "Graph/GAxeArg.h"
-#include "Graph/GText.h"
 
 #include <vector>
 using std::max;
@@ -58,7 +56,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	bdWidth	= 0.1f;
 
-	setMouseTracking(true);
+	setMouseTracking(true);    
 	pPageSetup	= 0;
 	m_pPanel	= 0;
 
@@ -67,12 +65,9 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	curTime		= Time0;
 
 	axeArg		= new Graph::GAxeArg;
-	textRender	= new GText;
-	textLabel	= new GTextLabel;
-	textLabel2	= new GTextLabel;
+//	textLabel	= new GTextLabel;
+//	textLabel2	= new GTextLabel;
 	oglInited	= false;
-
-	m_bStopDraw	= false;
 }
 
 GraphicsView::~GraphicsView()
@@ -86,7 +81,6 @@ GraphicsView::~GraphicsView()
 	settings.sync();
 
 	delete	axeArg;
-	delete	textRender;
 	if(pPageSetup)
 		delete pPageSetup;
 	teardownGL();
@@ -95,8 +89,8 @@ GraphicsView::~GraphicsView()
 void GraphicsView::teardownGL()
 {
     // Actually destroy our OpenGL information
-    glDeleteVertexArrays(1, &pageVAO);
-    glDeleteBuffers(1, &pageVBO);
+	if(pageVAO)	{glDeleteVertexArrays(1, &pageVAO); pageVAO = 0;}
+	if(pageVBO)	{glDeleteBuffers(1, &pageVBO); pageVBO = 0;}
     delete m_program;
 }
 
@@ -136,10 +130,8 @@ void GraphicsView::initializeGL()
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		textRender->initializeGL();
 	}
-
+/*
 	textLabel->initializeGL();
 	textLabel->setFont(16, vec3(0.8,0,1.0f));
 	QString	txt("Съешь ещё_этих мягких! 012345789");
@@ -153,6 +145,7 @@ void GraphicsView::initializeGL()
 	textLabel2->setFont(24, vec3(0, 1.0, 0.0f));
 	textLabel2->addString(txt, 100, 292.0f - textLabel2->topLine());
 	textLabel2->prepare();
+*/
 }
 
 struct Vertex
@@ -196,8 +189,11 @@ void	GraphicsView::updatePageBuffer()
 	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
 	//Пересоздаем буфер
+//	glBindVertexArray(pageVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+//	glBindBuffer(GL_ARRAY_BUFFER, 0);
+//	glBindVertexArray(0);
 }
 
 void GraphicsView::resizeGL(int width, int height)
@@ -226,13 +222,14 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-	if(m_bStopDraw)	return;
 	t0.start();
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
+	glDisable(GL_LINE_SMOOTH);
+	glLineWidth(5.0f);
 
 	//Очистка вида
 	glStencilMask(0xFF);
@@ -268,7 +265,7 @@ void GraphicsView::paintGL()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			pGraph->Draw(Time0, TimeScale, gridStep, area, textRender);
+			pGraph->Draw(Time0, TimeScale, gridStep, area);
 		}
 
 		//Рисуем мышь
@@ -603,7 +600,17 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
 {
-	m_bStopDraw	= true;
+	if(m_pPanel)
+	{
+		//Очищаем текущий список осей
+		for(size_t i = 0; i < m_pPanel->size(); i++)
+		{
+			Graph::GAxe*	pAxe	= m_pPanel->at(i);
+			pAxe->ClearFiltering();
+			pAxe->clearGL();
+		}
+	}
+
 	//Запоминаем новый список осей
     m_pPanel	= axes;
 	if(!oglInited)	return;
@@ -620,6 +627,5 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		pAxe->UpdateRecord(pBuffer);
 		m_GraphObjects.push_back(axes->at(i));
 	}
-	m_bStopDraw	= false;
 }
 

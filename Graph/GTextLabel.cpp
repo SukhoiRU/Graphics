@@ -113,6 +113,7 @@ void	GTextLabel::initializeGL()
 {
 	if(!bTextureLoaded)
 	{
+//		initializeOpenGLFunctions();
 		bTextureLoaded	= true;
 
 		textShader = new QOpenGLShaderProgram();

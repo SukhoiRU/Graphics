@@ -20,7 +20,7 @@ class GAxeArg;
 
 class GTextLabel;
 
-class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_3_3_Core
+class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_4_3_Core
 {
 	Q_OBJECT
 

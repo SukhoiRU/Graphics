@@ -13,6 +13,7 @@ GAxeArg::GAxeArg()
 	nCountGrid	= 0;
 	nCountAxe	= 0;
 
+	m_program	= 0;
 	gridVAO	= 0;
 	gridVBO	= 0;
 	axeVAO	= 0;
@@ -27,12 +28,13 @@ GAxeArg::~GAxeArg()
 	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO = 0;}
 	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
 
-	delete m_program;
+	if(m_program) { delete m_program; m_program = 0;}
 }
 
 void	GAxeArg::initializeGL()
 {
 	if(m_bOpenGL_inited)	return;
+//	initializeOpenGLFunctions();
 	m_bOpenGL_inited	= true;
 
 	m_program	= new QOpenGLShaderProgram;
@@ -45,32 +47,6 @@ void	GAxeArg::initializeGL()
 	u_worldToCamera	= m_program->uniformLocation("worldToCamera");
 	u_cameraToView	= m_program->uniformLocation("cameraToView");
 	m_program->release();
-
-	//Буфер для сетки
-	glGenVertexArrays(1, &gridVAO);
-	glBindVertexArray(gridVAO);
-	glGenBuffers(1, &gridVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-	//glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//Буфер для оси
-	glGenVertexArrays(1, &axeVAO);
-	glBindVertexArray(axeVAO);
-	glGenBuffers(1, &axeVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	//glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 struct Vertex
@@ -148,7 +124,11 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		nCountGrid	= dataGrid.size();
 
 		//Пересоздаем буфер
+		if(gridVAO) {glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
+		if(gridVBO) {glDeleteBuffers(1, &gridVBO); gridVBO = 0;}
+		glGenVertexArrays(1, &gridVAO);
 		glBindVertexArray(gridVAO);
+		glGenBuffers(1, &gridVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
@@ -158,7 +138,12 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		//Буфер для оси
+		if(axeVAO) { glDeleteVertexArrays(1, &axeVAO); axeVAO = 0; }
+		if(axeVBO) { glDeleteBuffers(1, &axeVBO); axeVBO = 0; }
+		glGenVertexArrays(1, &axeVAO);
 		glBindVertexArray(axeVAO);
+		glGenBuffers(1, &axeVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);

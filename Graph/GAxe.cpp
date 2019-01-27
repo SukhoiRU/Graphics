@@ -55,6 +55,7 @@ GAxe::GAxe()
 	m_AxeLength		= 0;
 
 //	textLabel	= new GTextLabel;
+	m_program	= 0;
 	dataVAO		= 0;
 	dataVBO		= 0;
 	axeVAO		= 0;
@@ -63,19 +64,16 @@ GAxe::GAxe()
 
 GAxe::~GAxe()
 {
-	if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
-	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
-
-	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
-	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
-	delete m_program;
+	clearGL();
+	if(m_program) { delete m_program; m_program = 0;}
 //	delete textLabel;
 }
 
 void	GAxe::initializeGL()
 {
+//	initializeOpenGLFunctions();
 	m_bOpenGL_inited	= true;
-//	if(m_program == 0)
+	if(m_program == 0)
 	{
 		m_program	= new QOpenGLShaderProgram;
 		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
@@ -90,43 +88,18 @@ void	GAxe::initializeGL()
 		m_program->release();
 	}
 
-	//Буфер для графика
-	glGenVertexArrays(1, &dataVAO);
-	glBindVertexArray(dataVAO);
-	glGenBuffers(1, &dataVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//Буфер для оси
-	glGenVertexArrays(1, &axeVAO);
-	glBindVertexArray(axeVAO);
-	glGenBuffers(1, &axeVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	glBufferData(GL_ARRAY_BUFFER, 2*sizeof(float), nullptr, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 //	textLabel->initializeGL();
 	setAxeLength(m_AxeLength);
 }
 
 void	GAxe::clearGL()
 {
-	if(m_bOpenGL_inited)
-	{
-		if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
-		if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
+	if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
+	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
 
-		if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
-		if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
-//		textLabel->clearGL();
-	}
+	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
+//	textLabel->clearGL();
 }
 
 void	GAxe::setAxeLength(int len)
@@ -159,13 +132,18 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
 	m_Axe_nCount	= data.size();
 
+	//Буфер для оси
+	if(axeVAO)	{ glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; }
+	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO	= 0; }
+
+	glGenVertexArrays(1, &axeVAO);
 	glBindVertexArray(axeVAO);
+	glGenBuffers(1, &axeVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
@@ -303,17 +281,20 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Заливаем матрицы в шейдер
 	m_program->bind();
+	glCheckError();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
+	glCheckError();
 	mat4 dataModel	= mat4(1.0f);
 	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
+	glCheckError();
 
 	//Область графиков для трафарета
 	{
@@ -330,6 +311,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		glCheckError();
 	}
 	glBindVertexArray(0);
 
@@ -342,6 +324,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(!m_data.size())	return;
 	//Рисуем график
 	glBindVertexArray(dataVAO);
+	glCheckError();
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
@@ -361,10 +344,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glCheckError();
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
 
 	m_program->release();
+	glCheckError();
 
 	/*
 	if(!m_pDoc->m_pArg->m_bUseTime)
@@ -1661,7 +1646,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 			}
 		
 			//Для Ориона подгружаем данные из большого файла
-			if(pBuffer->GetType() == Acc_Orion)
+			if(pBuffer->GetType() == Acc_Orion && m_DataType == Double)
 			{
 				m_pOrionTime	= pBuffer->GetOrionTime(H);
 				m_pOrionData	= pBuffer->GetOrionData(H);
@@ -1675,13 +1660,22 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				if(!m_bOpenGL_inited)	return;
 
 				//Загружаем данные в видеопамять
+				//if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
+				//if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
+
+				glGenVertexArrays(1, &dataVAO);
+				glCheckError();
 				glBindVertexArray(dataVAO);
+				glGenBuffers(1, &dataVBO);
+				glCheckError();
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+				glCheckError();
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+				glCheckError();
 				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 				glEnableVertexAttribArray(0);
+				glCheckError();
 				glBindVertexArray(0);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 				//Обработка ошибок памяти
 				if(!m_pOrionTime || !m_pOrionData)

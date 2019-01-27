@@ -19,14 +19,14 @@ using std::max;
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-
 GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(parent, f)
 {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(3, 3);
+    format.setVersion(4, 3);
     format.setSamples(1);
+	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -84,6 +84,8 @@ GraphicsView::~GraphicsView()
 	if(pPageSetup)
 		delete pPageSetup;
 	teardownGL();
+
+	QOpenGLContext*	c	= this->context();
 }
 
 void GraphicsView::teardownGL()
@@ -101,10 +103,20 @@ void GraphicsView::initializeGL()
 
 	// Set global information
 	gladLoadGL();
-	//initializeOpenGLFunctions();
+//	initializeOpenGLFunctions();
 	oglInited	= true;
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	 
+
+	// enable OpenGL debug context if context allows for debug context
+	GLint flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+	if(flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+	{
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); // makes sure errors are displayed synchronously
+		glDebugMessageCallback(glDebugOutput, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	}
+
 	// Application-specific initialization
 	{
 		//Create Shader (Do not release until VAO is created)
@@ -129,7 +141,6 @@ void GraphicsView::initializeGL()
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 /*
 	textLabel->initializeGL();
@@ -226,10 +237,9 @@ void GraphicsView::paintGL()
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_MULTISAMPLE);
+	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
-	glLineWidth(5.0f);
 
 	//Очистка вида
 	glStencilMask(0xFF);
@@ -267,6 +277,7 @@ void GraphicsView::paintGL()
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
 			pGraph->Draw(Time0, TimeScale, gridStep, area);
 		}
+		glBindVertexArray(0);
 
 		//Рисуем мышь
 		if(m_bOnMouse)
@@ -347,7 +358,7 @@ void GraphicsView::paintGL()
 		}
 	}
 	m_program->release();
-	emit dt(t0.elapsed());
+	//emit dt(t0.elapsed());
 
 /*
 	textRender->setColor(vec3(0.0f, 0.f, 0.f));
@@ -381,7 +392,7 @@ void GraphicsView::paintGL()
 */
 
 //    paintOverGL(&painter);
-	emit dt(t0.elapsed());
+//	emit dt(t0.elapsed());
 }
 
 void GraphicsView::paintOverGL(QPainter* p)

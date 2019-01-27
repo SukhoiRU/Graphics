@@ -13,7 +13,7 @@ using std::map;
 
 class QOpenGLShaderProgram;
 
-class GTextLabel
+class GTextLabel// : public QOpenGLFunctions_4_3_Core
 {
 private:
 	// Holds all state information relevant to a character as loaded using FreeType

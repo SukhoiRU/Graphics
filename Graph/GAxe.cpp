@@ -281,20 +281,17 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Заливаем матрицы в шейдер
 	m_program->bind();
-	glCheckError();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
-	glCheckError();
 	mat4 dataModel	= mat4(1.0f);
 	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
-	glCheckError();
 
 	//Область графиков для трафарета
 	{
@@ -311,7 +308,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		glCheckError();
 	}
 	glBindVertexArray(0);
 
@@ -324,7 +320,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(!m_data.size())	return;
 	//Рисуем график
 	glBindVertexArray(dataVAO);
-	glCheckError();
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
@@ -344,12 +339,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-	glCheckError();
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
 
 	m_program->release();
-	glCheckError();
 
 	/*
 	if(!m_pDoc->m_pArg->m_bUseTime)
@@ -1664,17 +1657,12 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				//if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
 
 				glGenVertexArrays(1, &dataVAO);
-				glCheckError();
 				glBindVertexArray(dataVAO);
 				glGenBuffers(1, &dataVBO);
-				glCheckError();
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-				glCheckError();
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-				glCheckError();
 				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 				glEnableVertexAttribArray(0);
-				glCheckError();
 				glBindVertexArray(0);
 
 				//Обработка ошибок памяти

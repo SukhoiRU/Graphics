@@ -107,16 +107,6 @@ void GraphicsView::initializeGL()
 	oglInited	= true;
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-	// enable OpenGL debug context if context allows for debug context
-	GLint flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-	if(flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-	{
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); // makes sure errors are displayed synchronously
-		glDebugMessageCallback(glDebugOutput, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	}
-
 	// Application-specific initialization
 	{
 		//Create Shader (Do not release until VAO is created)
@@ -237,7 +227,7 @@ void GraphicsView::paintGL()
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 
@@ -633,6 +623,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	for(size_t i = 0; i < axes->size(); i++)
 	{
 		Graph::GAxe*	pAxe	= axes->at(i);
+		pAxe->clearGL();
 		pAxe->initializeGL();
 		pAxe->ClearFiltering();
 		pAxe->UpdateRecord(pBuffer);

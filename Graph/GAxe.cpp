@@ -315,7 +315,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 //	textLabel->setMatrix(dataModel, m_view, m_proj);
 //	textLabel->renderText();
 
-	m_program->bind();
+	//m_program->bind();
 
 	if(!m_data.size())	return;
 	//Рисуем график
@@ -326,7 +326,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
-
+/*
 	//Рисуем график со смещением
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	mat4	data2	= translate(dataModel, vec3(0.0f, -0.05f, 0.0f));
@@ -334,7 +334,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	vec3	color2	= m_Color*0.5f;
 	glUniform3fv(u_color, 1, &color2.r);
 	//glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-
+*/
 	//Рисуем основной график
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_color, 1, &m_Color.r);
@@ -1653,8 +1653,8 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				if(!m_bOpenGL_inited)	return;
 
 				//Загружаем данные в видеопамять
-				//if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
-				//if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
+				if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
+				if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
 
 				glGenVertexArrays(1, &dataVAO);
 				glBindVertexArray(dataVAO);

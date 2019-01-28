@@ -228,7 +228,7 @@ void GraphicsView::paintGL()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
-	glEnable(GL_STENCIL_TEST);
+	//glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 
 	//Очистка вида
@@ -623,10 +623,10 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	for(size_t i = 0; i < axes->size(); i++)
 	{
 		Graph::GAxe*	pAxe	= axes->at(i);
-		pAxe->clearGL();
 		pAxe->initializeGL();
 		pAxe->ClearFiltering();
 		pAxe->UpdateRecord(pBuffer);
+		pAxe->setAxeLength(pAxe->getAxeLength());
 		m_GraphObjects.push_back(axes->at(i));
 	}
 }

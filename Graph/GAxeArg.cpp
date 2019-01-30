@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GAxeArg.h"
+#include "GTextLabel.h"
 
 namespace Graph{
 
@@ -18,6 +19,7 @@ GAxeArg::GAxeArg()
 	gridVBO	= 0;
 	axeVAO	= 0;
 	axeVBO	= 0;
+	textLabel	= new GTextLabel;
 }
 
 GAxeArg::~GAxeArg()
@@ -29,6 +31,7 @@ GAxeArg::~GAxeArg()
 	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
 
 	if(m_program) { delete m_program; m_program = 0;}
+	delete textLabel;
 }
 
 void	GAxeArg::initializeGL()
@@ -47,6 +50,8 @@ void	GAxeArg::initializeGL()
 	u_worldToCamera	= m_program->uniformLocation("worldToCamera");
 	u_cameraToView	= m_program->uniformLocation("cameraToView");
 	m_program->release();
+
+	textLabel->initializeGL();
 }
 
 struct Vertex
@@ -70,14 +75,19 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	int	nSkip	= int(dt5/TimeScale);
 
 	//Проверяем, надо ли обновлять данные
-	if((TimeScale != oldTimeScale) ||
+	if((t0 != oldTime) ||
+		(TimeScale != oldTimeScale) ||
 		(grid.width()	!= oldGrid.width()) ||
 	   (area.width() != oldArea.width()))
 	{
 		//Запоминаем предыдущие значения
+		oldTime			= t0;
 		oldTimeScale	= TimeScale;
 		oldGrid			= grid;
 		oldArea			= area;
+		textLabel->clearGL();
+		textLabel->initializeGL();
+		textLabel->setFont(10, vec3(0.f));
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
@@ -105,6 +115,15 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 				dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
 				dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
 			}
+
+			//Метка времени
+			if(!(n%20))
+			{
+				float	t	= t0 + x0/grid.width()*TimeScale - dt;
+				QString	timeStr	= QString("%1").arg(t);
+				textLabel->addString(timeStr, x0 - 0.5*textLabel->textSize(timeStr).x, -2. - textLabel->textSize(timeStr).y);
+			}
+
 			n++;
 		}
 
@@ -126,6 +145,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		//Пересоздаем буфер
 		if(gridVAO) {glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
 		if(gridVBO) {glDeleteBuffers(1, &gridVBO); gridVBO = 0;}
+
 		glGenVertexArrays(1, &gridVAO);
 		glBindVertexArray(gridVAO);
 		glGenBuffers(1, &gridVBO);
@@ -152,6 +172,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		textLabel->prepare();
 	}
 
 
@@ -236,7 +258,12 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	m_program->release();
+
+	dataModel	= translate(mat4(1.f), vec3(area.x() - dt/TimeScale*grid.width(), area.y(), 0.f));
+	textLabel->setMatrix(dataModel, m_view, m_proj);
+	textLabel->renderText();
 }
 
 }

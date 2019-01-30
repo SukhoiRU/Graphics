@@ -5,6 +5,7 @@
 
 class QCursor;
 class QOpenGLShaderProgram;
+class GTextLabel;
 
 namespace Graph{
 
@@ -35,6 +36,7 @@ private:
 	double	oldTimeScale;
 	QSizeF	oldGrid;
 	QRectF	oldArea;
+	GTextLabel*		textLabel;
 
 public:
 	QString			m_Name;			//Название оси

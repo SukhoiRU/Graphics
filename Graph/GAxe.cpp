@@ -147,7 +147,7 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(8, m_Color);
+	textLabel->setFont(10, m_Color);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
@@ -363,15 +363,18 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 /*
 	//Рисуем график со смещением
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	mat4	data2	= translate(dataModel, vec3(0.0f, -0.05f, 0.0f));
+	mat4	data2	= mat4(1.0f);
+	data2	= translate(data2, vec3(area.x(), m_BottomRight.y-0.1f, 0.f));
+	data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
+	data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-	vec3	color2	= m_Color*0.5f;
+	vec3	color2	= m_Color*1.0f;
 	glUniform3fv(u_color, 1, &color2.r);
-	//glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 */
 	//Рисуем основной график
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1685,16 +1688,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				}
 				if(!m_bOpenGL_inited)	return;
 
-				//Загружаем данные в видеопамять
-				vec2*	pData	= new vec2[m_Data_Len];
-				for(int i = 0; i < m_Data_Len; i++)
-				{
-					pData[i]	= m_data.at(i);
-					//pData[i].x	= i/100.;
-					//pData[i].y	= 10.*sin(i/1000.);
-				}
-
-				if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
+				if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO = 0; }
 				if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
 
 				glGenVertexArrays(1, &dataVAO);
@@ -1702,12 +1696,9 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				glGenBuffers(1, &dataVBO);
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-//				glBufferData(GL_ARRAY_BUFFER, m_Data_Len*sizeof(vec2), 0, GL_STATIC_DRAW);
-//				glBufferSubData(GL_ARRAY_BUFFER, 0, m_Data_Len*sizeof(vec2), pData);
 				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 				glEnableVertexAttribArray(0);
 				glBindVertexArray(0);
-				delete pData;
 
 				//Обновляем VAO оси
 				setAxeLength(m_AxeLength);

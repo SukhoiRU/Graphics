@@ -31,7 +31,7 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial_s.xml");
+	QFile file(":/Resources/fonts/arial.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
 		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/courier.xml").arg(file.errorString()));
@@ -129,7 +129,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial_s.png"));
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial.png"));
 		texSize.x	= gl_texture->width();
 		texSize.y	= gl_texture->height();
 		texture	= gl_texture->textureId();
@@ -236,19 +236,25 @@ void	GTextLabel::prepare()
 void	GTextLabel::renderText()
 {
 	// Activate corresponding render state	
+//	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
 	glUniform3f(u_color, color.x, color.y, color.z);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
 
 	// Render glyph texture over quad
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, m_data.size());
 
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	textShader->release();
+//	glDisable(GL_MULTISAMPLE);
 }
 
 void	GTextLabel::setFont(int size, vec3 color)

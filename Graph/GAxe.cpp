@@ -54,7 +54,7 @@ GAxe::GAxe()
 	m_bInterpol		= true;
 	m_AxeLength		= 0;
 
-//	textLabel	= new GTextLabel;
+	textLabel	= new GTextLabel;
 	m_program	= 0;
 	dataVAO		= 0;
 	dataVBO		= 0;
@@ -66,7 +66,7 @@ GAxe::~GAxe()
 {
 	clearGL();
 	if(m_program) { delete m_program; m_program = 0;}
-//	delete textLabel;
+	delete textLabel;
 }
 
 void	GAxe::initializeGL()
@@ -88,18 +88,18 @@ void	GAxe::initializeGL()
 		m_program->release();
 	}
 
-//	textLabel->initializeGL();
+	textLabel->initializeGL();
 	setAxeLength(m_AxeLength);
 }
 
 void	GAxe::clearGL()
 {
-	if(dataVAO)	{glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0;}
-	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0;}
+	if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
+	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
 
-	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0;}
-	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO	= 0;}
-//	textLabel->clearGL();
+	if(axeVAO)	{ glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; }
+	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO	= 0; }
+	textLabel->clearGL();
 }
 
 void	GAxe::setAxeLength(int len)
@@ -147,16 +147,16 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid(5.0f, 5.0f);
-//	textLabel->setFont(12, m_Color);
-//	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+	textLabel->setFont(8, m_Color);
+	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
 		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
-//		vec2	size	= textLabel->textSize(txt);
-//		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+		vec2	size	= textLabel->textSize(txt);
+		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
 	}
 
-//	textLabel->prepare();
+	textLabel->prepare();
 }
 
 void	GAxe::Save(QDomElement* node)
@@ -279,14 +279,21 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 	int	nStopIndex	= min(int(m_data.size()-1), nMax);
 
+//nStartIndex	= 0;
+//nStopIndex	= m_data.size()-1;
+
 	//Заливаем матрицы в шейдер
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-
+	
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
 	mat4 dataModel	= mat4(1.0f);
 	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
@@ -312,14 +319,41 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glBindVertexArray(0);
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-//	textLabel->setMatrix(dataModel, m_view, m_proj);
-//	textLabel->renderText();
+	textLabel->setMatrix(dataModel, m_view, m_proj);
+	textLabel->renderText();
 
-	//m_program->bind();
+	m_program->bind();
+	glUniform3fv(u_color, 1, &m_Color.r);
+	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
+/*
 	if(!m_data.size())	return;
+	
+	//Тестовая проверка содержимого буфера
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+		vec2*	pData	= (vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+		if(pData)
+			for(int i = 0; i < m_data.size(); i++)
+			{
+				vec2&	orig	= m_data.at(i);
+				vec2&	buf		= pData[i];
+				if(buf.x != orig.x || buf.y != orig.y)
+				{
+					int a = 0;
+				}
+			}
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+*/
+	
 	//Рисуем график
 	glBindVertexArray(dataVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
@@ -337,10 +371,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 */
 	//Рисуем основной график
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glUniform3fv(u_color, 1, &m_Color.r);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_program->release();
 
@@ -1649,10 +1683,17 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				{
 					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));
 				}
-
 				if(!m_bOpenGL_inited)	return;
 
 				//Загружаем данные в видеопамять
+				vec2*	pData	= new vec2[m_Data_Len];
+				for(int i = 0; i < m_Data_Len; i++)
+				{
+					pData[i]	= m_data.at(i);
+					//pData[i].x	= i/100.;
+					//pData[i].y	= 10.*sin(i/1000.);
+				}
+
 				if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
 				if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
 
@@ -1661,25 +1702,15 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				glGenBuffers(1, &dataVBO);
 				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+//				glBufferData(GL_ARRAY_BUFFER, m_Data_Len*sizeof(vec2), 0, GL_STATIC_DRAW);
+//				glBufferSubData(GL_ARRAY_BUFFER, 0, m_Data_Len*sizeof(vec2), pData);
 				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 				glEnableVertexAttribArray(0);
 				glBindVertexArray(0);
+				delete pData;
 
-				//Обработка ошибок памяти
-				if(!m_pOrionTime || !m_pOrionData)
-				{
-					m_pOrionTime	= 0;
-					m_pOrionData	= 0;
-
-					//Выставляем признак недействительности указателей в текущей панели
-					//if(!m_pDoc->IsInvalidOrion())
-					//	m_pDoc->InvalidatePanel(m_nAcc);
-					//else
-					//{
-					//	//Обновление текущей панели не удалось
-					//	QMessageBox::critical(nullptr, "Орион", "На текущей панели слишком много графиков!");
-					//}
-				}
+				//Обновляем VAO оси
+				setAxeLength(m_AxeLength);
 			}
 
 			UpdateFiltering();

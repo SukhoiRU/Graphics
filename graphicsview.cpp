@@ -25,7 +25,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(4, 3);
-    format.setSamples(1);
+    format.setSamples(16);
 	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
@@ -227,8 +227,8 @@ void GraphicsView::paintGL()
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_MULTISAMPLE);
-	//glEnable(GL_STENCIL_TEST);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 
 	//Очистка вида
@@ -254,6 +254,11 @@ void GraphicsView::paintGL()
     glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	{
 		glBindVertexArray(pageVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
 
 		//Два треугольника листа
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
@@ -268,6 +273,7 @@ void GraphicsView::paintGL()
 			pGraph->Draw(Time0, TimeScale, gridStep, area);
 		}
 		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		//Рисуем мышь
 		if(m_bOnMouse)
@@ -290,6 +296,12 @@ void GraphicsView::paintGL()
 
 			//Трафарет для оси
 			glBindVertexArray(pageVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+
 			glStencilMask(0xFF);
 			glClear(GL_STENCIL_BUFFER_BIT);
 			glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -345,6 +357,7 @@ void GraphicsView::paintGL()
 			glDrawArrays(GL_LINES, 0, 4);
 			glStencilFunc(GL_ALWAYS, 1, 0xFF);
 			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 	}
 	m_program->release();
@@ -626,8 +639,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		pAxe->initializeGL();
 		pAxe->ClearFiltering();
 		pAxe->UpdateRecord(pBuffer);
-		pAxe->setAxeLength(pAxe->getAxeLength());
-		m_GraphObjects.push_back(axes->at(i));
+		m_GraphObjects.push_back(pAxe);
 	}
 }
 

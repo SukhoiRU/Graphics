@@ -165,6 +165,11 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	//Рисуем сетку
 	glBindVertexArray(gridVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	glEnableVertexAttribArray(1);
 	{
 		//Трафарет для сетки
 		glStencilMask(0xFF);
@@ -212,10 +217,15 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
 	}
 
 	glBindVertexArray(axeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
 	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.5f, 0.f));
@@ -223,7 +233,9 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_program->release();
 }
 

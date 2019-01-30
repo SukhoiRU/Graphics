@@ -43,7 +43,7 @@ private:
 	vector<vec2>	m_data;
 	GLuint	dataVAO, dataVBO;
 	GLuint	axeVAO, axeVBO;
-//	GTextLabel*		textLabel;
+	GTextLabel*		textLabel;
 
 	//Shader Information
 	QOpenGLShaderProgram*	m_program;

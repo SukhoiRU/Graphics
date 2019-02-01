@@ -59,6 +59,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	setMouseTracking(true);    
 	pPageSetup	= 0;
 	m_pPanel	= 0;
+	m_pSelectedObject	= 0;
 
 	Time0		= 200;
 	TimeScale	= 20;
@@ -66,6 +67,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
+	m_mousePos	= vec2(0.f);
+	m_clickPos	= vec2(0.f);
 }
 
 GraphicsView::~GraphicsView()
@@ -224,6 +227,7 @@ void GraphicsView::paintGL()
 	//Устанавливаем матрицы для объектов
 	Graph::GraphObject::m_proj	= m_proj;
 	Graph::GraphObject::m_view	= m_view;
+	Graph::GraphObject::m_scale	= m_scale;
 
 	QRectF	area;
 	area.moveBottomLeft(pageBorders.bottomLeft() + graphBorders.bottomLeft());
@@ -256,7 +260,13 @@ void GraphicsView::paintGL()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			pGraph->Draw(Time0, TimeScale, gridStep, area);
+			float	alpha	= 1.0f;
+			if(m_pSelectedObject)
+			{
+				alpha	= 0.3;
+				if(m_pSelectedObject == pGraph)	alpha	= 1.0f;
+			}
+			pGraph->Draw(Time0, TimeScale, gridStep, area, alpha);
 		}
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -417,6 +427,8 @@ void GraphicsView::setScale(float scale)
     if(scale != m_scale)
     {
         m_scale = scale;
+		Graph::GraphObject::m_scale	= m_scale;
+
         vBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
         hBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
 
@@ -484,6 +496,33 @@ void	GraphicsView::updatePage()
 	}
 }
 
+vec2	GraphicsView::mouseToDoc(QMouseEvent *event)
+{
+	QPointF	pLocal	= event->pos();
+
+	//Переводим мышь в координаты модели
+	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::mat4	iView	= glm::inverse(m_proj*m_view);
+	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
+
+	return vec2(world.x, world.y);
+}
+
+void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
+{
+	m_pSelectedObject	= pGraph;
+	for(size_t i = 0; i < m_GraphObjects.size(); i++)
+	{
+		Graph::GraphObject*	pG = m_GraphObjects.at(i);
+		if(pGraph == pG)	pG->m_IsSelected = true;
+		else		   
+		{
+			pG->m_IsSelected = false;
+			pG->m_IsMoving = false;
+		}
+	}
+}
+
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
 	QPointF	pLocal	= event->pos();
@@ -499,7 +538,6 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
 	//Сохраняем в классе
-	//vec2 m_mousePos;
 	m_mousePos.x	= world.x;
 	m_mousePos.y	= world.y;
 
@@ -558,6 +596,57 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	}
 
 	event->accept();
+}
+
+void	GraphicsView::mousePressEvent(QMouseEvent *event)
+{
+	Qt::MouseButtons	buttons	= event->buttons();
+	if(buttons |= Qt::LeftButton)
+	{
+		//Запомним эту точку
+		m_clickPos	= mouseToDoc(event);
+
+		//Определим объект, в который произошел клик
+		bool	bFound	= false;
+		for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
+		{
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			if(pGraph->HitTest(m_clickPos))
+			{
+				SelectObject(pGraph);
+				bFound = true;
+				break;
+			}
+		}
+
+		//Если ни в один объект не попали, выполняем действия по клику в окно
+		if(!bFound)
+		{
+			SelectObject(NULL);
+		}
+	}
+
+	event->accept();
+}
+
+void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
+{
+	return QOpenGLWidget::mouseReleaseEvent(event);
+}
+
+void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	return QOpenGLWidget::mouseDoubleClickEvent(event);
+}
+
+void	GraphicsView::keyPressEvent(QKeyEvent *event)
+{
+	return QOpenGLWidget::keyPressEvent(event);
+}
+
+void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
+{
+	return QOpenGLWidget::keyReleaseEvent(event);
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)

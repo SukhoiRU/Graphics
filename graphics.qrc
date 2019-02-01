@@ -41,8 +41,6 @@
         <file>shaders/gaxe.vert</file>
         <file>shaders/gaxearg.frag</file>
         <file>shaders/gaxearg.vert</file>
-        <file>shaders/text.frag</file>
-        <file>shaders/text.vert</file>
         <file>shaders/textlabel.frag</file>
         <file>shaders/textlabel.vert</file>
         <file>Resources/fonts/arial.png</file>

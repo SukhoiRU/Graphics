@@ -62,7 +62,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
@@ -83,7 +83,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldArea			= area;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(10, vec3(0.f));
+		textLabel->setFont(10, vec3(0.f), m_scale);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
@@ -286,7 +286,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	dataModel	= translate(mat4(1.f), vec3(area.x() - dt/TimeScale*grid.width(), area.y(), 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText();
+	textLabel->renderText(1);
 }
 
 }

@@ -5,6 +5,7 @@ namespace Graph{
 
 mat4	GraphObject::m_proj;	//Общая матрица проекции
 mat4	GraphObject::m_view;	//Общая матрица камеры	
+float	GraphObject::m_scale;	//Общий масштаб
 
 GraphObject::GraphObject()
 {

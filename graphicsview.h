@@ -55,9 +55,18 @@ signals:
 	void	dt(int msecs);
 
 protected:
+	//Обработка мыши и клавиатуры
+	vec2	mouseToDoc(QMouseEvent *event);
+	void	SelectObject(Graph::GraphObject* pGraph);
+	virtual void mousePressEvent(QMouseEvent *event);
+	virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
+	virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void wheelEvent(QWheelEvent *event);
-    void	paintOverGL(QPainter* p);
+	virtual void keyPressEvent(QKeyEvent *event);
+	virtual void keyReleaseEvent(QKeyEvent *event);
+
+	void	paintOverGL(QPainter* p);
 
 private:
 	//Информация о странице
@@ -66,13 +75,15 @@ private:
 	GLfloat		bdWidth;	//Толщина линии рамки
 	QRectF		graphBorders;
 	QSizeF		gridStep;
-	vec2		m_mousePos;
+	vec2		m_mousePos;	//Текущее положение курсора
+	vec2		m_clickPos;	//Точка щелчка мышью
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
+	Graph::GraphObject*			m_pSelectedObject;
 
 	//Начальное время и масштаб
 	double		Time0;

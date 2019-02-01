@@ -43,6 +43,7 @@ private:
 	static	int					u_worldToCamera;
 	static	int					u_cameraToView;
 	static	int					u_color;
+	static	int					u_alpha;
 
 	//Данные для каждого объекта
 	vector<vec4>	m_data;
@@ -62,8 +63,8 @@ public:
 	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();
-	void	setFont(int size, vec3 color);
-	void	renderText();
+	void	setFont(int size, vec3 color, GLfloat scale);
+	void	renderText(float alpha);
 	vec2	textSize(const QString& str);
 	GLfloat	baseLine();
 	GLfloat	midLine();

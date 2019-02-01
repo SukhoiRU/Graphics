@@ -45,6 +45,7 @@ public slots:
     void    setScale(float scale);
     void    saveSVG();
     void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+    void    pause(bool hold);
 
 protected slots:
 	void	teardownGL();
@@ -72,9 +73,7 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
-//	GTextLabel*	textLabel;
-//	GTextLabel*	textLabel2;
-	
+
 	//Начальное время и масштаб
 	double		Time0;
 	double		TimeScale;

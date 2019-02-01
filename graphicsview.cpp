@@ -576,11 +576,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 	if(mdf.testFlag(Qt::NoModifier))
 	{
-		Time0 += -0.02*numDegrees.x()*TimeScale - 0.02*numDegrees.y()*TimeScale;
-		//{
-		//	if(numDegrees.y() < 0)	Time0	+= 1.0*TimeScale;
-		//	else					Time0	-= 1.0*TimeScale;
-		//}
+		Time0 += -0.01*numDegrees.x()*TimeScale - 0.01*numDegrees.y()*TimeScale;
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{

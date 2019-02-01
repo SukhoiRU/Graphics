@@ -60,6 +60,7 @@ GAxe::GAxe()
 	dataVBO		= 0;
 	axeVAO		= 0;
 	axeVBO		= 0;
+	oldGrid		= QSizeF(5.0f, 5.0f);
 }
 
 GAxe::~GAxe()
@@ -85,6 +86,7 @@ void	GAxe::initializeGL()
 		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
 		u_cameraToView	= m_program->uniformLocation("cameraToView");
 		u_color			= m_program->uniformLocation("color");
+		u_round			= m_program->uniformLocation("round");
 		m_program->release();
 	}
 
@@ -146,7 +148,9 @@ void	GAxe::setAxeLength(int len)
 	glBindVertexArray(0);
 
 	//Текстовые метки
-	QSizeF grid(5.0f, 5.0f);
+	QSizeF grid	= oldGrid;
+	textLabel->clearGL();
+	textLabel->initializeGL();
 	textLabel->setFont(10, m_Color);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
@@ -253,6 +257,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(!TimeScale)	return;
 	if(!grid.height())	return;
 	if(!m_Scale)	return;
+	if(oldGrid != grid)
+	{
+		oldGrid	= grid;
+		setAxeLength(m_AxeLength);
+	}
 
 	//Отрисовка только double
 	if(m_DataType != Double)	return;
@@ -279,14 +288,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 	int	nStopIndex	= min(int(m_data.size()-1), nMax);
 
-//nStartIndex	= 0;
-//nStopIndex	= m_data.size()-1;
-
 	//Заливаем матрицы в шейдер
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glUniform1i(u_round, 1);
 	
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
@@ -326,6 +333,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniform3fv(u_color, 1, &m_Color.r);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glUniform1i(u_round, 0);
 
 /*
 	if(!m_data.size())	return;
@@ -354,6 +362,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);

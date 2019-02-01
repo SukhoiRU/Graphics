@@ -44,6 +44,7 @@ private:
 	GLuint	dataVAO, dataVBO;
 	GLuint	axeVAO, axeVBO;
 	GTextLabel*		textLabel;
+	QSizeF	oldGrid;
 
 	//Shader Information
 	QOpenGLShaderProgram*	m_program;
@@ -51,6 +52,7 @@ private:
 	int		u_worldToCamera;
 	int		u_cameraToView;
 	int		u_color;
+	int		u_round;
 
 public:
 	QString			m_Name;			//Название оси

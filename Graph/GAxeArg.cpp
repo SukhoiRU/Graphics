@@ -68,11 +68,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	if(!TimeScale)	return;
 
 	//Расчет ближайшей круглой точки
-	double	dt	= t0 - (int)(t0/TimeScale)*TimeScale;
-	double	dt5	= t0 - (int)(t0/TimeScale/5.)*5.*TimeScale;
-	
-	//Расчет количества пропускаемых клеток до первой жирной линии
-	int	nSkip	= int(dt5/TimeScale);
+	double	dt	= t0 - (int)(t0/TimeScale/5.)*5.*TimeScale;
 
 	//Проверяем, надо ли обновлять данные
 	if((t0 != oldTime) ||
@@ -100,47 +96,67 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		dataGrid.push_back(Vertex(vec2(1.f, 1.f), color));
 		dataGrid.push_back(Vertex(vec2(0.f, 1.f), color));
 
-		//Вертикальные линии
+		//Вертикальные штрихи
 		int n	= 0;
-		for(int x0 = 0; x0 <= 1.2*area.width(); x0 += 1)
+		for(int x0 = - 5*grid.width(); x0 <= area.width() + 5*grid.width(); x0 += 1)
 		{
 			//Штрихи для оси
 			dataAxe.push_back(Vertex(vec2(x0, 0.f), vec3(0.f)));
-			dataAxe.push_back(Vertex(vec2(x0, -0.5f - 0.5f*((n%5)==0)), vec3(0.f)));
+			dataAxe.push_back(Vertex(vec2(x0, -0.75f - 0.75f*((n%5)==0)), vec3(0.f)));
 
 			if(!(n%5))
 			{
-				//Каждый пятый штрих оси рисуем вертикальную линию
-				vec3	color	= (0.85f - 0.0f*(((n+5*nSkip)%25) == 0))*vec3(1.f);
+				//Каждый пятый штрих оси рисуем вертикальную линию сетки
+				vec3	color	= 0.85f*vec3(1.f);
 				dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
 				dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
 			}
 
 			//Метка времени
-			if(!(n%20))
+			float	t	= t0 + x0/grid.width()*TimeScale - dt;
+			if(!(n%25) && t >= t0 && x0 <= area.width()+grid.width())
 			{
-				float	t	= t0 + x0/grid.width()*TimeScale - dt;
 				QString	timeStr	= QString("%1").arg(t);
-				textLabel->addString(timeStr, x0 - 0.5*textLabel->textSize(timeStr).x, -2. - textLabel->textSize(timeStr).y);
+				vec2	strSize	= textLabel->textSize(timeStr);
+				textLabel->addString(timeStr, x0 - 0.5*strSize.x, -2. - strSize.y);
 			}
 
 			n++;
 		}
 
 		//Горизонтальная линия оси
-		dataAxe.push_back(Vertex(vec2(0.f, 0.f), vec3(0.f)));
-		dataAxe.push_back(Vertex(vec2(1.2*area.width(), 0.f), vec3(0.f)));
+		dataAxe.push_back(Vertex(vec2(-5*grid.width(), 0.f), vec3(0.f)));
+		dataAxe.push_back(Vertex(vec2(area.width()+5*grid.width(), 0.f), vec3(0.f)));
 		nCountAxe	= dataAxe.size();
 
-		n	= 0;
-		//Горизонтальные линии
-		for(float y0 = 0; y0 <= area.height(); y0 += grid.height())
+		//Горизонтальные линии сетки
+		for(float y0 = 0; y0 <= area.height() + grid.height(); y0 += grid.height())
 		{
-			dataGrid.push_back(Vertex(vec2(0, y0),				(0.85f - 0.0f*(n%5 == 0))*vec3(1.0f)));
-			dataGrid.push_back(Vertex(vec2(1.2*area.width(), y0),	(0.85f - 0.0f*(n%5 == 0))*vec3(1.0f)));
-			n++;
+			vec3	color	= 0.85f*vec3(1.f);
+			dataGrid.push_back(Vertex(vec2(-5*grid.width(), y0),	color));
+			dataGrid.push_back(Vertex(vec2(area.width()+5*grid.width(), y0),	color));
 		}
+
+		//Жирные линии сетки
+		color	= 0.7f*vec3(1.f);
+		for(int x0 = 0; x0 <= area.width() + grid.width(); x0 += 25)
+		{
+			dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
+			dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
+		}
+		for(float y0 = 0; y0 <= area.height() + grid.height(); y0 += 5.0f*grid.height())
+		{
+			dataGrid.push_back(Vertex(vec2(-5*grid.width(), y0), color));
+			dataGrid.push_back(Vertex(vec2(area.width()+5*grid.width(), y0), color));
+		}
+
+		//Рамка зоны графиков
 		nCountGrid	= dataGrid.size();
+		color	= 0.85f*vec3(1.f);
+		dataGrid.push_back(Vertex(vec2(0, 0.f), color));
+		dataGrid.push_back(Vertex(vec2(0, area.height()), color));
+		dataGrid.push_back(Vertex(vec2(area.width(), area.height()), color));
+		dataGrid.push_back(Vertex(vec2(area.width(), 0), color));
 
 		//Пересоздаем буфер
 		if(gridVAO) {glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
@@ -176,10 +192,10 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		textLabel->prepare();
 	}
 
-
 	//Заливаем матрицы
 	mat4	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
+	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
 
 	m_program->bind();
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
@@ -218,6 +234,13 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glDrawArrays(GL_LINES, 4, nCountGrid-4);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
+	//Рамка поля графиков
+	dataModel	= mat4(1.0f);
+	dataModel	= translate(dataModel, vec3(area.x(), area.y(), 0.0f));
+	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glDrawArrays(GL_LINE_LOOP, nCountGrid, 4);
+	
 	//Рисуем ось
 	{
 		//Трафарет для оси
@@ -227,10 +250,10 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-		//Растягиваем прямоугольник на всю область
+		//Растягиваем прямоугольник область оси
 		mat4	areaMat(1.0f);
 		areaMat	= translate(areaMat, vec3(area.x(), area.y()+0.5f, 0));
-		areaMat	= scale(areaMat, vec3(area.width(), -2.0f, 1.0f));
+		areaMat	= scale(areaMat, vec3(area.width(), -2.5f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -250,7 +273,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
-	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.5f, 0.f));
+	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);

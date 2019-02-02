@@ -60,6 +60,7 @@ GAxe::GAxe()
 	dataVBO		= 0;
 	axeVAO		= 0;
 	axeVBO		= 0;
+	oldGrid		= QSizeF(5.0f, 5.0f);
 }
 
 GAxe::~GAxe()
@@ -85,6 +86,8 @@ void	GAxe::initializeGL()
 		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
 		u_cameraToView	= m_program->uniformLocation("cameraToView");
 		u_color			= m_program->uniformLocation("color");
+		u_alpha			= m_program->uniformLocation("alpha");
+		u_round			= m_program->uniformLocation("round");
 		m_program->release();
 	}
 
@@ -116,6 +119,8 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));
 	data.push_back(vec2(1.f, 1.f));
 	data.push_back(vec2(0.f, 1.f));
+
+	//Штрихи оси
 	for(int i = 0; i < m_AxeLength; i++)
 	{
 		data.push_back(vec2(-1.0f, 0 + 5.f*i));	data.push_back(vec2(0.f, 0 + 5.f*i));
@@ -132,6 +137,17 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
 	m_Axe_nCount	= data.size();
 
+	//Черточки для обрамления
+	{
+		float	dx	= 0.25*oldGrid.width();
+		float	dy	= 0.15*oldGrid.height();
+
+		data.push_back(vec2(-dx, -dy));
+		data.push_back(vec2(-dx, dy + oldGrid.height()*m_AxeLength));
+		data.push_back(vec2(0.5*dx, dy + oldGrid.height()*m_AxeLength));
+		data.push_back(vec2(0.5*dx, -dy));
+	}
+
 	//Буфер для оси
 	if(axeVAO)	{ glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; }
 	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO	= 0; }
@@ -146,8 +162,10 @@ void	GAxe::setAxeLength(int len)
 	glBindVertexArray(0);
 
 	//Текстовые метки
-	QSizeF grid(5.0f, 5.0f);
-	textLabel->setFont(10, m_Color);
+	QSizeF grid	= oldGrid;
+	textLabel->clearGL();
+	textLabel->initializeGL();
+	textLabel->setFont(10, m_Color, m_scale);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
@@ -247,12 +265,17 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
 	if(!grid.height())	return;
 	if(!m_Scale)	return;
+	if(oldGrid != grid)
+	{
+		oldGrid	= grid;
+		setAxeLength(m_AxeLength);
+	}
 
 	//Отрисовка только double
 	if(m_DataType != Double)	return;
@@ -279,14 +302,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 	int	nStopIndex	= min(int(m_data.size()-1), nMax);
 
-//nStartIndex	= 0;
-//nStopIndex	= m_data.size()-1;
-
 	//Заливаем матрицы в шейдер
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
+	glUniform1f(u_alpha, alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glUniform1i(u_round, 1);
 	
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
@@ -299,6 +321,16 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
+
+	//Рисуем обрамление шкалы
+	if(m_IsSelected)
+	{
+		vec3 color(0.7f);
+		glUniform3fv(u_color, 1, &color.r);
+		glLineStipple(1, 0xAAAA);
+		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
+		glUniform3fv(u_color, 1, &m_Color.r);
+	}
 
 	//Область графиков для трафарета
 	{
@@ -320,12 +352,14 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText();
+	textLabel->renderText(alpha);
 
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
+	glUniform1f(u_alpha, alpha*alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glUniform1i(u_round, 0);
 
 /*
 	if(!m_data.size())	return;
@@ -354,6 +388,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
@@ -1150,18 +1185,14 @@ void	GAxe::OnDoubleClick()
 
 bool	GAxe::HitTest(const vec2& pt)
 {
-/*
-	GRect	rc	= GetFrameRect();
-
-	int x = pt.x;
-	int y = pt.y;
-	
-	return	(
-		(x >= rc.left)	&& (x <= rc.right) &&
-		(y >= rc.bottom)&& (y <= rc.top)
-		);
-*/
-	return false;
+	//Определяем попадание в ось
+	if(pt.x < m_BottomRight.x+1 &&
+	   pt.x > m_BottomRight.x-3 &&
+	   pt.y < m_BottomRight.y+oldGrid.height()*m_AxeLength+1 &&
+	   pt.y > m_BottomRight.y-1)
+		return true;
+	else
+		return false;
 }
 /*
 HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)

@@ -236,12 +236,6 @@
     <None Include="shaders\simple.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="shaders\text.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="shaders\text.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
     <None Include="shaders\textlabel.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>

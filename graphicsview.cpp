@@ -59,15 +59,16 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	setMouseTracking(true);    
 	pPageSetup	= 0;
 	m_pPanel	= 0;
+	m_pSelectedObject	= 0;
 
 	Time0		= 200;
 	TimeScale	= 20;
 	curTime		= Time0;
 
 	axeArg		= new Graph::GAxeArg;
-//	textLabel	= new GTextLabel;
-//	textLabel2	= new GTextLabel;
 	oglInited	= false;
+	m_mousePos	= vec2(0.f);
+	m_clickPos	= vec2(0.f);
 }
 
 GraphicsView::~GraphicsView()
@@ -94,6 +95,12 @@ void GraphicsView::teardownGL()
 	if(pageVAO)	{glDeleteVertexArrays(1, &pageVAO); pageVAO = 0;}
 	if(pageVBO)	{glDeleteBuffers(1, &pageVBO); pageVBO = 0;}
     delete m_program;
+}
+
+void GraphicsView::pause(bool hold)
+{
+    if(hold)    disconnect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
+    else        connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
 }
 
 void GraphicsView::initializeGL()
@@ -132,21 +139,6 @@ void GraphicsView::initializeGL()
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 	}
-/*
-	textLabel->initializeGL();
-	textLabel->setFont(16, vec3(0.8,0,1.0f));
-	QString	txt("Съешь ещё_этих мягких! 012345789");
-	vec2	sz		= textLabel->textSize(txt);
-	GLfloat	base	= textLabel->baseLine();
-	textLabel->addString(txt, 65.0f, 262.0f - textLabel->midLine());
-	textLabel->addString("Vy_f Vh_SNP Vh_b", 21.f, 267.f);
-	textLabel->prepare();
-
-	textLabel2->initializeGL();
-	textLabel2->setFont(24, vec3(0, 1.0, 0.0f));
-	textLabel2->addString(txt, 100, 292.0f - textLabel2->topLine());
-	textLabel2->prepare();
-*/
 }
 
 struct Vertex
@@ -190,11 +182,8 @@ void	GraphicsView::updatePageBuffer()
 	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
 	//Пересоздаем буфер
-//	glBindVertexArray(pageVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
-//	glBindVertexArray(0);
 }
 
 void GraphicsView::resizeGL(int width, int height)
@@ -238,6 +227,7 @@ void GraphicsView::paintGL()
 	//Устанавливаем матрицы для объектов
 	Graph::GraphObject::m_proj	= m_proj;
 	Graph::GraphObject::m_view	= m_view;
+	Graph::GraphObject::m_scale	= m_scale;
 
 	QRectF	area;
 	area.moveBottomLeft(pageBorders.bottomLeft() + graphBorders.bottomLeft());
@@ -270,7 +260,13 @@ void GraphicsView::paintGL()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			pGraph->Draw(Time0, TimeScale, gridStep, area);
+			float	alpha	= 1.0f;
+			if(m_pSelectedObject)
+			{
+				alpha	= 0.3;
+				if(m_pSelectedObject == pGraph)	alpha	= 1.0f;
+			}
+			pGraph->Draw(Time0, TimeScale, gridStep, area, alpha);
 		}
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -362,40 +358,6 @@ void GraphicsView::paintGL()
 	}
 	m_program->release();
 	//emit dt(t0.elapsed());
-
-/*
-	textRender->setColor(vec3(0.0f, 0.f, 0.f));
-	mat4	m(1.);
-	static float kx	= 1;
-	m	= glm::scale(m, vec3(kx, kx, 0));
-	textRender->setMatrix(m, m_view, m_proj);
-	QTime	time	= QTime::currentTime();
-	GLfloat	y = 150. +150.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
-
-	textRender->RenderText("Съешь еще этих мягких 0123456789", 0, y);
-	textRender->RenderText("Vh_b", 0, y+20);
-*/
-
-	//textShader->bind();
-	//glUniformMatrix4fv(glGetUniformLocation(textShader->programId(),"worldToCamera"), 1, GL_FALSE, &m_view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(textShader->programId(), "cameraToView"), 1, GL_FALSE, &m_proj[0][0]);
-
-	//QString	msg1("Текст");
-	//static float scale	= 0.3/m_scale;
-	//RenderText(textShader, textVAO, textVBO, msg1.toStdWString(), pageBorders.left() + graphBorders.left(), pageSize.height()-pageBorders.top()- graphBorders.top() - gridStep.height(), scale, glm::vec3(0.f));
-	//RenderText(textShader, textVAO, textVBO, L"(C) LearnOpenGL.com", 210., 260.f, 0.2f, glm::vec3(0.3, 0.7f, 0.9f));
-	//textShader->release();
-
-/*
-	textLabel->setMatrix(m_model, m_view, m_proj);
-	textLabel->renderText();
-
-	textLabel2->setMatrix(m_model, m_view, m_proj);
-	textLabel2->renderText();
-*/
-
-//    paintOverGL(&painter);
-//	emit dt(t0.elapsed());
 }
 
 void GraphicsView::paintOverGL(QPainter* p)
@@ -465,6 +427,8 @@ void GraphicsView::setScale(float scale)
     if(scale != m_scale)
     {
         m_scale = scale;
+		Graph::GraphObject::m_scale	= m_scale;
+
         vBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
         hBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
 
@@ -532,6 +496,33 @@ void	GraphicsView::updatePage()
 	}
 }
 
+vec2	GraphicsView::mouseToDoc(QMouseEvent *event)
+{
+	QPointF	pLocal	= event->pos();
+
+	//Переводим мышь в координаты модели
+	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::mat4	iView	= glm::inverse(m_proj*m_view);
+	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
+
+	return vec2(world.x, world.y);
+}
+
+void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
+{
+	m_pSelectedObject	= pGraph;
+	for(size_t i = 0; i < m_GraphObjects.size(); i++)
+	{
+		Graph::GraphObject*	pG = m_GraphObjects.at(i);
+		if(pGraph == pG)	pG->m_IsSelected = true;
+		else		   
+		{
+			pG->m_IsSelected = false;
+			pG->m_IsMoving = false;
+		}
+	}
+}
+
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
 	QPointF	pLocal	= event->pos();
@@ -547,7 +538,6 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
 	//Сохраняем в классе
-	//vec2 m_mousePos;
 	m_mousePos.x	= world.x;
 	m_mousePos.y	= world.y;
 
@@ -576,11 +566,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 	if(mdf.testFlag(Qt::NoModifier))
 	{
-		Time0 += -0.02*numDegrees.x()*TimeScale - 0.02*numDegrees.y()*TimeScale;
-		//{
-		//	if(numDegrees.y() < 0)	Time0	+= 1.0*TimeScale;
-		//	else					Time0	-= 1.0*TimeScale;
-		//}
+		Time0 += -0.01*numDegrees.x()*TimeScale - 0.01*numDegrees.y()*TimeScale;
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{
@@ -610,6 +596,57 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	}
 
 	event->accept();
+}
+
+void	GraphicsView::mousePressEvent(QMouseEvent *event)
+{
+	Qt::MouseButtons	buttons	= event->buttons();
+	if(buttons |= Qt::LeftButton)
+	{
+		//Запомним эту точку
+		m_clickPos	= mouseToDoc(event);
+
+		//Определим объект, в который произошел клик
+		bool	bFound	= false;
+		for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
+		{
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			if(pGraph->HitTest(m_clickPos))
+			{
+				SelectObject(pGraph);
+				bFound = true;
+				break;
+			}
+		}
+
+		//Если ни в один объект не попали, выполняем действия по клику в окно
+		if(!bFound)
+		{
+			SelectObject(NULL);
+		}
+	}
+
+	event->accept();
+}
+
+void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
+{
+	return QOpenGLWidget::mouseReleaseEvent(event);
+}
+
+void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	return QOpenGLWidget::mouseDoubleClickEvent(event);
+}
+
+void	GraphicsView::keyPressEvent(QKeyEvent *event)
+{
+	return QOpenGLWidget::keyPressEvent(event);
+}
+
+void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
+{
+	return QOpenGLWidget::keyReleaseEvent(event);
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)

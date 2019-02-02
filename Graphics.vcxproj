@@ -493,8 +493,6 @@
     <None Include="shaders\gaxearg.vert" />
     <None Include="shaders\simple.frag" />
     <None Include="shaders\simple.vert" />
-    <None Include="shaders\text.frag" />
-    <None Include="shaders\text.vert" />
     <None Include="shaders\textlabel.frag" />
     <None Include="shaders\textlabel.vert" />
   </ItemGroup>

@@ -14,10 +14,10 @@ int					GTextLabel::u_modelToWorld;
 int					GTextLabel::u_worldToCamera;
 int					GTextLabel::u_cameraToView;
 int					GTextLabel::u_color;
+int					GTextLabel::u_alpha;
 
 GTextLabel::GTextLabel()
 {
-	scale		= 3.5f;
 	fontIndex	= 0;
 	textVAO		= 0;
 	textVBO		= 0;
@@ -126,6 +126,7 @@ void	GTextLabel::initializeGL()
 		u_worldToCamera	= textShader->uniformLocation("worldToCamera");
 		u_cameraToView	= textShader->uniformLocation("cameraToView");
 		u_color			= textShader->uniformLocation("textColor");
+		u_alpha			= textShader->uniformLocation("alpha");
 		textShader->release();
 
 		// Prepare texture
@@ -233,12 +234,13 @@ void	GTextLabel::prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void	GTextLabel::renderText()
+void	GTextLabel::renderText(float alpha)
 {
 	// Activate corresponding render state	
 //	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
 	glUniform3f(u_color, color.x, color.y, color.z);
+	glUniform1f(u_alpha, alpha);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
@@ -257,10 +259,11 @@ void	GTextLabel::renderText()
 //	glDisable(GL_MULTISAMPLE);
 }
 
-void	GTextLabel::setFont(int size, vec3 color)
+void	GTextLabel::setFont(int size, vec3 color, GLfloat scale)
 {
 	//Устанавливаем цвет
 	this->color	= color;
+	this->scale	= scale;
 
 	//Подбираем наиболее подходящий шрифт
 	for(int i = 0; i < fonts.size(); i++)
@@ -269,9 +272,12 @@ void	GTextLabel::setFont(int size, vec3 color)
 		if(f->size >= size)
 		{
 			fontIndex	= i;
-			break;
+			return;
 		}
 	}
+
+	//Берем самый крупный
+	fontIndex	= fonts.size()-1;
 }
 
 vec2	GTextLabel::textSize(const QString& str)

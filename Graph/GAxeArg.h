@@ -51,7 +51,7 @@ public:
 
 	//Рисование
 	virtual	void	initializeGL();
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha);					//Полное рисование
 
 	//Мышиные дела
 	virtual bool	HitTest(const vec2& pt){return false;};//Проверка на попадание курсора

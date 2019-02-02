@@ -44,6 +44,7 @@ private:
 	GLuint	dataVAO, dataVBO;
 	GLuint	axeVAO, axeVBO;
 	GTextLabel*		textLabel;
+	QSizeF	oldGrid;
 
 	//Shader Information
 	QOpenGLShaderProgram*	m_program;
@@ -51,6 +52,8 @@ private:
 	int		u_worldToCamera;
 	int		u_cameraToView;
 	int		u_color;
+	int		u_alpha;
+	int		u_round;
 
 public:
 	QString			m_Name;			//Название оси
@@ -100,7 +103,7 @@ public:
 	//Рисование
 	virtual void	initializeGL();
 	virtual void	clearGL();
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha);					//Полное рисование
 //	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела

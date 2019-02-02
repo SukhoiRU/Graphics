@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
 //	QMessageBox::information(0, "safr", parser.helpText());
 
 	GraphicsDoc w;
-//	if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));
-//	if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
+//    if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));
+//    if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
 	w.showMaximized();
 //	w.show();
 	if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));

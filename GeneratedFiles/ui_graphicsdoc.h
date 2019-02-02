@@ -107,6 +107,8 @@ public:
 
         oglView = new GraphicsView(centralwidget);
         oglView->setObjectName(QStringLiteral("oglView"));
+        oglView->setMouseTracking(true);
+        oglView->setFocusPolicy(Qt::ClickFocus);
 
         gridLayout->addWidget(oglView, 0, 0, 1, 1);
 

@@ -64,7 +64,7 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
 	virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void wheelEvent(QWheelEvent *event);
-	virtual void keyPressEvent(QKeyEvent *event);
+	virtual void keyPressEvent(QKeyEvent *event) override;
 	virtual void keyReleaseEvent(QKeyEvent *event);
 
 	void	paintOverGL(QPainter* p);

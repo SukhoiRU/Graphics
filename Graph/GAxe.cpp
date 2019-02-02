@@ -1233,8 +1233,9 @@ HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)
 		return NULL;
 }
 */
-bool	GAxe::MoveOffset(const vec2& pt, quint32 nFlags)
+bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf)
 {
+	m_BottomRight += delta;
 	bool Res = false;
 /*
 	//Переместим рамку

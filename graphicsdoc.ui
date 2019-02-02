@@ -70,7 +70,14 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="GraphicsView" name="oglView" native="true"/>
+      <widget class="GraphicsView" name="oglView" native="true">
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

@@ -13,6 +13,7 @@
 
 #include <vector>
 using std::max;
+using namespace Graph;
 
 #include "Graph/GTextLabel.h"
 
@@ -326,13 +327,10 @@ void GraphicsView::paintGL()
 			glm::vec4	graph	= glm::inverse(graphM)*world;
 			curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
-			QTime	time	= QTime::currentTime();
-			GLfloat	angle1	= 0.*sin(time.msecsSinceStartOfDay()/1000.*6.28);
-			GLfloat	angle2	= 0.*cos(time.msecsSinceStartOfDay()/1000.*6.28);
-
+/*
 			//Сохраняем в классе
-			m_mousePos.x	= world.x + angle1;
-			m_mousePos.y	= world.y + angle2;
+			m_mousePos.x	= world.x;
+			m_mousePos.y	= world.y;
 
 			//Переключаем курсор
 			if(m_mousePos.x > pageBorders.left()+graphBorders.left() &&
@@ -346,6 +344,7 @@ void GraphicsView::paintGL()
 			{
 				m_bOnMouse	= false;
 			}
+*/
 
 			//Растягиваем единичные палки мыши во всю область
 			areaMat	= mat4(1.0f);
@@ -557,6 +556,8 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
 	QPointF	pLocal	= event->pos();
+	Qt::MouseButtons		buttons	= event->buttons();
+	Qt::KeyboardModifiers	mdf		= event->modifiers();
 
 	//Переводим мышь в координаты модели
 	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
@@ -568,15 +569,13 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	glm::vec4	graph	= glm::inverse(graphM)*world;
 	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
-	//Сохраняем в классе
-	m_mousePos.x	= world.x;
-	m_mousePos.y	= world.y;
+	vec2	mousePos(world.x, world.y);
 
 	//Переключаем курсор
-	if(m_mousePos.x > pageBorders.left()+graphBorders.left() &&
-	   m_mousePos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
-	   m_mousePos.y > pageBorders.bottom()+graphBorders.bottom() &&
-	   m_mousePos.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+	if(world.x > pageBorders.left()+graphBorders.left() &&
+	   world.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
+	   world.y > pageBorders.bottom()+graphBorders.bottom() &&
+	   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 	{
 		setCursor(Qt::BlankCursor);
 		m_bOnMouse	= true;
@@ -586,6 +585,35 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
         setCursor(Qt::ArrowCursor);
 		m_bOnMouse	= false;
 	}
+
+	if(buttons & Qt::LeftButton)
+	{
+		//Если есть выделенный объект, переместим его
+		if(m_SelectedObjects.size())
+		{
+			if(!(*m_SelectedObjects.begin())->m_IsMoving)
+			{
+				//Начало перемещения
+				for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+				{
+					GraphObject*	pGraph	= m_SelectedObjects.at(i);
+					pGraph->m_IsMoving	= true;
+					pGraph->OnStartMoving();
+				}
+			}
+
+			//Перемещение
+			vec2	delta	= mousePos - m_mousePos;
+			for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+			{
+				GraphObject*	pGraph	= m_SelectedObjects.at(i);
+				pGraph->MoveOffset(delta, buttons, mdf);
+			}
+		}
+	}
+
+	//Сохраняем в классе положение мыши
+	m_mousePos	= mousePos;
 
 	event->accept();
 }
@@ -685,7 +713,27 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 
 void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
-	return QOpenGLWidget::mouseReleaseEvent(event);
+	Qt::MouseButtons		buttons		= event->buttons();
+	Qt::KeyboardModifiers	modifiers	= event->modifiers();
+
+	//Если есть выделенные объекты, закончим перемещение
+	if(m_SelectedObjects.size())
+	{
+		if((*m_SelectedObjects.begin())->m_IsMoving)
+		{
+			//Конец перемещения
+			for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+			{
+				GraphObject*	pGraph	= m_SelectedObjects.at(i);
+				pGraph->m_IsMoving	= false;
+				pGraph->OnStopMoving();
+			}
+
+			//SelectObject(0);
+		}
+	}
+
+	event->accept();
 }
 
 void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -695,6 +743,19 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
+	switch(event->key())
+	{
+	case Qt::Key_Escape:
+	{
+		//Если есть выделенные объекты, сбросим их
+		if(m_SelectedObjects.size()) SelectObject(0);
+		event->accept();
+	}break;
+
+	default:
+		break;
+	}
+
 	return QOpenGLWidget::keyPressEvent(event);
 }
 

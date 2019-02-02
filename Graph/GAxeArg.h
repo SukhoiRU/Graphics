@@ -56,7 +56,7 @@ public:
 	//Мышиные дела
 	virtual bool	HitTest(const vec2& pt){return false;};//Проверка на попадание курсора
 //	virtual HCURSOR	GetCursorHandle(const vec2& pt, UINT nFlags);		//Получение типа курсора
-	virtual bool	MoveOffset(const vec2& pt, quint32 nFlags){return false;};	//Перемещение на заданное расстояние
+	virtual bool	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf){return false;};	//Перемещение на заданное расстояние
 	virtual void	OnDoubleClick(){};				//Реакция на щелчок мышью
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
 	virtual void	OnStopMoving() {};				//Реакция на конец перетаскивания

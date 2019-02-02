@@ -64,7 +64,7 @@ public:
 	QString			m_AccName;		//Имя накопления
 
 	double			m_Min;			//Минимальное значение на оси
-	double			m_Scale;		//Цена деления, физическая величина клетки
+	double			m_AxeScale;		//Цена деления, физическая величина клетки
 	int				m_nSubTicks;	//Количество мелких штрихов	
 
 	vec3	  		m_Color;		//Цвет графика

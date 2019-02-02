@@ -166,11 +166,11 @@ void	GAxe::setAxeLength(int len)
 	QSizeF grid	= oldGrid;
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(10, m_Color, m_scale);
+	textLabel->setFont(10, m_scale);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
-		QString	txt		= QString("%1").arg(m_Min + i*m_Scale);
+		QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
 		vec2	size	= textLabel->textSize(txt);
 		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
 	}
@@ -235,7 +235,7 @@ void	GAxe::Load(QDomElement* node)
 	}
 	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
 	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
-	if(node->hasAttribute("Шаг"))			m_Scale			= node->attribute("Шаг").toDouble();
+	if(node->hasAttribute("Шаг"))			m_AxeScale			= node->attribute("Шаг").toDouble();
 	if(node->hasAttribute("Длина"))			setAxeLength(node->attribute("Длина").toInt());
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
 	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= 297 + node->attribute("Y_мм").toDouble();
@@ -362,10 +362,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText(alpha);
+	textLabel->renderText(c, alpha);
 
 	//График с нулевым масштабом не рисуем
-	if(!m_Scale)	return;
+	if(!m_AxeScale)	return;
+	if(!m_data.size())	return;
 
 	m_program->bind();
 	glUniform3fv(u_color, 1, &c.r);
@@ -373,28 +374,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 0);
-
-/*
-	if(!m_data.size())	return;
-	
-	//Тестовая проверка содержимого буфера
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-		vec2*	pData	= (vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
-		if(pData)
-			for(int i = 0; i < m_data.size(); i++)
-			{
-				vec2&	orig	= m_data.at(i);
-				vec2&	buf		= pData[i];
-				if(buf.x != orig.x || buf.y != orig.y)
-				{
-					int a = 0;
-				}
-			}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-*/
 
 	//Рисуем график
 	glBindVertexArray(dataVAO);
@@ -406,20 +385,22 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
-	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
+	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
-/*
-	//Рисуем график со смещением
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	mat4	data2	= mat4(1.0f);
-	data2	= translate(data2, vec3(area.x(), m_BottomRight.y-0.1f, 0.f));
-	data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_Scale, 0.f));
-	data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-	vec3	color2	= m_Color*1.0f;
-	glUniform3fv(u_color, 1, &color2.r);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-*/
+
+	if(m_IsSelected)
+	{
+		//Рисуем график со смещением
+		mat4	data2	= mat4(1.0f);
+		data2	= translate(data2, vec3(area.x(), m_BottomRight.y-1.0f/m_scale, 1.0f/m_scale));
+		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
+		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+		vec3	color2	= m_Color*1.0f;
+		glUniform3fv(u_color, 1, &color2.r);
+		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	}
+
 	//Рисуем основной график
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
@@ -1732,7 +1713,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 			{
 				setAxeLength(1);
 				m_Min		= 0;
-				m_Scale		= 1;
+				m_AxeScale		= 1;
 			}
 		
 			//Для Ориона подгружаем данные из большого файла

@@ -234,13 +234,13 @@ void	GTextLabel::prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void	GTextLabel::renderText(float alpha)
+void	GTextLabel::renderText(vec3 color, float alpha)
 {
 	// Activate corresponding render state	
 //	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
 	glUniform3f(u_color, color.x, color.y, color.z);
-	glUniform1f(u_alpha, alpha);
+	glUniform1f(u_alpha, 1.0f);//alpha);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
@@ -259,10 +259,9 @@ void	GTextLabel::renderText(float alpha)
 //	glDisable(GL_MULTISAMPLE);
 }
 
-void	GTextLabel::setFont(int size, vec3 color, GLfloat scale)
+void	GTextLabel::setFont(int size, GLfloat scale)
 {
 	//Устанавливаем цвет
-	this->color	= color;
 	this->scale	= scale;
 
 	//Подбираем наиболее подходящий шрифт

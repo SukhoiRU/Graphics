@@ -49,7 +49,6 @@ private:
 	vector<vec4>	m_data;
 
 	GLuint	textVAO, textVBO;
-	glm::vec3	color;
 	int		fontIndex;
 	GLfloat	scale;
 
@@ -63,8 +62,8 @@ public:
 	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();
-	void	setFont(int size, vec3 color, GLfloat scale);
-	void	renderText(float alpha);
+	void	setFont(int size, GLfloat scale);
+	void	renderText(vec3 color, float alpha);
 	vec2	textSize(const QString& str);
 	GLfloat	baseLine();
 	GLfloat	midLine();

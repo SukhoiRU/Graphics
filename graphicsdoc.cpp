@@ -176,17 +176,6 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
 
 void	GraphicsDoc::LoadOrion(QString FileName)
 {
-    //Обновим данные осей
-    for(size_t j = 0; j < m_PanelList.size(); j++)
-    {
-        Panel*	p	= m_PanelList.at(j);
-        for(size_t pos = 0; pos < p->Axes.size(); pos++)
-        {
-            Graph::GAxe*	Axe	= p->Axes[pos];
-            Axe->ClearFiltering();
-        }
-    }
-
     Accumulation*	pAcc;
     if(m_bAddAcc_Mode)
     {
@@ -237,7 +226,6 @@ void	GraphicsDoc::LoadOrion(QString FileName)
     for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
     {
         Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
-        Axe->ClearFiltering();
         Axe->UpdateRecord(&m_BufArray);
     }
 }

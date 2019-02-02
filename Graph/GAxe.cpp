@@ -14,11 +14,13 @@ double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
 double	GAxe::m_Width		= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
-//QOpenGLShaderProgram*	GAxe::m_program	= 0;
-//int		GAxe::u_modelToWorld	= 0;
-//int		GAxe::u_worldToCamera	= 0;
-//int		GAxe::u_cameraToView	= 0;
-//int		GAxe::u_color			= 0;
+QOpenGLShaderProgram*	GAxe::m_program	= 0;
+int		GAxe::u_modelToWorld	= 0;
+int		GAxe::u_worldToCamera	= 0;
+int		GAxe::u_cameraToView	= 0;
+int		GAxe::u_color			= 0;
+int		GAxe::u_alpha			= 0;
+int		GAxe::u_round			= 0;
 
 GAxe::GAxe()
 {
@@ -50,7 +52,6 @@ GAxe::GAxe()
 	m_Aperiodic_T	= 0.01;
 	m_Oscill_T		= 0.01;
 	m_Oscill_Ksi	= 0.7;
-	m_pOriginal		= 0;
 	m_bInterpol		= true;
 	m_AxeLength		= 0;
 
@@ -66,13 +67,11 @@ GAxe::GAxe()
 GAxe::~GAxe()
 {
 	clearGL();
-	if(m_program) { delete m_program; m_program = 0;}
 	delete textLabel;
 }
 
 void	GAxe::initializeGL()
 {
-//	initializeOpenGLFunctions();
 	m_bOpenGL_inited	= true;
 	if(m_program == 0)
 	{
@@ -2192,15 +2191,6 @@ void	GAxe::ErrorsFilter() const
 			}
 		}
 	}*/
-}
-
-void	GAxe::ClearFiltering()
-{
-	if(m_pOriginal)
-	{
-		delete[] m_pOriginal;
-		m_pOriginal	= 0;
-	}
 }
 
 void	GAxe::UpdateFiltering()

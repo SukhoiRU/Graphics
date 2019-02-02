@@ -59,7 +59,6 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	setMouseTracking(true);    
 	pPageSetup	= 0;
 	m_pPanel	= 0;
-	m_pSelectedObject	= 0;
 
 	Time0		= 200;
 	TimeScale	= 20;
@@ -110,7 +109,6 @@ void GraphicsView::initializeGL()
 
 	// Set global information
 	gladLoadGL();
-//	initializeOpenGLFunctions();
 	oglInited	= true;
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
@@ -261,10 +259,15 @@ void GraphicsView::paintGL()
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
 			float	alpha	= 1.0f;
-			if(m_pSelectedObject)
+			if(m_SelectedObjects.size())
 			{
+				//Невыделенные объекты рисуем бледненько
 				alpha	= 0.3;
-				if(m_pSelectedObject == pGraph)	alpha	= 1.0f;
+
+				//Ищем выделенные
+				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+					if(m_SelectedObjects.at(j) == pGraph)
+						alpha	= 1.0f;
 			}
 			pGraph->Draw(Time0, TimeScale, gridStep, area, alpha);
 		}
@@ -510,15 +513,43 @@ vec2	GraphicsView::mouseToDoc(QMouseEvent *event)
 
 void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 {
-	m_pSelectedObject	= pGraph;
-	for(size_t i = 0; i < m_GraphObjects.size(); i++)
+	if(pGraph)
 	{
-		Graph::GraphObject*	pG = m_GraphObjects.at(i);
-		if(pGraph == pG)	pG->m_IsSelected = true;
-		else		   
+		//Добавляем объект в список выделенных
+		pGraph->m_IsSelected	= true;
+		m_SelectedObjects.push_back(pGraph);
+	}
+	else
+	{
+		//Очищаем список
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
 		{
-			pG->m_IsSelected = false;
-			pG->m_IsMoving = false;
+			Graph::GraphObject*	pG = m_SelectedObjects.at(i);
+			pG->m_IsSelected	= false;
+			pG->m_IsMoving		= false;
+		}
+		m_SelectedObjects.clear();
+	}
+}
+
+void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
+{
+	//Убираем объект из списка
+	if(pGraph)
+	{
+		//Ищем его
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			Graph::GraphObject*	pG = m_SelectedObjects.at(i);
+			if(pG == pGraph)
+			{
+				//Снимаем выделение
+				pG->m_IsSelected	= false;
+				pG->m_IsMoving		= false;
+
+				m_SelectedObjects.erase(m_SelectedObjects.begin()+i);
+				break;
+			}
 		}
 	}
 }
@@ -600,8 +631,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 void	GraphicsView::mousePressEvent(QMouseEvent *event)
 {
-	Qt::MouseButtons	buttons	= event->buttons();
-	if(buttons |= Qt::LeftButton)
+	Qt::MouseButtons		buttons		= event->buttons();
+	Qt::KeyboardModifiers	modifiers	= event->modifiers();
+	if(buttons & Qt::LeftButton)
 	{
 		//Запомним эту точку
 		m_clickPos	= mouseToDoc(event);
@@ -613,7 +645,29 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
 			if(pGraph->HitTest(m_clickPos))
 			{
-				SelectObject(pGraph);
+				if(!m_SelectedObjects.size())
+				{
+					//Выделений не было, однозначно добавляем
+					SelectObject(pGraph);
+				}
+				else
+				{
+					if(modifiers & Qt::ControlModifier)
+					{
+						//При нажатом Ctrl имеющийся объект удаляем или добавляем
+						if(pGraph->m_IsSelected)	UnSelectObject(pGraph);
+						else						SelectObject(pGraph);
+					}
+					else
+					{
+						if(!pGraph->m_IsSelected)
+						{
+							//Новый объект оставляем единственным
+							SelectObject(0);
+							SelectObject(pGraph);
+						}
+					}
+				}
 				bFound = true;
 				break;
 			}
@@ -657,10 +711,12 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		for(size_t i = 0; i < m_pPanel->size(); i++)
 		{
 			Graph::GAxe*	pAxe	= m_pPanel->at(i);
-			pAxe->ClearFiltering();
 			pAxe->clearGL();
 		}
 	}
+
+	//Сбрасываем выделение
+	SelectObject(0);
 
 	//Запоминаем новый список осей
     m_pPanel	= axes;
@@ -674,7 +730,6 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	{
 		Graph::GAxe*	pAxe	= axes->at(i);
 		pAxe->initializeGL();
-		pAxe->ClearFiltering();
 		pAxe->UpdateRecord(pBuffer);
 		m_GraphObjects.push_back(pAxe);
 	}

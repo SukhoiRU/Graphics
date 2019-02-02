@@ -20,7 +20,7 @@ class GAxeArg;
 
 class GTextLabel;
 
-class GraphicsView : public QOpenGLWidget//, QOpenGLFunctions_4_3_Core
+class GraphicsView : public QOpenGLWidget
 {
 	Q_OBJECT
 
@@ -58,6 +58,7 @@ protected:
 	//Обработка мыши и клавиатуры
 	vec2	mouseToDoc(QMouseEvent *event);
 	void	SelectObject(Graph::GraphObject* pGraph);
+	void	UnSelectObject(Graph::GraphObject* pGraph);
 	virtual void mousePressEvent(QMouseEvent *event);
 	virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
@@ -83,7 +84,7 @@ private:
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
-	Graph::GraphObject*			m_pSelectedObject;
+	vector<Graph::GraphObject*>	m_SelectedObjects;
 
 	//Начальное время и масштаб
 	double		Time0;

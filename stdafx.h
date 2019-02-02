@@ -4,7 +4,6 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions_4_3_Core>
 
 #define BYTE char
 #define DWORD uint32_t

@@ -17,7 +17,7 @@ namespace Graph{
 
 enum	GraphType {FIELD = 0, MARKER = 1, AXEARG = 2, AXE = 3, TEXT = 4};
 
-class GraphObject// : public QOpenGLFunctions_4_3_Core
+class GraphObject
 {
 //////////////////////////////////////////////////////////////////////////////////
 //		Данные

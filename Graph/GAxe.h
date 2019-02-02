@@ -37,7 +37,6 @@ private:
 
 	double*			m_pOrionTime;	//Время Ориона из большого файла
     BYTE*			m_pOrionData;	//Данные Ориона
-    BYTE*			m_pOriginal;	//Копия исходного сигнала
 
 	//Данные для OpenGL
 	vector<vec2>	m_data;
@@ -47,13 +46,13 @@ private:
 	QSizeF	oldGrid;
 
 	//Shader Information
-	QOpenGLShaderProgram*	m_program;
-	int		u_modelToWorld;
-	int		u_worldToCamera;
-	int		u_cameraToView;
-	int		u_color;
-	int		u_alpha;
-	int		u_round;
+	static QOpenGLShaderProgram*	m_program;
+	static int		u_modelToWorld;
+	static int		u_worldToCamera;
+	static int		u_cameraToView;
+	static int		u_color;
+	static int		u_alpha;
+	static int		u_round;
 
 public:
 	QString			m_Name;			//Название оси
@@ -139,7 +138,6 @@ public:
 	void		ErrorsFilter() const;					//Фильтрация сбоев
 	void		ClearOrionData() {m_pOrionData = 0; m_pOrionTime = 0;}
 	void		UpdateFiltering();						//Фильтрация сигнала
-	void		ClearFiltering();						//Очистка фильтра
 	void		Zoom(bool bUp);							//Растяжение/сжатие
 	int			getAxeLength(){return m_AxeLength;}
 	void		setAxeLength(int len);

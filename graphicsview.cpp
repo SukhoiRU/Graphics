@@ -610,6 +610,16 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
 		}
+		else
+		{
+			//Выделенных объектов нет. Попробуем передвинуть время
+			if(m_bOnMouse)
+			{
+				//Мышь в поле графиков
+				vec2	delta	= mousePos - m_mousePos;
+				Time0	-=	delta.x/gridStep.width()*TimeScale;
+			}
+		}
 	}
 
 	//Сохраняем в классе положение мыши

@@ -757,8 +757,21 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 	{
 	case Qt::Key_Escape:
 	{
-		//Если есть выделенные объекты, сбросим их
-		if(m_SelectedObjects.size()) SelectObject(0);
+		//Если есть выделенные объекты, закончим перемещение
+		if(m_SelectedObjects.size())
+		{
+			if((*m_SelectedObjects.begin())->m_IsMoving)
+			{
+				//Конец перемещения
+				for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+				{
+					GraphObject*	pGraph	= m_SelectedObjects.at(i);
+					pGraph->m_IsMoving	= false;
+					pGraph->OnStopMoving();
+				}
+			}
+			SelectObject(0);
+		}
 		event->accept();
 	}break;
 

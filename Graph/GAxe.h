@@ -44,6 +44,7 @@ private:
 	GLuint	axeVAO, axeVBO;
 	GTextLabel*		textLabel;
 	QSizeF	oldGrid;
+	QRectF	oldArea;
 
 	//Shader Information
 	static QOpenGLShaderProgram*	m_program;
@@ -111,7 +112,7 @@ public:
     virtual bool	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf);	//Перемещение на заданное расстояние
 	virtual void	OnDoubleClick();				//Реакция на щелчок мышью
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
-	virtual void	OnStopMoving() {};				//Реакция на конец перетаскивания
+	virtual void	OnStopMoving();					//Реакция на конец перетаскивания
 
 	void	FitToScale(double t0 = 0, double t1 = 0);//Подбор масштаба и начала
 	void	GetLimits(	double* pMin = 0,

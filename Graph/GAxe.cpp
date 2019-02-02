@@ -108,6 +108,7 @@ void	GAxe::setAxeLength(int len)
 {
 	//Установка длины оси
 	m_AxeLength	= len;
+	m_FrameBR	= m_BottomRight;
 	if(!m_bOpenGL_inited)	return;
 
 	//Заливка данных в видеопамять
@@ -269,12 +270,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
 	if(!grid.height())	return;
-	if(!m_Scale)	return;
 	if(oldGrid != grid)
 	{
 		oldGrid	= grid;
 		setAxeLength(m_AxeLength);
 	}
+	oldArea	= area;
 
 	//Отрисовка только double
 	if(m_DataType != Double)	return;
@@ -326,7 +327,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	{
 		vec3 color(0.7f);
 		glUniform3fv(u_color, 1, &color.r);
-		glLineStipple(1, 0xAAAA);
+		mat4 dataModel	= mat4(1.0f);
+		dataModel		= translate(dataModel, vec3(m_FrameBR, 0.f));
+		dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
 		glUniform3fv(u_color, 1, &m_Color.r);
 	}
@@ -352,6 +356,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
 	textLabel->renderText(alpha);
+
+	//График с нулевым масштабом не рисуем
+	if(!m_Scale)	return;
 
 	m_program->bind();
 	glUniform3fv(u_color, 1, &m_Color.r);
@@ -381,7 +388,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 */
-	
+
 	//Рисуем график
 	glBindVertexArray(dataVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
@@ -1233,9 +1240,23 @@ HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)
 		return NULL;
 }
 */
+
+void	GAxe::OnStopMoving()
+{
+	m_FrameBR	= m_BottomRight;
+}
+
 bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf)
 {
-	m_BottomRight += delta;
+	//Переместим рамку
+	m_FrameBR		+= delta;
+	m_BottomRight.x	= m_FrameBR.x;
+
+	//Положение оси по высоте округлим до сетки
+	float	step	= oldGrid.height();
+	if(m_DataType == Bool)	step	= 0.5f*step;
+
+	m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step)*step + oldArea.bottom();
 	bool Res = false;
 /*
 	//Переместим рамку

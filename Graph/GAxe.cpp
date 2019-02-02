@@ -303,15 +303,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 	int	nStopIndex	= min(int(m_data.size()-1), nMax);
 
+	//Смешиваем цвет с белым
+	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
+
 	//Заливаем матрицы в шейдер
 	m_program->bind();
-	vec3 c	= m_Color;
-	if(alpha != 1.0f)
-	{
-		c	= alpha*c + (1.0f-alpha)*vec3(1.0f);
-	}
 
-	glUniform3fv(u_color, 1, &c.r);
+	glUniform3fv(u_color, 1, &color.r);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
@@ -332,14 +330,14 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
 	{
-		vec3 color(0.7f);
-		glUniform3fv(u_color, 1, &color.r);
+		vec3 color2(0.7f);
+		glUniform3fv(u_color, 1, &color2.r);
 		mat4 dataModel	= mat4(1.0f);
 		dataModel		= translate(dataModel, vec3(m_FrameBR, 0.f));
 		dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
-		glUniform3fv(u_color, 1, &m_Color.r);
+		glUniform3fv(u_color, 1, &color.r);
 	}
 
 	//Область графиков для трафарета
@@ -362,14 +360,14 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
-	textLabel->renderText(c, alpha);
+	textLabel->renderText(color, alpha);
 
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;
 	if(!m_data.size())	return;
 
 	m_program->bind();
-	glUniform3fv(u_color, 1, &c.r);
+	glUniform3fv(u_color, 1, &color.r);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
@@ -392,7 +390,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	{
 		//Рисуем график со смещением
 		mat4	data2	= mat4(1.0f);
-		data2	= translate(data2, vec3(area.x(), m_BottomRight.y-1.0f/m_scale, 1.0f/m_scale));
+		data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
 		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);

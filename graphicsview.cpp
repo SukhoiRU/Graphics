@@ -259,19 +259,24 @@ void GraphicsView::paintGL()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			float	alpha	= 1.0f;
 			if(m_SelectedObjects.size())
 			{
-				//Невыделенные объекты рисуем бледненько
-				alpha	= 0.3;
-
-				//Ищем выделенные
+				//Пропускаем выделенные
 				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 					if(m_SelectedObjects.at(j) == pGraph)
-						alpha	= 1.0f;
+						continue;
+				pGraph->Draw(Time0, TimeScale, gridStep, area, 0.3f);
 			}
-			pGraph->Draw(Time0, TimeScale, gridStep, area, alpha);
+			else
+				pGraph->Draw(Time0, TimeScale, gridStep, area, 1.0f);
 		}
+
+		//Дорисовываем выделенные
+		for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+		{
+			m_SelectedObjects.at(j)->Draw(Time0, TimeScale, gridStep, area, 1.0f);
+		}
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 

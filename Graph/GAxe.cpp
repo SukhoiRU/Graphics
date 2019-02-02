@@ -3,6 +3,7 @@
 #include <QDomElement>
 #include "../Accumulation.h"
 #include "GTextLabel.h"
+#include "glm/gtx/color_space.hpp"
 
 QColor	GetColor(int n);
 int		GetMarker(int n);
@@ -304,8 +305,14 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Заливаем матрицы в шейдер
 	m_program->bind();
-	glUniform3fv(u_color, 1, &m_Color.r);
-	glUniform1f(u_alpha, alpha);
+	vec3 c	= m_Color;
+	if(alpha != 1.0f)
+	{
+		c	= alpha*c + (1.0f-alpha)*vec3(1.0f);
+	}
+
+	glUniform3fv(u_color, 1, &c.r);
+	glUniform1f(u_alpha, 1.0f);//alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 1);
@@ -361,8 +368,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(!m_Scale)	return;
 
 	m_program->bind();
-	glUniform3fv(u_color, 1, &m_Color.r);
-	glUniform1f(u_alpha, alpha*alpha);
+	glUniform3fv(u_color, 1, &c.r);
+	glUniform1f(u_alpha, 1.0f);//alpha);
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 0);
@@ -1255,8 +1262,9 @@ bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const 
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.height();
 	if(m_DataType == Bool)	step	= 0.5f*step;
+	if(mdf & Qt::ControlModifier)	m_BottomRight.y	= m_FrameBR.y;
+	else							m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step - 0.5f)*step + oldArea.bottom();
 
-	m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step)*step + oldArea.bottom();
 	bool Res = false;
 /*
 	//Переместим рамку

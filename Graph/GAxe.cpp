@@ -24,6 +24,16 @@ int		GAxe::u_alpha			= 0;
 int		GAxe::u_round			= 0;
 int		GAxe::u_lineType		= 0;
 
+//QOpenGLShaderProgram*	GAxe::m_data_program	= 0;
+int		GAxe::data_program_ID		= 0;
+int		GAxe::u_data_modelToWorld	= 0;
+int		GAxe::u_data_worldToCamera	= 0;
+int		GAxe::u_data_cameraToView	= 0;
+int		GAxe::u_data_color			= 0;
+int		GAxe::u_data_alpha			= 0;
+int		GAxe::u_data_round			= 0;
+int		GAxe::u_data_lineType		= 0;
+
 QOpenGLShaderProgram*	GAxe::m_cross_program	= 0;
 int		GAxe::u_cross_modelToWorld	= 0;
 int		GAxe::u_cross_worldToCamera	= 0;
@@ -79,15 +89,39 @@ GAxe::~GAxe()
 	delete textLabel;
 }
 
+void checkCompileErrors(GLuint shader, string type)
+{
+	GLint success;
+	GLchar infoLog[1024];
+	if(type != "PROGRAM")
+	{
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+		if(!success)
+		{
+			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+			//std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+	else
+	{
+		glGetProgramiv(shader, GL_LINK_STATUS, &success);
+		if(!success)
+		{
+			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+			//std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+}
+
 void	GAxe::initializeGL()
 {
 	m_bOpenGL_inited	= true;
 	if(m_program == 0)
 	{
+		//Программа для шкалы и трафарета
 		m_program	= new QOpenGLShaderProgram;
 		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
 		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
-		//m_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe.geom");
 		m_program->link();
 
 		m_program->bind();
@@ -97,8 +131,58 @@ void	GAxe::initializeGL()
 		u_color			= m_program->uniformLocation("color");
 		u_alpha			= m_program->uniformLocation("alpha");
 		u_round			= m_program->uniformLocation("round");
-		u_lineType		= m_program->uniformLocation("lineType");
 		m_program->release();
+
+		//Программа с геометрическим шейдером для данных
+		QFile vFile(":/shaders/gaxe.vert");
+		vFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		QByteArray	vArray	= vFile.readAll();
+		const char*	vShaderCode	= vArray.constData();
+		unsigned int	vertex	= glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex, 1, &vShaderCode, NULL);
+		glCompileShader(vertex);
+		checkCompileErrors(vertex, "VERTEX");
+
+		QFile fFile(":/shaders/gaxe.frag");
+		fFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		QByteArray	fArray	= fFile.readAll();
+		const char*	fShaderCode	= fArray.constData();
+		unsigned int	frag	= glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(frag, 1, &fShaderCode, NULL);
+		glCompileShader(frag);
+		checkCompileErrors(frag, "FRAG");
+
+		QFile gFile(":/shaders/gaxe.geom");
+		gFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		QByteArray	gArray	= gFile.readAll();
+		const char*	gShaderCode	= gArray.constData();
+		unsigned int	geom	= glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geom, 1, &gShaderCode, NULL);
+		glCompileShader(geom);
+		checkCompileErrors(geom, "GEOM");
+
+		// shader Program
+		data_program_ID = glCreateProgram();
+		glAttachShader(data_program_ID, vertex);
+		glAttachShader(data_program_ID, frag);
+		glAttachShader(data_program_ID, geom);
+		glLinkProgram(data_program_ID);
+		checkCompileErrors(data_program_ID, "PROGRAM");
+
+		// delete the shaders as they're linked into our program now and no longer necessery
+		glDeleteShader(vertex);
+		glDeleteShader(frag);
+		glDeleteShader(geom);
+
+		glUseProgram(data_program_ID);
+		u_data_modelToWorld		= glGetUniformLocation(data_program_ID, "modelToWorld");
+		u_data_worldToCamera	= glGetUniformLocation(data_program_ID, "worldToCamera");
+		u_data_cameraToView		= glGetUniformLocation(data_program_ID, "cameraToView");
+		u_data_color			= glGetUniformLocation(data_program_ID, "color");
+		u_data_alpha			= glGetUniformLocation(data_program_ID, "alpha");
+		u_data_round			= glGetUniformLocation(data_program_ID, "round");
+		u_data_lineType			= glGetUniformLocation(data_program_ID, "lineType");
+		glUseProgram(0);
 
 		//Программа для креста на оси
 		m_cross_program	= new QOpenGLShaderProgram;
@@ -216,7 +300,7 @@ void	GAxe::setAxeLength(int len)
 	QSizeF grid	= oldGrid;
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(10, m_scale);
+	textLabel->setFont(m_scale*3.5f, m_scale);
 	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
 	for(int i = 0; i <= m_AxeLength; i++)
 	{
@@ -326,6 +410,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		oldGrid	= grid;
 		setAxeLength(m_AxeLength);
 	}
+	if(oldScale != m_scale)
+	{
+		oldScale	= m_scale;
+		setAxeLength(m_AxeLength);
+	}
 	oldArea	= area;
 
 	//Отрисовка только double
@@ -364,7 +453,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 1);
-	glUniform1i(u_lineType, 0);
 	
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
@@ -452,15 +540,15 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(!m_AxeScale)	return;
 	if(!m_data.size())	return;
 
-	m_program->bind();
-	glUniform3fv(u_color, 1, &color.r);
-	glUniform1f(u_alpha, 1.0f);//alpha);
-	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-	glUniform1i(u_round, 0);
-	glUniform1i(u_lineType, 0);
+	glUseProgram(data_program_ID);
+	glUniform3fv(u_data_color, 1, &color.r);
+	glUniform1f(u_data_alpha, 1.0f);//alpha);
+	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+	glUniform1i(u_data_round, 0);
+	glUniform1i(u_data_lineType, 0);
 
-	//Рисуем график
+	//Подключаем буфер графика
 	glBindVertexArray(dataVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
@@ -477,34 +565,35 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	{
 		//Рисуем график со смещением
 		vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
-		glUniform3fv(u_color, 1, &color2.r);
+		glUniform3fv(u_data_color, 1, &color2.r);
 		mat4	data2	= mat4(1.0f);
 		data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
 		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+//		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+		glDrawArrays(GL_POINTS, nStartIndex, nStopIndex - nStartIndex + 1);
 
 /*
 		data2	= mat4(1.0f);
 		data2	= translate(data2, vec3(area.x()-1.0f/m_scale, m_BottomRight.y+1.0f/m_scale, 0.f));
 		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 */
 	}
 
 	//Рисуем основной график
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glUniform3fv(u_color, 1, &m_Color.r);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glUniform3fv(u_data_color, 1, &m_Color.r);
+//	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glDrawArrays(GL_POINTS, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	m_program->release();
-
+	glUseProgram(0);
 }
 
 void	GAxe::Draw_DEC_S()

@@ -34,7 +34,7 @@ void	GTextLabel::loadFontInfo()
 	QFile file(":/Resources/fonts/arial.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/courier.xml").arg(file.errorString()));
+		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arial.xml").arg(file.errorString()));
 		return;
 	}
 

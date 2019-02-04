@@ -138,6 +138,9 @@ void GraphicsView::initializeGL()
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 	}
+
+	axeArg->initializeGL();
+	m_GraphObjects.push_back(axeArg);
 }
 
 struct Vertex

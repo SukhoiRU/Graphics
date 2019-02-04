@@ -31,8 +31,6 @@
         <file>Resources/images/open.png</file>
         <file>Resources/images/paste.png</file>
         <file>Resources/images/save.png</file>
-        <file>Resources/fonts/arial.ttf</file>
-        <file>Resources/fonts/cour.ttf</file>
         <file>Resources/fonts/courier.png</file>
         <file>Resources/fonts/courier.xml</file>
         <file>shaders/simple.frag</file>

@@ -73,6 +73,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	//Проверяем, надо ли обновлять данные
 	if((t0 != oldTime) ||
 		(TimeScale != oldTimeScale) ||
+	   (oldScale != m_scale) || 
 		(grid.width()	!= oldGrid.width()) ||
 	   (area.width() != oldArea.width()))
 	{
@@ -81,9 +82,10 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldTimeScale	= TimeScale;
 		oldGrid			= grid;
 		oldArea			= area;
+		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(10, m_scale);
+		textLabel->setFont(3.5f*m_scale, m_scale);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;

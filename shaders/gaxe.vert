@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 layout(location = 0) in vec2 position;
 out vec4 vColor;
@@ -8,7 +8,7 @@ uniform float alpha;
 uniform mat4 modelToWorld;
 uniform mat4 worldToCamera;
 uniform mat4 cameraToView;
-uniform int  round;
+uniform int round;
 
 void main()
 {

@@ -55,6 +55,7 @@ private:
 	static int		u_color;
 	static int		u_alpha;
 	static int		u_round;
+	static int		u_lineType;
 
 	static QOpenGLShaderProgram*	m_cross_program;
 	static	int		u_cross_modelToWorld;

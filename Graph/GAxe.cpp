@@ -22,6 +22,7 @@ int		GAxe::u_cameraToView	= 0;
 int		GAxe::u_color			= 0;
 int		GAxe::u_alpha			= 0;
 int		GAxe::u_round			= 0;
+int		GAxe::u_lineType		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_cross_program	= 0;
 int		GAxe::u_cross_modelToWorld	= 0;
@@ -86,6 +87,7 @@ void	GAxe::initializeGL()
 		m_program	= new QOpenGLShaderProgram;
 		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
 		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
+		//m_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe.geom");
 		m_program->link();
 
 		m_program->bind();
@@ -95,6 +97,7 @@ void	GAxe::initializeGL()
 		u_color			= m_program->uniformLocation("color");
 		u_alpha			= m_program->uniformLocation("alpha");
 		u_round			= m_program->uniformLocation("round");
+		u_lineType		= m_program->uniformLocation("lineType");
 		m_program->release();
 
 		//Программа для креста на оси
@@ -361,6 +364,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 1);
+	glUniform1i(u_lineType, 0);
 	
 	//Рисуем шкалу
 	glBindVertexArray(axeVAO);
@@ -402,14 +406,17 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, cross_texture);
 
-		//Меняем длину данных на vec4 и обратно
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+		//Меняем описание данных на два последовательных vec2
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
 		glDrawArrays(GL_TRIANGLE_STRIP, (m_Axe_nCount+4)/2, 4);
-//		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+		//Возвращаем настройки буфера
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		m_cross_program->release();
@@ -451,6 +458,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_round, 0);
+	glUniform1i(u_lineType, 0);
 
 	//Рисуем график
 	glBindVertexArray(dataVAO);
@@ -468,18 +476,28 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	if(m_IsSelected)
 	{
 		//Рисуем график со смещением
+		vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
+		glUniform3fv(u_color, 1, &color2.r);
 		mat4	data2	= mat4(1.0f);
 		data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
 		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-		vec3	color2	= m_Color*1.0f;
-		glUniform3fv(u_color, 1, &color2.r);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+
+/*
+		data2	= mat4(1.0f);
+		data2	= translate(data2, vec3(area.x()-1.0f/m_scale, m_BottomRight.y+1.0f/m_scale, 0.f));
+		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
+		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+*/
 	}
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	glUniform3fv(u_color, 1, &m_Color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);

@@ -488,6 +488,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\gaxe.frag" />
+    <None Include="shaders\gaxe.geom" />
     <None Include="shaders\gaxe.vert" />
     <None Include="shaders\gaxearg.frag" />
     <None Include="shaders\gaxearg.vert" />

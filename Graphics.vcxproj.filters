@@ -248,5 +248,8 @@
     <None Include="shaders\gaxe_cross.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\gaxe.geom">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

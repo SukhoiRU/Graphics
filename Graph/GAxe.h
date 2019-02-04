@@ -8,6 +8,7 @@ class QDomElement;
 class Accumulation;
 class QOpenGLShaderProgram;
 class GTextLabel;
+using glm::ivec2;
 
 namespace Graph{
 
@@ -54,6 +55,13 @@ private:
 	static int		u_color;
 	static int		u_alpha;
 	static int		u_round;
+
+	static QOpenGLShaderProgram*	m_cross_program;
+	static	int		u_cross_modelToWorld;
+	static	int		u_cross_worldToCamera;
+	static	int		u_cross_cameraToView;
+	static	GLuint	cross_texture;
+	static	ivec2	cross_texSize;
 
 public:
 	QString			m_Name;			//Название оси

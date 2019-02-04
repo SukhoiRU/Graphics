@@ -47,5 +47,8 @@
         <file>Resources/fonts/arial.xml</file>
         <file>Resources/fonts/arial_s.png</file>
         <file>Resources/fonts/arial_s.xml</file>
+        <file>Resources/images/delete.png</file>
+        <file>shaders/gaxe_cross.frag</file>
+        <file>shaders/gaxe_cross.vert</file>
     </qresource>
 </RCC>

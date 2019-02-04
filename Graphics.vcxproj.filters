@@ -242,5 +242,11 @@
     <None Include="shaders\textlabel.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\gaxe_cross.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\gaxe_cross.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

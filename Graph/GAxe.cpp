@@ -23,6 +23,13 @@ int		GAxe::u_color			= 0;
 int		GAxe::u_alpha			= 0;
 int		GAxe::u_round			= 0;
 
+QOpenGLShaderProgram*	GAxe::m_cross_program	= 0;
+int		GAxe::u_cross_modelToWorld	= 0;
+int		GAxe::u_cross_worldToCamera	= 0;
+int		GAxe::u_cross_cameraToView	= 0;
+GLuint	GAxe::cross_texture;
+ivec2	GAxe::cross_texSize;
+
 GAxe::GAxe()
 {
 	m_Type		= AXE;
@@ -89,6 +96,37 @@ void	GAxe::initializeGL()
 		u_alpha			= m_program->uniformLocation("alpha");
 		u_round			= m_program->uniformLocation("round");
 		m_program->release();
+
+		//Программа для креста на оси
+		m_cross_program	= new QOpenGLShaderProgram;
+		m_cross_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_cross.vert");
+		m_cross_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_cross.frag");
+		m_cross_program->link();
+		  
+		m_cross_program->bind();
+		u_cross_modelToWorld	= m_cross_program->uniformLocation("modelToWorld");
+		u_cross_worldToCamera	= m_cross_program->uniformLocation("worldToCamera");
+		u_cross_cameraToView	= m_cross_program->uniformLocation("cameraToView");
+		m_cross_program->release();
+
+		// Prepare texture
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/images/delete.png"));
+		cross_texSize.x	= gl_texture->width();
+		cross_texSize.y	= gl_texture->height();
+		cross_texture	= gl_texture->textureId();
+
+		// Disable byte-alignment restriction
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		// Generate texture
+		glBindTexture(GL_TEXTURE_2D, cross_texture);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		// Set texture options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	textLabel->initializeGL();
@@ -147,6 +185,15 @@ void	GAxe::setAxeLength(int len)
 		data.push_back(vec2(-dx, dy + oldGrid.height()*m_AxeLength));
 		data.push_back(vec2(0.5*dx, dy + oldGrid.height()*m_AxeLength));
 		data.push_back(vec2(0.5*dx, -dy));
+	}
+
+	//Данные для креста
+	{
+		//Координаты и текстурные координаты
+		data.push_back(vec2(1.f, -1.f));	data.push_back(vec2(1.f, 1.f));
+		data.push_back(vec2(-1.f, -1.f));	data.push_back(vec2(0.f, 1.f));
+		data.push_back(vec2(1.f, 1.f));		data.push_back(vec2(1.f, 0.f));
+		data.push_back(vec2(-1.f, 1.f));	data.push_back(vec2(0.f, 0.f));
 	}
 
 	//Буфер для оси
@@ -340,8 +387,40 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glUniform3fv(u_color, 1, &color.r);
 	}
 
+	//Крест на оси без данных
+	if(m_Record == -1)
+	{
+		m_cross_program->bind();
+		glUniformMatrix4fv(u_cross_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_cross_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+
+		mat4	cross(1.0f);
+		cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0));
+		cross	= scale(cross, vec3(0.6*grid.width(), 0.6*grid.width(), 1.0f));
+		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cross_texture);
+
+		//Меняем длину данных на vec4 и обратно
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glDrawArrays(GL_TRIANGLE_STRIP, (m_Axe_nCount+4)/2, 4);
+//		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		m_cross_program->release();
+	}
+
 	//Область графиков для трафарета
 	{
+		m_program->bind();
+		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+
 		mat4	areaMat(1.0f);
 		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
 		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
@@ -408,759 +487,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	m_program->release();
 
-	/*
-	if(!m_pDoc->m_pArg->m_bUseTime)
-	{
-		Draw_DEC_S(pDC);
-		return;
-	}
-
-	if(m_pDoc->m_bIsBlackFore && (m_Color == RGB(0,0,0)))			m_Color	= RGB(255,255,255);
-	if(!m_pDoc->m_bIsBlackFore && (m_Color == RGB(255,255,255)))	m_Color	= RGB(0,0,0);
-
-	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
-	if(!m_IsSelected)	m_FrameBR = m_BottomRight;
-	
-	//Готовим графическое устройство
-	pDC->SaveDC();
-	pDC->SetMapMode(MM_HIMETRIC);
-
-	if(!m_IsSelected && !m_IsMoving)	DrawFrame(pDC);
-
-	if(m_Record == -1)	{pDC->RestoreDC(-1); return;}
-	if(m_Scale == 0.)	{pDC->RestoreDC(-1); return;}
-
-	//Ограничиваем область графика
-	GRect	rc(m_pDoc->m_pField->m_Rect);
-	rc.top		*= m_Zoom;
-	rc.bottom	*= m_Zoom;
-	rc.left		*= m_Zoom;
-	rc.right	*= m_Zoom;
-	pDC->IntersectClipRect(rc);
-
-	//Рисуем сам график
-	CPen	penGraph;
-	if(m_SpecWidth == m_Width)
-	{
-		if(m_IsSelected)	penGraph.CreatePen(PS_SOLID, m_SelectedWidth, m_Color);
-		else				penGraph.CreatePen(PS_SOLID, m_Width, m_Color);
-	}
-	else
-	{
-		if(m_IsSelected)	penGraph.CreatePen(PS_SOLID, m_SelectedWidth*1.5, m_Color);
-		else				penGraph.CreatePen(PS_SOLID, m_SpecWidth, m_Color);
-	}
-	pDC->SelectObject(&penGraph);
-
-	CPen		superPen;	//Для Bool
-	LOGBRUSH	lgBrush	= {BS_SOLID, m_Color, 0};
-	superPen.CreatePen(PS_SOLID | PS_ENDCAP_FLAT| PS_GEOMETRIC, 100, &lgBrush);	
-
-	CSize	DP_size(1,1);	//Размер физической точки
-	if(pDC->m_hAttribDC)	pDC->DPtoLP(&DP_size);
-
-	//Для 1280*1024
-//	DP_size.SetSize(0,0);
-
-	if(m_nAcc == -1)	return;
-	if(m_pDoc->GetBufArray().size() <= m_nAcc)	return;
-
-	const Accumulation*				pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-	const BYTE*						pData		= pBuffer->GetData();
-	const int						RecCount	= pBuffer->GetRecCount();
-	const int						RecSize		= pBuffer->GetRecSize();
-
-	switch(pBuffer->GetType())
-	{
-	case Acc_KARP:
-		{
-			//////////////////////////////////////////////////////////////////////////
-			//	КАРП-Р
-			//////////////////////////////////////////////////////////////////////////
-
-			//Определим отображаемый диапазон записей
-			bool	bStartFound	= false;
-			int		nStartRec	= 0;
-			int		nStopRec	= m_KARP_Len;
-			double	N_step	= m_pDoc->m_pField->m_Rect.Width()/GridStep.x;	//Количество видимых сеток
-			for(int i = 0; i < m_KARP_Len; i++)
-			{
-				//Берем запись
-				float*	ptr	= (float*)(pData+m_Offset);
-				float	t	= *(ptr+2*i);
-
-				//Если время маленькое, пропускаем
-				if(t < m_pDoc->m_pArg->m_Time0) continue;
-
-				if(!bStartFound)
-				{
-					nStartRec	= i;
-					bStartFound	= true;
-				}
-
-				//Если время большое, останавливаемся
-				if(t > m_pDoc->m_pArg->m_Time0 + m_pDoc->m_pArg->m_TimeScale*N_step)
-				{
-					nStopRec	= i;
-					break;
-				}
-			}
-
-			//Определяем расстояние между маркерами
-			bool	bStart		= true;
-			bool	bOldBool	= false;
-			int	nMarkerStep		= (nStopRec - nStartRec)/2 + 1;
-			for(int i = nStartRec; i < nStopRec; i++)
-			{
-				//Берем запись
-				float*	ptr	= (float*)(pData+m_Offset);
-				float	t	= *(ptr+2*i);
-				float	f	= *(ptr+2*i+1);
-
-				//Считаем координаты точки
-				double x = m_pDoc->m_pField->m_Rect.left*m_Zoom +
-					(t - m_pDoc->m_pArg->m_Time0)/m_pDoc->m_pArg->m_TimeScale*m_Zoom*GridStep.x;
-				double y = m_BottomRight.y *m_Zoom + 
-					(f - m_Min)/m_Scale*GridStep.y*m_Zoom*(m_DataType != Bool);
-
-				if(bStart)	
-				{
-					//Переносим перо в начало графика
-					m_OldPoint.Set(x,y);
-					bStart		= false;
-					bOldBool	= (f != 0);
-					if(m_DataType == Bool && f)	pDC->SelectObject(&superPen);
-				}
-
-				if(m_DataType == Bool)
-				{
-					if(((f!=0) != bOldBool) || (i == nStopRec-1))
-					{
-						//Рисуем линию
-						pDC->MoveTo(m_OldPoint);
-						pDC->LineTo(x,y);
-
-						//Запоминаем
-						m_OldPoint.Set(x,y);
-						bOldBool	= (f != 0);
-
-						//Меняем цвет линии
-						if(f)	pDC->SelectObject(&superPen);
-						else	pDC->SelectObject(&penGraph);
-					}
-
-				}
-				else
-				{
-					GPoint	delta(x - m_OldPoint.x, y - m_OldPoint.y);
-					if(	abs(delta.x) >= DP_size.cx ||
-						abs(delta.y) >= DP_size.cy)
-					{
-						pDC->MoveTo(m_OldPoint);
-						if(m_DataType == Int || !m_bInterpol)
-							pDC->LineTo(x,m_OldPoint.y);
-						pDC->LineTo(x,y);
-						m_OldPoint.Set(x,y);
-					}
-				}
-
-				//Ставим маркер
-				int	nIndex	= i + (m_Record%10)*(nStopRec - nStartRec)/50;
-				if(!(nIndex%nMarkerStep))	
-					DrawMarker(pDC, x, y);
-			}
-		}break;
-
-	case Acc_Orion:
-		{
-			//////////////////////////////////////////////////////////////////////////
-			//	Орион
-			//////////////////////////////////////////////////////////////////////////
-			if(!m_pOrionData || !m_pOrionTime)	return;
-
-			//Определим отображаемый диапазон записей
-			bool	bStartFound	= false;
-			int		nStartRec	= 0;
-			int		nStopRec	= m_KARP_Len;
-			double	N_step	= m_pDoc->m_pField->m_Rect.Width()/GridStep.x;	//Количество видимых сеток
-			for(int i = 0; i < m_KARP_Len; i++)
-			{
-				//Берем запись
-				double	t	= m_pOrionTime[i];
-
-				//Если время маленькое, пропускаем
-				if(t < m_pDoc->m_pArg->m_Time0) continue;
-
-				if(!bStartFound)
-				{
-					bStartFound	= true;
-					nStartRec	= i-1;
-					if(nStartRec < 0)	nStartRec = 0;
-				}
-
-				//Если время большое, останавливаемся
-				if(t > m_pDoc->m_pArg->m_Time0 + m_pDoc->m_pArg->m_TimeScale*N_step)
-				{
-					nStopRec	= i+1;
-					break;
-				}
-			}
-			if(nStopRec > m_KARP_Len-1)	nStopRec = m_KARP_Len-1;
-
-			//Определяем расстояние между маркерами
-			bool	bStart		= true;
-			bool	bOldBool	= false;
-			int	nMarkerStep		= (nStopRec - nStartRec)/2 + 1;
-			for(int i = nStartRec; i <= nStopRec; i++)
-			{
-				//Берем запись
-				double	t	= m_pOrionTime[i];
-				
-				double	f	= 0;
-				switch(m_DataType)
-				{
-				case Bool:		f	= *(bool*)(m_pOrionData + i*sizeof(bool));	break;
-				case Int:		f	= *(int*)(m_pOrionData + i*sizeof(int));	break;
-				case Double:	f	= *(double*)(m_pOrionData + i*sizeof(double));	break;
-				};
-
-				//Считаем координаты точки
-				double x = m_pDoc->m_pField->m_Rect.left*m_Zoom +
-					(t - m_pDoc->m_pArg->m_Time0)/m_pDoc->m_pArg->m_TimeScale*m_Zoom*GridStep.x;
-				double y = m_BottomRight.y *m_Zoom + 
-					(f - m_Min)/m_Scale*GridStep.y*m_Zoom*(m_DataType != Bool);
-
-				if(bStart)	
-				{
-					//Переносим перо в начало графика
-					m_OldPoint.Set(x,y);
-					bStart		= false;
-					bOldBool	= (f != 0);
-					if(m_DataType == Bool && f)	pDC->SelectObject(&superPen);
-				}
-
-				if(m_DataType == Bool)
-				{
-					if((i == nStopRec) || ((f!=0) != bOldBool))
-					{
-						//Рисуем линию
-						pDC->MoveTo(m_OldPoint);
-						pDC->LineTo(x,y);
-
-						//Запоминаем
-						m_OldPoint.Set(x,y);
-						bOldBool	= (f != 0);
-
-						//Меняем цвет линии
-						if(f)	pDC->SelectObject(&superPen);
-						else	pDC->SelectObject(&penGraph);
-					}
-
-				}
-				else
-				{
-					GPoint	delta(x - m_OldPoint.x, y - m_OldPoint.y);
-					if(	abs(delta.x) >= DP_size.cx ||
-						abs(delta.y) >= DP_size.cy)
-					{
-						pDC->MoveTo(m_OldPoint);
-						if(m_DataType == Int || !m_bInterpol)
-							pDC->LineTo(x,m_OldPoint.y);
-						pDC->LineTo(x,y);
-						m_OldPoint.Set(x,y);
-					}
-				}
-
-				//Ставим маркер
-				int	nIndex	= i + (m_Record%10)*(nStopRec - nStartRec)/50;
-				if(!(nIndex%nMarkerStep))	
-					DrawMarker(pDC, x, y);
-			}
-		}break;
-
-	default:
-		{
-			//////////////////////////////////////////////////////////////////////////
-			//	Нормальный график
-			//////////////////////////////////////////////////////////////////////////
-
-			//Определяем смещение в векторе данных
-			const int						Offset		= m_Offset;
-
-			//Определим отображаемый диапазон записей
-			bool	bStartFound	= false;
-			int		nStartRec	= 0;
-			int		nStopRec	= RecCount;
-			double	N_step	= m_pDoc->m_pField->m_Rect.Width()/GridStep.x;	//Количество видимых сеток
-			for(int i = 0; i < RecCount; i++)
-			{
-				//Берем запись
-				double	t;
-				switch(pBuffer->GetType())
-				{
-				case Acc_SAPR:
-				case Acc_MIG:
-				case Acc_Excell:	t	= *(double*)(pData + i*RecSize);	break;
-				case Acc_TRF:		t	= *(float*) (pData + i*RecSize + 1);break;
-				case Acc_MIG_4:
-				case Acc_CCS:		t	= *(float*) (pData + i*RecSize);	break;
-				}
-
-				//Если время маленькое, пропускаем
-				if(t < m_pDoc->m_pArg->m_Time0) continue;
-
-				if(!bStartFound)
-				{
-					bStartFound	= true;
-					nStartRec	= i-1;
-					if(nStartRec < 0) nStartRec = 0;
-				}
-
-				//Если время большое, останавливаемся
-				if(t > m_pDoc->m_pArg->m_Time0 + m_pDoc->m_pArg->m_TimeScale*N_step)
-				{
-					nStopRec	= i+1;
-					if(nStopRec > RecCount-1) nStopRec = RecCount-1;
-					break;
-				}
-			}
-
-			//Определяем расстояние между маркерами
-			bool	bStart		= true;
-			bool	bOldBool	= false;
-			int	nMarkerStep		= (nStopRec - nStartRec)/2 + 1;
-			for(int i = nStartRec; i < nStopRec; i++)
-			{
-				//Берем запись
-				const BYTE*		pRecord	= pData + i*RecSize;
-
-				double	t;
-				switch(pBuffer->GetType())
-				{
-				case Acc_MIG_4:
-				case Acc_CCS:		t	= *(float*) (pRecord);		break;
-				case Acc_TRF:		t	= *(float*) (pRecord + 1);	break;
-				case Acc_SAPR:
-				case Acc_MIG:
-				case Acc_Excell:	t	= *(double*)(pRecord);		break;
-				}
-
-				double			f		= 0;
-				switch(m_DataType)
-				{
-				case Bool:		f		= *(bool*)	(pRecord + m_Offset);	break;
-				case Int:		f		= *(int*)	(pRecord + m_Offset);	break;
-				case Double:	f		= *(double*)(pRecord + m_Offset);	break;
-				case Float:		f		= *(float*) (pRecord + m_Offset);	break;
-				case Short:		
-					{
-						f	= *(short*) (pRecord + m_Offset);
-						if(m_K_short)	f *= m_K_short;
-					}break;
-				};
-
-				//Особый случай для СРК
-				if(m_bSRK)
-				{
-					switch(pBuffer->GetType())
-					{
-					case Acc_MIG:
-					case Acc_MIG_4:	
-						{
-							DWORD	a	= *(DWORD*)(pRecord + m_Offset);	
-							f	= (a & m_MaskSRK) != 0;
-						}break;
-					default:
-						{
-							float	fl	= *(DWORD*)(pRecord + m_Offset);
-							DWORD	a	= *(DWORD*)&fl;
-							f	= (a & m_MaskSRK) != 0;
-						}
-					}
-				}
-
-				//Считаем координаты точки
-				double x = m_pDoc->m_pField->m_Rect.left*m_Zoom +
-					(t - m_pDoc->m_pArg->m_Time0)/m_pDoc->m_pArg->m_TimeScale*m_Zoom*GridStep.x;
-				double y = m_BottomRight.y *m_Zoom + 
-					(f - m_Min)/m_Scale*GridStep.y*m_Zoom*(m_DataType != Bool);
-
-				if(bStart)	
-				{
-					//Переносим перо в начало графика
-					m_OldPoint.Set(x,y);
-					bStart		= false;
-					bOldBool	= (f != 0);
-					if(m_DataType == Bool && f)	pDC->SelectObject(&superPen);
-				}
-
-				if(m_DataType == Bool)
-				{
-					if(((f!=0) != bOldBool) || (i == nStopRec-1))
-					{
-						//Рисуем линию
-						pDC->MoveTo(m_OldPoint);
-						pDC->LineTo(x,y);
-
-						//Запоминаем
-						m_OldPoint.Set(x,y);
-						bOldBool	= (f != 0);
-
-						//Меняем цвет линии
-						if(f)	pDC->SelectObject(&superPen);
-						else	pDC->SelectObject(&penGraph);
-					}
-				}
-				else
-				{
-					GPoint	delta(x - m_OldPoint.x, y - m_OldPoint.y);
-					if(	abs(delta.x) >= DP_size.cx ||
-						abs(delta.y) >= DP_size.cy)
-					{
-						pDC->MoveTo(m_OldPoint);
-						if(m_DataType == Int || !m_bInterpol)
-							pDC->LineTo(x,m_OldPoint.y);
-						pDC->LineTo(x,y);
-						m_OldPoint.Set(x,y);
-					}
-				}
-
-				//Ставим маркер
-				int	nIndex	= i + (m_Record%10)*(nStopRec - nStartRec)/50;
-				if(!(nIndex%nMarkerStep))	
-					DrawMarker(pDC, x, y);
-			}
-		}break;
-	}
-
-	pDC->RestoreDC(-1);*/
 }
 
 void	GAxe::Draw_DEC_S()
-{/*
-	//////////////////////////////////////////////////////////////////////////
-	//Отрисовка для вторичной обработки
-	const GAxe*	pAxeArg	= m_pDoc->m_pArg->m_pAxe;
-
-	//Определяем, что все накопления одного типа
-	AccType	type;
-	for(size_t i = 0; i < m_pDoc->GetBufArray().size(); i++)
-	{
-		const Accumulation*		pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-		if(!i)	
-		{
-			type	= pBuffer->GetType();
-			if(type	== Acc_KARP || type == Acc_Orion)
-			{
-				AfxMessageBox("Для вторички КАРП не получается...", MB_ICONERROR);
-				return;
-			}
-		}
-		else
-		{
-			if(type != pBuffer->GetType())
-			{
-				AfxMessageBox("Для вторички накопления должны быть одного типа!", MB_ICONERROR);
-				return;
-			}
-		}
-	}
-
-	if(pAxeArg->m_DataType == Bool || pAxeArg->m_DataType == Int)
-	{
-		AfxMessageBox("Рисовать вторичку по bool'у?", MB_ICONERROR);
-		return;
-	}
-
-	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
-	if(!m_IsSelected)	m_FrameBR = m_BottomRight;
-
-	//Готовим графическое устройство
-	pDC->SaveDC();
-	pDC->SetMapMode(MM_HIMETRIC);
-
-	if(!m_IsSelected && !m_IsMoving)	DrawFrame(pDC);
-
-	if(m_Record == -1) {pDC->RestoreDC(-1); return;}
-
-	//Ограничиваем область графика
-	GRect	rc(m_pDoc->m_pField->m_Rect);
-	rc.top		*= m_Zoom;
-	rc.bottom	*= m_Zoom;
-	rc.left		*= m_Zoom;
-	rc.right	*= m_Zoom;
-	pDC->IntersectClipRect(rc);
-
-	if(m_nAcc == -1)	return;
-	if(m_pDoc->GetBufArray().size() <= m_nAcc)	return;
-
-	size_t	AccCount	= m_pDoc->GetBufArray().size();
-
-	//Запоминаем цвет
-	COLORREF	OldColor	= m_Color;
-
-	for(int nAcc = 0; nAcc < AccCount; nAcc++)
-	{
-		//Ставим маркер и цвет, соответствующий номеру накопления
-		if(AccCount > 1)
-		{
-			m_nMarker	= GetMarker(nAcc);
-			m_Color		= GetColor(nAcc);
-		}
-
-		//Рисуем сам график
-		CPen	penGraph;
-		if(m_IsSelected)	penGraph.CreatePen(PS_SOLID, m_SelectedWidth, m_Color);
-		else				penGraph.CreatePen(PS_SOLID, m_Width, m_Color);
-		pDC->SelectObject(&penGraph);
-
-		CPen		superPen;	//Для Bool
-		LOGBRUSH	lgBrush	= {BS_SOLID, m_Color, 0};
-		superPen.CreatePen(PS_SOLID | PS_ENDCAP_FLAT| PS_GEOMETRIC, 100, &lgBrush);	
-
-		CSize	DP_size(1,1);	//Размер физической точки
-		if(pDC->m_hAttribDC)	pDC->DPtoLP(&DP_size);
-
-		//Для 1280*1024
-		//	DP_size.SetSize(0,0);
-
-		const Accumulation*		pBuffer		= m_pDoc->GetBufArray().at(nAcc);
-		const BYTE*				pData		= pBuffer->GetData();
-		const int				RecCount	= pBuffer->GetRecCount();
-		const int				RecSize		= pBuffer->GetRecSize();
-		const int				Offset		= m_Offset;
-		const int				tOffset		= m_pDoc->m_pArg->m_pAxe->m_Offset;
-
-		//Пишем легенду
-		double x = m_pDoc->m_pField->m_Rect.left*m_Zoom + (1)*m_Zoom*GridStep.x;
-		double y = m_pDoc->m_pField->m_Rect.top*m_Zoom - (1+nAcc)*m_Zoom*GridStep.y;
-
-		DrawMarker(pDC, x, y);
-
-		//Установки шрифта
-		CFont	font;
-		double nFontSize = m_pDoc->m_pField->m_GridStep.y*m_Zoom*m_FontScale;
-		font.CreateFont(nFontSize,0,0,0,FW_NORMAL,0,0,0,
-			DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
-			DEFAULT_PITCH | FF_DONTCARE, "Courier New");
-
-		pDC->SelectObject(&font);
-		pDC->SetTextAlign(TA_LEFT | TA_BASELINE);
-		pDC->SetTextColor(m_Color);
-		pDC->SetBkMode(TRANSPARENT);
-		pDC->TextOut(x + m_TickSize*m_Zoom, y, pBuffer->m_Name);
-
-		//Определим отображаемый диапазон записей
-		bool	bStartFound	= false;
-		int		nStartRec	= 0;
-		int		nStopRec	= RecCount;
-		double	N_step	= m_pDoc->m_pField->m_Rect.Width()/GridStep.x;	//Количество видимых сеток
-		for(int i = 0; i < RecCount; i++)
-		{
-			//Берем запись
-			double	t;
-			switch(pAxeArg->m_DataType)
-			{
-			case Double:	t		= *(double*)(pData + i*RecSize + tOffset);	break;
-			case Float:		t		= *(float*) (pData + i*RecSize + tOffset);	break;
-			}
-
-			if(t < m_pDoc->m_pArg->m_Time0) continue;
-
-			if(!bStartFound)
-			{
-				nStartRec	= i;
-				bStartFound	= true;
-			}
-
-			if(t > m_pDoc->m_pArg->m_Time0 + m_pDoc->m_pArg->m_TimeScale*N_step)
-			{
-				nStopRec	= i;
-				break;
-			}
-		}
-
-		//Рисуем диапазон
-		bool	bStart		= true;
-		for(int i = nStartRec; i < nStopRec; i++)
-		{
-			//Берем запись
-			const BYTE*		pRecord	= pData + i*RecSize;
-
-			double	t;
-			switch(pAxeArg->m_DataType)
-			{
-			case Double:	t		= *(double*)(pRecord + tOffset);	break;
-			case Float:		t		= *(float*) (pRecord + tOffset);	break;
-			};
-
-			double			f		= 0;
-			switch(m_DataType)
-			{
-			case Bool:		f		= *(bool*)	(pRecord + m_Offset);	break;
-			case Int:		f		= *(int*)	(pRecord + m_Offset);	break;
-			case Double:	f		= *(double*)(pRecord + m_Offset);	break;
-			case Float:		f		= *(float*) (pRecord + m_Offset);	break;
-			case Short:
-				{
-					f		= *(short*) (pRecord + m_Offset);
-					if(m_K_short)	f *= m_K_short;
-				}break;
-			};
-
-			//Считаем координаты точки
-			double x = m_pDoc->m_pField->m_Rect.left*m_Zoom +
-				(t - m_pDoc->m_pArg->m_Time0)/m_pDoc->m_pArg->m_TimeScale*m_Zoom*GridStep.x;
-			double y = m_BottomRight.y *m_Zoom + 
-				(f - m_Min)/m_Scale*GridStep.y*m_Zoom*(m_DataType != Bool);
-
-			//DrawMarker(pDC, x, y);
-			pDC->MoveTo(x-1,y-1);
-			pDC->LineTo(x,y);
-		}
-	}
-
-	//Восстанавливаем цвет
-	m_Color	= OldColor;
-
-	pDC->RestoreDC(-1);*/
+{
 }
-
-//void	GAxe::DrawFrame()
-//{
-/*
-	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
-
-	//Готовим графическое устройство
-	pDC->SaveDC();
-	pDC->SetMapMode(MM_HIMETRIC);
-
-	CPen	pen(PS_SOLID, 10, m_Color);
-	
-	//Установки шрифта
-	CFont	font;
-	double nFontSize = m_pDoc->m_pField->m_GridStep.y*m_Zoom*m_FontScale;
-	font.CreateFont(nFontSize,0,0,0,FW_NORMAL,0,0,0,
-		DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
-		DEFAULT_PITCH | FF_DONTCARE, "Courier New");
-	
-	pDC->SelectObject(&pen);
-	pDC->SelectObject(&font);
-	pDC->SetTextAlign(TA_RIGHT | TA_BASELINE);
-	pDC->SetTextColor(m_Color);
-	pDC->SetBkMode(TRANSPARENT);
-
-	//Нарисуем ось	
-	if(m_DataType != Bool)
-	{
-		CString	Text;
-		int	x	= m_BottomRight.x*m_Zoom;
-		pDC->MoveTo(x, m_BottomRight.y*m_Zoom);
-		pDC->LineTo(x, m_BottomRight.y*m_Zoom + m_Length*GridStep.y*m_Zoom);	
-
-		for(int i = 0; i <= m_Length; i++)
-		{
-			if(i < m_Length)
-				for(int j = 0; j < m_nSubTicks; j++)
-				{
-					int	y	= (m_BottomRight.y + i*GridStep.y)*m_Zoom + j*GridStep.y*m_Zoom/m_nSubTicks;
-					pDC->MoveTo(x					 , y);
-					pDC->LineTo(x - m_TickSize*m_Zoom/2, y);
-				}
-
-				int	y	= (m_BottomRight.y + i*GridStep.y)*m_Zoom;
-				pDC->MoveTo(x					 , y);
-				pDC->LineTo(x - m_TickSize*m_Zoom, y);
-
-				double	Value = m_Min + i*m_Scale;
-				if(fabs(Value) < 1e-10) Value = 0;
-				Text.Format(m_TextFormat, Value);
-				pDC->TextOut(x - m_TickSize*m_Zoom, y, Text);
-				if(i == m_Length && m_pDoc->m_pArg->m_bUseTime)
-					DrawMarker(pDC, x + m_TickSize*m_Zoom, y);
-		}
-		
-		//Печатаем название оси
-		pDC->SetTextAlign(TA_RIGHT | TA_BASELINE);
-		pDC->TextOut(m_BottomRight.x*m_Zoom, 
-			(m_BottomRight.y + m_Length*GridStep.y + 3)*m_Zoom,
-			m_Name);
-		
-		//Печатаем индекс накопления
-		if(m_bShowNum)
-		{
-			CString	strIndex;
-			strIndex.Format("[%d]", m_nAcc+1);
-			pDC->SetTextAlign(TA_LEFT | TA_BASELINE);
-			pDC->TextOut(m_BottomRight.x*m_Zoom, 
-				(m_BottomRight.y + m_Length*GridStep.y + 3)*m_Zoom,
-				strIndex);
-		}
-		
-	}
-	else
-	{
-		//Печатаем название оси
-		pDC->SetTextAlign(TA_RIGHT | TA_BOTTOM);
-		pDC->TextOut((m_BottomRight.x - 2)*m_Zoom, 
-			m_BottomRight.y*m_Zoom,
-			m_Name);
-
-		//Печатаем индекс накопления
-		if(m_bShowNum)
-		{
-			CString	strIndex;
-			strIndex.Format("[%d]", m_nAcc+1);
-			pDC->SetTextAlign(TA_LEFT | TA_BOTTOM);
-			pDC->TextOut(m_BottomRight.x*m_Zoom, 
-				m_BottomRight.y*m_Zoom,
-				strIndex);
-		}
-
-		//Рисуем маркер
-		if(m_pDoc->m_pArg->m_bUseTime)
-			DrawMarker(pDC, m_BottomRight.x*m_Zoom, m_BottomRight.y*m_Zoom);
-	}
-
-	if(m_IsSelected)
-	{
-		//Рисуем выделение
-		GRect	rc	= GetFrameRect();
-		
-		CPen	penGray(PS_DOT,0,RGB(0,0,0));
-		pDC->SelectObject(&penGray);
-		pDC->SelectStockObject(NULL_BRUSH);
-
-		rc.top		-= m_TickSize*m_Zoom;
-		rc.bottom	+= m_TickSize*m_Zoom;
-
-		pDC->Rectangle(rc);
-	}
-
-	//Зачеркнем ось, если нет соответствующих ей данных
-	if(m_Record == -1)
-	{
-		GRect	rc	= GetFrameRect();
-		CPen	pen(PS_SOLID,100,RGB(255,0,0));
-		pDC->SelectObject(&pen);
-		if(m_DataType != Bool)
-		{
-			pDC->MoveTo(rc.left,	(rc.top + rc.bottom)/2-150);
-			pDC->LineTo(rc.right,	(rc.top + rc.bottom)/2+150);
-			pDC->MoveTo(rc.right,	(rc.top + rc.bottom)/2-150);
-			pDC->LineTo(rc.left,	(rc.top + rc.bottom)/2+150);
-		}
-		else
-		{
-			pDC->MoveTo((rc.left+rc.right)/2-150,	(rc.top + rc.bottom)/2-150);
-			pDC->LineTo((rc.left+rc.right)/2+150,	(rc.top + rc.bottom)/2+150);
-			pDC->MoveTo((rc.left+rc.right)/2-150,	(rc.top + rc.bottom)/2+150);
-			pDC->LineTo((rc.left+rc.right)/2+150,	(rc.top + rc.bottom)/2-150);
-		}
-	}
-
-	pDC->RestoreDC(-1);
-}*/
 
 void	GAxe::OnDoubleClick()
 {

@@ -491,6 +491,8 @@
     <None Include="shaders\gaxe.vert" />
     <None Include="shaders\gaxearg.frag" />
     <None Include="shaders\gaxearg.vert" />
+    <None Include="shaders\gaxe_cross.frag" />
+    <None Include="shaders\gaxe_cross.vert" />
     <None Include="shaders\simple.frag" />
     <None Include="shaders\simple.vert" />
     <None Include="shaders\textlabel.frag" />

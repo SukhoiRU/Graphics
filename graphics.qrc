@@ -48,6 +48,8 @@
         <file>Resources/images/delete.png</file>
         <file>shaders/gaxe_cross.frag</file>
         <file>shaders/gaxe_cross.vert</file>
-        <file>shaders/gaxe.geom</file>
+        <file>shaders/gaxe_data.frag</file>
+        <file>shaders/gaxe_data.geom</file>
+        <file>shaders/gaxe_data.vert</file>
     </qresource>
 </RCC>

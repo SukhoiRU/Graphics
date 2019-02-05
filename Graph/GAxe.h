@@ -58,8 +58,7 @@ private:
 	static int		u_round;
 	static int		u_lineType;
 
-//	static QOpenGLShaderProgram*	m_data_program;
-	static int		data_program_ID;
+	static QOpenGLShaderProgram*	m_data_program;
 	static int		u_data_modelToWorld;
 	static int		u_data_worldToCamera;
 	static int		u_data_cameraToView;

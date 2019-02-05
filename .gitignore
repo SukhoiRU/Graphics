@@ -241,4 +241,5 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 
-src/Graphics/GeneratedFiles/
+GeneratedFiles/
+GeneratedFiles/qrc_graphics.cpp

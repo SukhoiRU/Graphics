@@ -1,6 +1,6 @@
 #version 330 core
 layout (lines) in;
-layout (line_strip, max_vertices = 4) out;
+layout (line_strip, max_vertices = 6) out;
 
 in vec4 vColor[];
 in vec4 vZeroPoint[];

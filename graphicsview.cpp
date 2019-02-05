@@ -221,7 +221,6 @@ void GraphicsView::paintGL()
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
-glDisable(GL_PROGRAM_POINT_SIZE);
 
 	//Очистка вида
 	glStencilMask(0xFF);

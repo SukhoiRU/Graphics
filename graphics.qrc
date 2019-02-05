@@ -51,5 +51,6 @@
         <file>shaders/gaxe_data.frag</file>
         <file>shaders/gaxe_data.geom</file>
         <file>shaders/gaxe_data.vert</file>
+        <file>shaders/gaxe_data_triangles.geom</file>
     </qresource>
 </RCC>

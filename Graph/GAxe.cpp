@@ -33,6 +33,15 @@ int		GAxe::u_data_alpha			= 0;
 int		GAxe::u_data_round			= 0;
 int		GAxe::u_data_lineType		= 0;
 
+QOpenGLShaderProgram*	GAxe::m_data2_program	= 0;
+int		GAxe::u_data2_modelToWorld	= 0;
+int		GAxe::u_data2_worldToCamera	= 0;
+int		GAxe::u_data2_cameraToView	= 0;
+int		GAxe::u_data2_color			= 0;
+int		GAxe::u_data2_alpha			= 0;
+int		GAxe::u_data2_round			= 0;
+int		GAxe::u_data2_lineType		= 0;
+
 QOpenGLShaderProgram*	GAxe::m_cross_program	= 0;
 int		GAxe::u_cross_modelToWorld	= 0;
 int		GAxe::u_cross_worldToCamera	= 0;
@@ -108,6 +117,7 @@ void	GAxe::initializeGL()
 		u_round			= m_program->uniformLocation("round");
 		m_program->release();
 
+		//Программа для графиков линиями
 		m_data_program	= new QOpenGLShaderProgram;
 		m_data_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_data.vert");
 		m_data_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_data.frag");
@@ -123,6 +133,23 @@ void	GAxe::initializeGL()
 		u_data_round			= m_data_program->uniformLocation("round");
 		u_data_lineType			= m_data_program->uniformLocation("lineType");
 		m_data_program->release();
+
+		//Программа для графиков треугольниками
+		m_data2_program	= new QOpenGLShaderProgram;
+		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_data.vert");
+		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_data.frag");
+		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe_data_triangles.geom");
+		m_data2_program->link();
+
+		m_data2_program->bind();
+		u_data2_modelToWorld	= m_data2_program->uniformLocation("modelToWorld");
+		u_data2_worldToCamera	= m_data2_program->uniformLocation("worldToCamera");
+		u_data2_cameraToView	= m_data2_program->uniformLocation("cameraToView");
+		u_data2_color			= m_data2_program->uniformLocation("color");
+		u_data2_alpha			= m_data2_program->uniformLocation("alpha");
+		u_data2_round			= m_data2_program->uniformLocation("round");
+		u_data2_lineType		= m_data2_program->uniformLocation("lineType");
+		m_data2_program->release();
 
 		//Программа для креста на оси
 		m_cross_program	= new QOpenGLShaderProgram;
@@ -358,7 +385,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	oldArea	= area;
 
 	//Отрисовка только double
-	if(m_DataType != Double)	return;
+//	if(m_DataType != Double)	return;
 
 	//Определяем диапазон индексов
 	int	nMin	= 0;
@@ -486,7 +513,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_data_round, 0);
-	glUniform1i(u_data_lineType, 2);
+	glUniform1i(u_data_lineType, 0);
 
 	//Подключаем буфер графика
 	glBindVertexArray(dataVAO);
@@ -526,7 +553,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glUniform3fv(u_data_color, 1, &m_Color.r);
+	glUniform3fv(u_data_color, 1, &color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 //	glDrawArrays(GL_POINTS, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -619,8 +646,8 @@ bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const 
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.height();
 	if(m_DataType == Bool)	step	= 0.5f*step;
-	if(mdf & Qt::ControlModifier)	m_BottomRight.y	= m_FrameBR.y;
-	else							m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step - 0.5f)*step + oldArea.bottom();
+	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
+	else						m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step - 0.5f)*step + oldArea.bottom();
 
 	bool Res = false;
 /*
@@ -1089,11 +1116,11 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 			{
 				setAxeLength(1);
 				m_Min		= 0;
-				m_AxeScale		= 1;
+				m_AxeScale	= 1;
 			}
 		
 			//Для Ориона подгружаем данные из большого файла
-			if(pBuffer->GetType() == Acc_Orion && m_DataType == Double)
+			if(pBuffer->GetType() == Acc_Orion)
 			{
 				m_pOrionTime	= pBuffer->GetOrionTime(H);
 				m_pOrionData	= pBuffer->GetOrionData(H);
@@ -1101,7 +1128,15 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				m_data.clear();
 				for(int i = 0; i < m_Data_Len; i++)
 				{
-					m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));
+					switch(m_DataType)
+					{
+					case Graph::GAxe::Bool:		m_data.push_back(vec2(m_pOrionTime[i], (float)(*(bool*)(m_pOrionData + i*sizeof(bool)))));break;
+					case Graph::GAxe::Int:		m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(int)))));break;
+					case Graph::GAxe::Double:	m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));break;
+					case Graph::GAxe::Float:	m_data.push_back(vec2(m_pOrionTime[i], (float)(*(float*)(m_pOrionData + i*sizeof(float)))));break;
+					default:
+						break;
+					}
 				}
 				if(!m_bOpenGL_inited)	return;
 

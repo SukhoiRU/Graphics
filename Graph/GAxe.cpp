@@ -32,6 +32,8 @@ int		GAxe::u_data_color			= 0;
 int		GAxe::u_data_alpha			= 0;
 int		GAxe::u_data_round			= 0;
 int		GAxe::u_data_lineType		= 0;
+int		GAxe::u_data_baseLine		= 0;
+int		GAxe::u_data_pixelSize		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_data2_program	= 0;
 int		GAxe::u_data2_modelToWorld	= 0;
@@ -47,7 +49,6 @@ int		GAxe::u_cross_modelToWorld	= 0;
 int		GAxe::u_cross_worldToCamera	= 0;
 int		GAxe::u_cross_cameraToView	= 0;
 GLuint	GAxe::cross_texture;
-ivec2	GAxe::cross_texSize;
 
 GAxe::GAxe()
 {
@@ -132,6 +133,8 @@ void	GAxe::initializeGL()
 		u_data_alpha			= m_data_program->uniformLocation("alpha");
 		u_data_round			= m_data_program->uniformLocation("round");
 		u_data_lineType			= m_data_program->uniformLocation("lineType");
+		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
+		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
 		m_data_program->release();
 
 		//Программа для графиков треугольниками
@@ -165,8 +168,6 @@ void	GAxe::initializeGL()
 
 		// Prepare texture
 		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/images/delete.png"));
-		cross_texSize.x	= gl_texture->width();
-		cross_texSize.y	= gl_texture->height();
 		cross_texture	= gl_texture->textureId();
 
 		// Disable byte-alignment restriction
@@ -178,8 +179,8 @@ void	GAxe::initializeGL()
 		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
@@ -232,13 +233,24 @@ void	GAxe::setAxeLength(int len)
 
 	//Черточки для обрамления
 	{
-		float	dx	= 0.25*oldGrid.width();
-		float	dy	= 0.15*oldGrid.height();
+		if(m_DataType == Bool)
+		{
+			vec2	textSize	= textLabel->textSize(m_Name);
+			data.push_back(vec2(-0.5f*textSize.x-1.f, -0.5f*textSize.y-0.f));
+			data.push_back(vec2(-0.5f*textSize.x-1.f, 0.5f*textSize.y-0.3f));
+			data.push_back(vec2(0.5f*textSize.x+1.f, 0.5f*textSize.y-0.3f));
+			data.push_back(vec2(0.5f*textSize.x+1.f, -0.5f*textSize.y-0.f));
+		}
+		else
+		{
+			float	dx	= 0.25*oldGrid.width();
+			float	dy	= 0.15*oldGrid.height();
 
-		data.push_back(vec2(-dx, -dy));
-		data.push_back(vec2(-dx, dy + oldGrid.height()*m_AxeLength));
-		data.push_back(vec2(0.5*dx, dy + oldGrid.height()*m_AxeLength));
-		data.push_back(vec2(0.5*dx, -dy));
+			data.push_back(vec2(-dx, -dy));
+			data.push_back(vec2(-dx, dy + oldGrid.height()*m_AxeLength));
+			data.push_back(vec2(0.5*dx, dy + oldGrid.height()*m_AxeLength));
+			data.push_back(vec2(0.5*dx, -dy));
+		}
 	}
 
 	//Данные для креста
@@ -268,12 +280,20 @@ void	GAxe::setAxeLength(int len)
 	textLabel->clearGL();
 	textLabel->initializeGL();
 	textLabel->setFont(m_scale*3.5f, m_scale);
-	textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
-	for(int i = 0; i <= m_AxeLength; i++)
+
+	if(m_DataType == Bool)
 	{
-		QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
-		vec2	size	= textLabel->textSize(txt);
-		textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x*0.5f, -textLabel->textSize(m_Name).y*0.5f);
+	}
+	else
+	{
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+		for(int i = 0; i <= m_AxeLength; i++)
+		{
+			QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
+			vec2	size	= textLabel->textSize(txt);
+			textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+		}
 	}
 
 	textLabel->prepare();
@@ -384,9 +404,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 	oldArea	= area;
 
-	//Отрисовка только double
-//	if(m_DataType != Double)	return;
-
 	//Определяем диапазон индексов
 	int	nMin	= 0;
 	int	nMax	= m_data.size()-1;
@@ -431,7 +448,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
+
+	if(m_DataType != Bool)
+		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
@@ -440,7 +459,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glUniform3fv(u_color, 1, &color2.r);
 		mat4 dataModel	= mat4(1.0f);
 		dataModel		= translate(dataModel, vec3(m_FrameBR, 0.f));
-		dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+
+		//Для Bool рамка должна быть размером надписи
+		if(m_DataType != Bool)
+			dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
 		glUniform3fv(u_color, 1, &color.r);
@@ -454,8 +477,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glUniformMatrix4fv(u_cross_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 		mat4	cross(1.0f);
-		cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0));
-		cross	= scale(cross, vec3(0.6*grid.width(), 0.6*grid.width(), 1.0f));
+		if(m_DataType == Bool)
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.15f*grid.height(), 0.f));
+		else
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0.f));
+		cross	= scale(cross, vec3(0.6f*grid.width(), 0.6f*grid.width(), 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -512,8 +538,28 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniform1f(u_data_alpha, 1.0f);//alpha);
 	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-	glUniform1i(u_data_round, 0);
-	glUniform1i(u_data_lineType, 0);
+	
+	//Выставляем тип линии и округление до пикселя
+	switch(m_DataType)
+	{
+		case Graph::GAxe::Bool:
+		{
+			glUniform1i(u_data_lineType, 3);
+			glUniform1i(u_data_round, 1);
+		}break;
+
+		case Graph::GAxe::Int:
+		{
+			glUniform1i(u_data_lineType, 1);
+			glUniform1i(u_data_round, 1);
+		}break;
+
+		default:
+		{
+			glUniform1i(u_data_lineType, 0);
+			glUniform1i(u_data_round, 0);
+		}break;
+	}
 
 	//Подключаем буфер графика
 	glBindVertexArray(dataVAO);
@@ -528,6 +574,22 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
 
+	//Определяем базовую линию для вертикальных палок
+	float	baseLine	= m_Min;
+	if(m_Min < 0 && m_Min + m_AxeScale*m_AxeLength > 0)
+	{
+		//В оси присутствует 0
+		baseLine	= 0;
+	}
+
+	//Переводим ее в нормализованные координаты
+	baseLine	= (m_proj*m_view*dataModel*vec4(0.0f, baseLine, 0.0f, 1.0f)).y;
+	glUniform1f(u_data_baseLine, baseLine);
+
+	//Определяем размер пикселя в NDC
+	vec4	pixelSize	= m_proj*vec4(1.0f, 1.0f, 0.0f, 0.0f);
+	glUniform2f(u_data_pixelSize, pixelSize.x, pixelSize.y);
+
 	if(m_IsSelected)
 	{
 		//Рисуем график со смещением
@@ -539,23 +601,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
 		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-//		glDrawArrays(GL_POINTS, nStartIndex, nStopIndex - nStartIndex + 1);
-
-/*
-		data2	= mat4(1.0f);
-		data2	= translate(data2, vec3(area.x()-1.0f/m_scale, m_BottomRight.y+1.0f/m_scale, 0.f));
-		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
-		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-*/
 	}
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-//	glDrawArrays(GL_POINTS, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -582,14 +633,29 @@ void	GAxe::OnDoubleClick()
 
 bool	GAxe::HitTest(const vec2& pt)
 {
-	//Определяем попадание в ось
-	if(pt.x < m_BottomRight.x+1 &&
-	   pt.x > m_BottomRight.x-3 &&
-	   pt.y < m_BottomRight.y+oldGrid.height()*m_AxeLength+1 &&
-	   pt.y > m_BottomRight.y-1)
-		return true;
+	if(m_DataType == Bool)
+	{
+		//Для Bool рамка должна быть размером надписи
+		vec2	textSize	= textLabel->textSize(m_Name);
+		if(pt.x < m_BottomRight.x + 0.5f*textSize.x + 1.f &&
+		   pt.x > m_BottomRight.x - 0.5f*textSize.x - 1.f &&
+		   pt.y < m_BottomRight.y + 0.5f*textSize.y - 0.3f &&
+		   pt.y > m_BottomRight.y - 0.5f*textSize.y)
+			return true;
+		else
+			return false;
+	}
 	else
-		return false;
+	{
+		//Определяем попадание в ось
+		if(pt.x < m_BottomRight.x+1 &&
+		   pt.x > m_BottomRight.x-3 &&
+		   pt.y < m_BottomRight.y+oldGrid.height()*m_AxeLength+1 &&
+		   pt.y > m_BottomRight.y-1)
+			return true;
+		else
+			return false;
+	}
 }
 /*
 HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)

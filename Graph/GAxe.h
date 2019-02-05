@@ -66,6 +66,8 @@ private:
 	static int		u_data_alpha;
 	static int		u_data_round;
 	static int		u_data_lineType;
+	static int		u_data_baseLine;
+	static int		u_data_pixelSize;
 
 	static QOpenGLShaderProgram*	m_data2_program;
 	static int		u_data2_modelToWorld;
@@ -81,7 +83,6 @@ private:
 	static	int		u_cross_worldToCamera;
 	static	int		u_cross_cameraToView;
 	static	GLuint	cross_texture;
-	static	ivec2	cross_texSize;
 
 public:
 	QString			m_Name;			//Название оси

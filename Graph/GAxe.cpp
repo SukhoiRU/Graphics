@@ -165,7 +165,7 @@ void	GAxe::initializeGL()
 		data_program_ID = glCreateProgram();
 		glAttachShader(data_program_ID, vertex);
 		glAttachShader(data_program_ID, frag);
-		glAttachShader(data_program_ID, geom);
+//		glAttachShader(data_program_ID, geom);
 		glLinkProgram(data_program_ID);
 		checkCompileErrors(data_program_ID, "PROGRAM");
 

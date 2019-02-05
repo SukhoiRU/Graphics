@@ -25,7 +25,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(4, 3);
+    format.setVersion(3, 3);
     format.setSamples(16);
 	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
@@ -138,6 +138,9 @@ void GraphicsView::initializeGL()
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 	}
+
+	axeArg->initializeGL();
+	m_GraphObjects.push_back(axeArg);
 }
 
 struct Vertex

@@ -46,6 +46,7 @@ private:
 	GTextLabel*		textLabel;
 	QSizeF	oldGrid;
 	QRectF	oldArea;
+	float	oldScale;
 
 	//Shader Information
 	static QOpenGLShaderProgram*	m_program;
@@ -57,12 +58,31 @@ private:
 	static int		u_round;
 	static int		u_lineType;
 
+	static QOpenGLShaderProgram*	m_data_program;
+	static int		u_data_modelToWorld;
+	static int		u_data_worldToCamera;
+	static int		u_data_cameraToView;
+	static int		u_data_color;
+	static int		u_data_alpha;
+	static int		u_data_round;
+	static int		u_data_lineType;
+	static int		u_data_baseLine;
+	static int		u_data_pixelSize;
+
+	static QOpenGLShaderProgram*	m_data2_program;
+	static int		u_data2_modelToWorld;
+	static int		u_data2_worldToCamera;
+	static int		u_data2_cameraToView;
+	static int		u_data2_color;
+	static int		u_data2_alpha;
+	static int		u_data2_round;
+	static int		u_data2_lineType;
+
 	static QOpenGLShaderProgram*	m_cross_program;
 	static	int		u_cross_modelToWorld;
 	static	int		u_cross_worldToCamera;
 	static	int		u_cross_cameraToView;
 	static	GLuint	cross_texture;
-	static	ivec2	cross_texSize;
 
 public:
 	QString			m_Name;			//Название оси

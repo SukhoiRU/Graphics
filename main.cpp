@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName(APPLICATION_NAME);
 
 	QCommandLineParser parser;
-//	parser.setApplicationDescription("Test helper");
 	parser.addHelpOption();
 	parser.addVersionOption();
 

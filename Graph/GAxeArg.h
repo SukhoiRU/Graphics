@@ -36,6 +36,7 @@ private:
 	double	oldTimeScale;
 	QSizeF	oldGrid;
 	QRectF	oldArea;
+	float	oldScale;
 	GTextLabel*		textLabel;
 
 public:

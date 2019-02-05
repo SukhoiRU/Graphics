@@ -3,11 +3,11 @@
 layout(location = 0) in vec2 position;
 out vec4 vColor;
 
-uniform vec3 color;
-uniform float alpha;
 uniform mat4 modelToWorld;
 uniform mat4 worldToCamera;
 uniform mat4 cameraToView;
+uniform vec3 color;
+uniform float alpha;
 uniform int round;
 
 void main()

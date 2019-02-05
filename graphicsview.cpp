@@ -25,7 +25,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(4, 3);
+    format.setVersion(3, 3);
     format.setSamples(16);
 	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
@@ -221,6 +221,7 @@ void GraphicsView::paintGL()
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
+glDisable(GL_PROGRAM_POINT_SIZE);
 
 	//Очистка вида
 	glStencilMask(0xFF);

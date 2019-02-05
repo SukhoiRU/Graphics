@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec2 position;
 out vec4 vColor;
+out vec4 gColor;
 
 uniform vec3 color;
 uniform float alpha;
@@ -20,4 +21,5 @@ void main()
 	}
 	gl_Position = cameraToView * pos;
 	vColor = vec4(color, alpha);
+	gColor = vColor;
 }

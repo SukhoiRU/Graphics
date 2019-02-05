@@ -486,7 +486,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	glUniform1i(u_data_round, 0);
-	glUniform1i(u_data_lineType, 1);
+	glUniform1i(u_data_lineType, 2);
 
 	//Подключаем буфер графика
 	glBindVertexArray(dataVAO);

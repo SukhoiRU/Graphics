@@ -54,6 +54,8 @@ protected slots:
 	void	updatePageBuffer();
 signals:
 	void	dt(int msecs);
+	void	timeChanged(double time);
+	void	hasSelectedAxes(bool bSelected);
 
 protected:
 	//Обработка мыши и клавиатуры

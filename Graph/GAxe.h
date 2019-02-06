@@ -153,7 +153,6 @@ public:
 
 	//Служебные функции
 private:
-//	GRect	GetFrameRect();							//Получение обрамляющего прямоугольника
 	void	DrawMarker(int x, int y);				//Отрисовка маркера в заданных координатах
 	void	Draw_DEC_S();							//Отрисовка для вторички
 
@@ -169,7 +168,7 @@ public:
 	void		ClearOrionData() {m_pOrionData = 0; m_pOrionTime = 0;}
 	void		UpdateFiltering();						//Фильтрация сигнала
 	void		Zoom(bool bUp);							//Растяжение/сжатие
-	int			getAxeLength(){return m_AxeLength;}
+	int			getAxeLength() const {return m_AxeLength;}
 	void		setAxeLength(int len);
 };
 }

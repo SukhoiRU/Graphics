@@ -535,6 +535,8 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		}
 		m_SelectedObjects.clear();
 	}
+
+	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
 void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
@@ -557,6 +559,8 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 			}
 		}
 	}
+
+	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
@@ -573,7 +577,12 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	//Получаем мышь в поле графиков
 	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
-	curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
+	double time	= Time0	+ graph.x/gridStep.width()*TimeScale;
+	if(time != curTime && m_bOnMouse)
+	{
+		curTime = time;
+		emit timeChanged(curTime);
+	}
 
 	vec2	mousePos(world.x, world.y);
 

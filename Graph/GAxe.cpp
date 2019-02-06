@@ -1312,7 +1312,30 @@ void	GAxe::DrawMarker(int x, int y)
 
 double	GAxe::GetValueAtTime(const double Time) const
 {
-	return 0;
+	//Получаем значение на заданный момент времени
+	if(m_data.size() == 0)	return 0;
+
+	//Ищем индекс в данных
+	size_t	nMin	= 0;
+	size_t	nMax	= m_data.size()-1;
+	while(nMax - nMin > 1)
+	{
+		size_t n	= (nMin+nMax)/2;
+		if(m_data.at(n).x <= Time)	nMin	= n;
+		else						nMax	= n;
+	}
+
+	int	nStartIndex	= max(0, int(nMin));
+	int	nStopIndex	= min(int(m_data.size()-1), int(nMax));
+
+	//При необходимости интерполируем
+	double	f1	= m_data.at(nStartIndex).y;	double	t1	= m_data.at(nStartIndex).x;
+	double	f2	= m_data.at(nStopIndex).y;	double	t2	= m_data.at(nStopIndex).x;
+
+	if(m_bInterpol && (m_DataType == Double || m_DataType == Float))
+		return	f1+(f2-f1)/(t2-t1)*(Time-t1);
+	else			
+		return	f1;
 	/*
 	//Определяем смещение в векторе данных
 	if(m_Record == -1)					return 0;

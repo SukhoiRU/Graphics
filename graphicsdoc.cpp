@@ -12,6 +12,12 @@
 #include "Dialogs/graphselect.h"
 #include "Graph/GAxe.h"
 
+Panel::~Panel()
+{
+    for(size_t i = 0; i < Axes.size(); i++)	delete Axes.at(i);
+    Axes.clear();
+}
+
 GraphicsDoc::GraphicsDoc(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GraphicsDoc)

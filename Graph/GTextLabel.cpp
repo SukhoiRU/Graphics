@@ -58,7 +58,7 @@ void	GTextLabel::loadFontInfo()
 	}
 
 	//Сканируем шрифты
-	for(int f = 0; f < fonts.size(); f++)
+    for(size_t f = 0; f < fonts.size(); f++)
 		delete fonts.at(f);
 	fonts.clear();
 
@@ -91,11 +91,11 @@ void	GTextLabel::loadFontInfo()
 
 GTextLabel::~GTextLabel()
 {
-	for(int f = 0; f < fonts.size(); f++)
+    for(size_t f = 0; f < fonts.size(); f++)
 		delete fonts.at(f);
 	fonts.clear();
 
-	delete textShader;
+    clearGL();
 }
 
 void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)

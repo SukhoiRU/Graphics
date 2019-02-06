@@ -15,7 +15,7 @@ double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
 double	GAxe::m_Width		= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
-QOpenGLShaderProgram*	GAxe::m_program	= 0;
+QOpenGLShaderProgram*	GAxe::m_program	= nullptr;
 int		GAxe::u_modelToWorld	= 0;
 int		GAxe::u_worldToCamera	= 0;
 int		GAxe::u_cameraToView	= 0;
@@ -24,7 +24,7 @@ int		GAxe::u_alpha			= 0;
 int		GAxe::u_round			= 0;
 int		GAxe::u_lineType		= 0;
 
-QOpenGLShaderProgram*	GAxe::m_data_program	= 0;
+QOpenGLShaderProgram*	GAxe::m_data_program	= nullptr;
 int		GAxe::u_data_modelToWorld	= 0;
 int		GAxe::u_data_worldToCamera	= 0;
 int		GAxe::u_data_cameraToView	= 0;
@@ -35,7 +35,7 @@ int		GAxe::u_data_lineType		= 0;
 int		GAxe::u_data_baseLine		= 0;
 int		GAxe::u_data_pixelSize		= 0;
 
-QOpenGLShaderProgram*	GAxe::m_data2_program	= 0;
+QOpenGLShaderProgram*	GAxe::m_data2_program	= nullptr;
 int		GAxe::u_data2_modelToWorld	= 0;
 int		GAxe::u_data2_worldToCamera	= 0;
 int		GAxe::u_data2_cameraToView	= 0;
@@ -44,7 +44,7 @@ int		GAxe::u_data2_alpha			= 0;
 int		GAxe::u_data2_round			= 0;
 int		GAxe::u_data2_lineType		= 0;
 
-QOpenGLShaderProgram*	GAxe::m_cross_program	= 0;
+QOpenGLShaderProgram*	GAxe::m_cross_program	= nullptr;
 int		GAxe::u_cross_modelToWorld	= 0;
 int		GAxe::u_cross_worldToCamera	= 0;
 int		GAxe::u_cross_cameraToView	= 0;
@@ -136,12 +136,12 @@ void	GAxe::initializeGL()
 		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
 		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
 		m_data_program->release();
-
+/*
 		//Программа для графиков треугольниками
 		m_data2_program	= new QOpenGLShaderProgram;
 		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_data.vert");
 		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_data.frag");
-		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe_data_triangles.geom");
+        m_data2_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe_data_triangles.geom");
 		m_data2_program->link();
 
 		m_data2_program->bind();
@@ -153,7 +153,7 @@ void	GAxe::initializeGL()
 		u_data2_round			= m_data2_program->uniformLocation("round");
 		u_data2_lineType		= m_data2_program->uniformLocation("lineType");
 		m_data2_program->release();
-
+*/
 		//Программа для креста на оси
 		m_cross_program	= new QOpenGLShaderProgram;
 		m_cross_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_cross.vert");

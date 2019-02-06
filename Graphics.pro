@@ -17,7 +17,6 @@ INCLUDEPATH += ./GeneratedFiles \
 LIBS += -ldl
 #LIBS += -lopengl32
 #    -lglu32
-PRECOMPILED_HEADER = stdafx.h
 #DEPENDPATH += .
 #MOC_DIR += ./GeneratedFiles/$(ConfigurationName)
 OBJECTS_DIR += debug

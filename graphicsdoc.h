@@ -1,6 +1,6 @@
 #ifndef GRAPHICSDOC_H
 #define GRAPHICSDOC_H
-
+#include "stdafx.h"
 #include <vector>
 using std::vector;
 
@@ -19,12 +19,8 @@ struct	Panel
 {
     QString					Name;		//Название панели
     vector<Graph::GAxe*>	Axes;		//Список графиков в панели
-    Panel(){};
-	~Panel()
-	{
-        for(size_t i = 0; i < Axes.size(); i++)	delete Axes.at(i);
-		Axes.clear();
-	}
+    Panel(){}
+    ~Panel();
 };
 
 class GraphicsDoc : public QMainWindow
@@ -32,7 +28,7 @@ class GraphicsDoc : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit GraphicsDoc(QWidget *parent = 0);
+    explicit GraphicsDoc(QWidget *parent = nullptr);
     ~GraphicsDoc();
 
 	void LoadScreen(QString FileName);

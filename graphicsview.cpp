@@ -58,8 +58,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	bdWidth	= 0.1f;
 
 	setMouseTracking(true);    
-	pPageSetup	= 0;
-	m_pPanel	= 0;
+    pPageSetup	= nullptr;
+    m_pPanel	= nullptr;
 
 	Time0		= 200;
 	TimeScale	= 20;
@@ -85,8 +85,6 @@ GraphicsView::~GraphicsView()
 	if(pPageSetup)
 		delete pPageSetup;
 	teardownGL();
-
-	QOpenGLContext*	c	= this->context();
 }
 
 void GraphicsView::teardownGL()
@@ -709,7 +707,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 						if(!pGraph->m_IsSelected)
 						{
 							//Новый объект оставляем единственным
-							SelectObject(0);
+                            SelectObject(nullptr);
 							SelectObject(pGraph);
 						}
 					}
@@ -722,7 +720,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 		//Если ни в один объект не попали, выполняем действия по клику в окно
 		if(!bFound)
 		{
-			SelectObject(NULL);
+            SelectObject(nullptr);
 		}
 	}
 
@@ -778,7 +776,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 					pGraph->OnStopMoving();
 				}
 			}
-			SelectObject(0);
+            SelectObject(nullptr);
 		}
 		event->accept();
 	}break;
@@ -808,7 +806,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	}
 
 	//Сбрасываем выделение
-	SelectObject(0);
+    SelectObject(nullptr);
 
 	//Запоминаем новый список осей
     m_pPanel	= axes;

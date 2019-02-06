@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_VIEW_H
 #define GRAPHICS_VIEW_H
 
+#include "stdafx.h"
 #include <glm/glm.hpp>
 using glm::vec2;
 using glm::mat4;
@@ -27,12 +28,12 @@ class GraphicsView : public QOpenGLWidget
 // OpenGL Events
 QTime	t0;
 public:
-	explicit GraphicsView(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    explicit GraphicsView(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
     virtual ~GraphicsView();
 
-    virtual void	initializeGL();
-    virtual void	resizeGL(int width, int height);
-    virtual void	paintGL();
+    virtual void	initializeGL() override;
+    virtual void	resizeGL(int width, int height) override;
+    virtual void	paintGL() override;
 
     void	setPageInfo();
 
@@ -59,13 +60,13 @@ protected:
 	vec2	mouseToDoc(QMouseEvent *event);
 	void	SelectObject(Graph::GraphObject* pGraph);
 	void	UnSelectObject(Graph::GraphObject* pGraph);
-	virtual void mousePressEvent(QMouseEvent *event);
-	virtual void mouseReleaseEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-	virtual void mouseDoubleClickEvent(QMouseEvent* event);
-    virtual void wheelEvent(QWheelEvent *event);
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
+    virtual void wheelEvent(QWheelEvent *event) override;
 	virtual void keyPressEvent(QKeyEvent *event) override;
-	virtual void keyReleaseEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
 
 	void	paintOverGL(QPainter* p);
 

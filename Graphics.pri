@@ -1,35 +1,58 @@
-HEADERS += ./Accumulation.h \
-    ./stdafx.h \
-    ./graphicsdoc.h \
-    ./graphicsview.h \
-    ./Dialogs/treeitem.h \
-    ./Dialogs/graphselect.h \
-    ./Dialogs/panelselect.h \
-    ./Dialogs/qgridtree.h \
-    ./Dialogs/pageSetup.h \
-    ./Dialogs/treemodel.h \
-    ./Graph/GAxe.h \
-    ./Graph/GAxeArg.h \
-    ./Graph/GTextLabel.h \
-    ./Graph/GraphObject.h
-SOURCES += ./Accumulation.cpp \
-    ./glad.cpp \
-    ./graphicsdoc.cpp \
-    ./graphicsview.cpp \
-    ./main.cpp \
-    ./stdafx.cpp \
-    ./Dialogs/graphselect.cpp \
-    ./Dialogs/pageSetup.cpp \
-    ./Dialogs/panelselect.cpp \
-    ./Dialogs/qgridtree.cpp \
-    ./Dialogs/treeitem.cpp \
-    ./Dialogs/treemodel.cpp \
-    ./Graph/GAxe.cpp \
-    ./Graph/GAxeArg.cpp \
-    ./Graph/GTextLabel.cpp \
-    ./Graph/GraphObject.cpp
+HEADERS += \
+    $$PWD/Dialogs/graphselect.h \
+    $$PWD/Dialogs/pageSetup.h \
+    $$PWD/Dialogs/panelselect.h \
+    $$PWD/Dialogs/qgridtree.h \
+    $$PWD/Dialogs/treeitem.h \
+    $$PWD/Dialogs/treemodel.h \
+    $$PWD/GeneratedFiles/ui_graphicsdoc.h \
+    $$PWD/GeneratedFiles/ui_graphselect.h \
+    $$PWD/GeneratedFiles/ui_PageSetup.h \
+    $$PWD/GeneratedFiles/ui_panelselect.h \
+    $$PWD/Graph/GAxe.h \
+    $$PWD/Graph/GAxeArg.h \
+    $$PWD/Graph/GraphObject.h \
+    $$PWD/Graph/GTextLabel.h \
+    $$PWD/Accumulation.h \
+    $$PWD/graphicsdoc.h \
+    $$PWD/graphicsview.h \
+    $$PWD/stdafx.h
+SOURCES += \
+    $$PWD/Dialogs/graphselect.cpp \
+    $$PWD/Dialogs/pageSetup.cpp \
+    $$PWD/Dialogs/panelselect.cpp \
+    $$PWD/Dialogs/qgridtree.cpp \
+    $$PWD/Dialogs/treeitem.cpp \
+    $$PWD/Dialogs/treemodel.cpp \
+    $$PWD/Graph/GAxe.cpp \
+    $$PWD/Graph/GAxeArg.cpp \
+    $$PWD/Graph/GraphObject.cpp \
+    $$PWD/Graph/GTextLabel.cpp \
+    $$PWD/Accumulation.cpp \
+    $$PWD/glad.cpp \
+    $$PWD/graphicsdoc.cpp \
+    $$PWD/graphicsview.cpp \
+    $$PWD/main.cpp \
+    $$PWD/stdafx.cpp
 FORMS += ./Dialogs/graphselect.ui \
     ./Dialogs/panelselect.ui \
     ./graphicsdoc.ui \
     ./Dialogs/PageSetup.ui
 RESOURCES += graphics.qrc
+PRECOMPILED_HEADER = stdafx.h
+
+DISTFILES += \
+    $$PWD/shaders/gaxe_data.geom \
+    $$PWD/shaders/gaxe_data_triangles.geom \
+    $$PWD/shaders/gaxe.frag \
+    $$PWD/shaders/gaxe_cross.frag \
+    $$PWD/shaders/gaxe_data.frag \
+    $$PWD/shaders/gaxearg.frag \
+    $$PWD/shaders/simple.frag \
+    $$PWD/shaders/textlabel.frag \
+    $$PWD/shaders/gaxe.vert \
+    $$PWD/shaders/gaxe_cross.vert \
+    $$PWD/shaders/gaxe_data.vert \
+    $$PWD/shaders/gaxearg.vert \
+    $$PWD/shaders/simple.vert \
+    $$PWD/shaders/textlabel.vert

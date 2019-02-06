@@ -18,3 +18,4 @@ void main()
   //gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 0.0, 1.0);
   vColor = vec4(color, 1.0);
 }
+ 

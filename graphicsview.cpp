@@ -327,13 +327,15 @@ void GraphicsView::paintGL()
 			vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
 			mat4	iView	= glm::inverse(m_proj*m_view);
 			vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
-
+			mouse.x	= world.x;
+			mouse.y	= world.y;
+/*
 			//Получаем мышь в поле графиков
 			glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 			glm::vec4	graph	= glm::inverse(graphM)*world;
 			curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
 
-/*
+
 			//Сохраняем в классе
 			m_mousePos.x	= world.x;
 			m_mousePos.y	= world.y;
@@ -354,7 +356,7 @@ void GraphicsView::paintGL()
 
 			//Растягиваем единичные палки мыши во всю область
 			areaMat	= mat4(1.0f);
-			areaMat	= translate(areaMat, vec3(m_mousePos.x, m_mousePos.y, 0));
+			areaMat	= translate(areaMat, vec3(mouse.x, mouse.y, 0));
 			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
 			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 			glStencilFunc(GL_EQUAL, 1, 0xFF);			

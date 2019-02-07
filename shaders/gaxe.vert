@@ -1,7 +1,7 @@
 #version 330 core
 
 layout(location = 0) in vec2 position;
-out vec4 vColor;
+flat out vec4 vColor;
 
 uniform mat4 modelToWorld;
 uniform mat4 worldToCamera;

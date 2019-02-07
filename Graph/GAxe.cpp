@@ -589,7 +589,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	vec4	pixelSize	= m_proj*vec4(1.0f, 1.0f, 0.0f, 0.0f);
 	glUniform2f(u_data_pixelSize, pixelSize.x, pixelSize.y);
 
-	if(m_IsSelected)
+	if(m_IsSelected && 0)
 	{
 		//Рисуем график со смещением
 		vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);

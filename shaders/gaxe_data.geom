@@ -2,8 +2,8 @@
 layout (lines) in;
 layout (line_strip, max_vertices = 6) out;
 
-in vec4 vColor[];
-out vec4 gColor;
+flat in vec4 vColor[];
+flat out vec4 gColor;
 
 uniform int lineType;
 uniform float baseLine;

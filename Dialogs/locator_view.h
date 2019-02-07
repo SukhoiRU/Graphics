@@ -7,7 +7,6 @@ using std::vector;
 namespace Graph{
 	class GAxe;
 }
-class Accumulation;
 class LocatorModel;
 
 class LocatorView : public QTreeView
@@ -32,9 +31,10 @@ private:
 	void	onCustomMenuRequested(QPoint pos);
 
 public slots:
-	void	on_panelChanged(vector<Graph::GAxe*>* axes, vector<Accumulation*>* pBuffer);
+	void	on_panelChanged(vector<Graph::GAxe*>* axes);
 	void	on_timeChanged(double time);
 	void	on_axeSelected(bool bSelect);
+	void	on_axesMoved();
 };
 
 #endif // QLOCATOR_H

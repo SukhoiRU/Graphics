@@ -108,6 +108,6 @@ void	LocatorItem::sortAxes()
 	{
 		const Graph::GAxe*	pAxe1	= a->GetData()->pAxe;
 		const Graph::GAxe*	pAxe2	= b->GetData()->pAxe;
-		return (pAxe1->GetPosition().y + pAxe1->getAxeLength()) > (pAxe2->GetPosition().y + pAxe2->getAxeLength());
+		return (pAxe1->GetTopPosition() > pAxe2->GetTopPosition());
 	});
 }

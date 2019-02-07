@@ -624,6 +624,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
+			emit axesMoved();
 		}
 		else
 		{
@@ -650,7 +651,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 	if(mdf.testFlag(Qt::NoModifier))
 	{
-		Time0 += -0.01*numDegrees.x()*TimeScale - 0.01*numDegrees.y()*TimeScale;
+		Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{

@@ -56,6 +56,7 @@ signals:
 	void	dt(int msecs);
 	void	timeChanged(double time);
 	void	hasSelectedAxes(bool bSelected);
+	void	axesMoved();
 
 protected:
 	//Обработка мыши и клавиатуры

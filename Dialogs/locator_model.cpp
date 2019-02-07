@@ -155,17 +155,26 @@ int LocatorModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
-void	LocatorModel::UpdateModel(double time)
+void	LocatorModel::updateModel(double time)
 {
-	m_rootItem->update(time);
-	emit dataChanged(i_Start, i_Stop);
+	if(m_rootItem)
+	{
+		m_rootItem->update(time);
+		emit dataChanged(i_Start, i_Stop);
+	}
+}
+
+void	LocatorModel::resortAxes()
+{
+	if(m_rootItem)
+	{
+		m_rootItem->sortAxes();
+		emit dataChanged(i_Start, i_Stop);
+	}
 }
 
 void	LocatorModel::setSelected(bool bSelected)
 {
-	//if(m_bHasSelected != bSelected)
-	{
-		m_bHasSelected	= bSelected;
-		emit dataChanged(i_Start, i_Stop);
-	}
+	m_bHasSelected	= bSelected;
+	emit dataChanged(i_Start, i_Stop);
 }

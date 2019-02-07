@@ -35,8 +35,9 @@ public:
     virtual bool setData(const QModelIndex &, const QVariant &, int) {return false;}
 
     void	setPanel(const std::vector<Graph::GAxe*>* axes);
-	void	UpdateModel(double time);
+	void	updateModel(double time);
 	void	setSelected(bool bSelected);
+	void	resortAxes();
 
 protected:
 	LocatorItem*	m_rootItem;

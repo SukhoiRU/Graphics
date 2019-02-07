@@ -3,7 +3,6 @@
 #include <QDomElement>
 #include "../Accumulation.h"
 #include "GTextLabel.h"
-#include "glm/gtx/color_space.hpp"
 
 QColor	GetColor(int n);
 int		GetMarker(int n);
@@ -1480,9 +1479,9 @@ double	GAxe::GetValueAtTime(const double Time) const
 	return f;*/
 }
 
-double GAxe::GetTopPosition()
+double GAxe::GetTopPosition() const
 {
-	return m_BottomRight.y;// + m_Length*m_pDoc->m_pField->m_GridStep.y;
+	return m_BottomRight.y + m_AxeLength*oldGrid.height();
 }
 
 bool	GAxe::IsBoolean() const

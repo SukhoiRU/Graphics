@@ -74,8 +74,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	if((t0 != oldTime) ||
 		(TimeScale != oldTimeScale) ||
 	   (oldScale != m_scale) || 
-		(grid.width()	!= oldGrid.width()) ||
-	   (area.width() != oldArea.width()))
+		(grid != oldGrid) ||
+	   (area != oldArea))
 	{
 		//Запоминаем предыдущие значения
 		oldTime			= t0;

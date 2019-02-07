@@ -144,7 +144,7 @@ void	LocatorView::onCustomMenuRequested(QPoint pos)
 	menu->popup(viewport()->mapToGlobal(pos));
 }
 
-void	LocatorView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>*)
+void	LocatorView::on_panelChanged(vector<Graph::GAxe*>* axes)
 {
 	//Создаем новую модель
 	if(m_model)	delete m_model;
@@ -155,11 +155,19 @@ void	LocatorView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumu
 
 void	LocatorView::on_timeChanged(double time)
 {
-	m_model->UpdateModel(time);
+	if(m_model)
+		m_model->updateModel(time);
 }
 
 void	LocatorView::on_axeSelected(bool bSelected)
 {
 	if(m_model)
 		m_model->setSelected(bSelected);
+}
+
+void	LocatorView::on_axesMoved()
+{
+	//Пересортируем список осей
+	if(m_model)
+		m_model->resortAxes();
 }

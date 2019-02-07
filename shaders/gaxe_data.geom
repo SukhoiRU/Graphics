@@ -41,10 +41,15 @@ void main()
 			//   gl_in[1].gl_Position.y - gl_in[0].gl_Position.y < -pixelSize.y)
 			{
 				gl_Position 	= gl_in[0].gl_Position; 
-				gColor.a		= 0.2;
 				EmitVertex();
 				gl_Position 	= vec4(gl_in[0].gl_Position.x, baseLine, 0., 1.);
-				gColor.a		= 0.2;
+				EmitVertex();
+				
+				//Черта в нуле
+				EndPrimitive();
+				gl_Position 	= vec4(gl_in[0].gl_Position.x, baseLine, 0., 1.);
+				EmitVertex();
+				gl_Position 	= vec4(gl_in[1].gl_Position.x, baseLine, 0., 1.);
 				EmitVertex();
 				EndPrimitive();
 			}

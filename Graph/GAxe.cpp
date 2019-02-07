@@ -355,7 +355,7 @@ void	GAxe::Load(QDomElement* node)
 	}
 	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
 	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
-	if(node->hasAttribute("Шаг"))			m_AxeScale			= node->attribute("Шаг").toDouble();
+	if(node->hasAttribute("Шаг"))			m_AxeScale		= node->attribute("Шаг").toDouble();
 	if(node->hasAttribute("Длина"))			setAxeLength(node->attribute("Длина").toInt());
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
 	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= 297 + node->attribute("Y_мм").toDouble();
@@ -369,7 +369,7 @@ void	GAxe::Load(QDomElement* node)
 	if(node->hasAttribute("Колебательное"))	m_bOscill		= true;
 	if(node->hasAttribute("T_Oscill"))		m_Oscill_T		= node->attribute("T_Oscill").toDouble();
 	if(node->hasAttribute("Ksi_Oscill"))	m_Oscill_Ksi	= node->attribute("Ksi_Oscill").toDouble();
-	if(node->hasAttribute("Интерполяция"))	m_bInterpol		= node->attribute("Интерполяция").toInt();
+	if(node->hasAttribute("Интерполяция"))	m_bInterpol		= node->attribute("Интерполяция") == "true";
 
 	if(m_bAperiodic || m_bOscill)	UpdateFiltering();
 }
@@ -555,7 +555,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		default:
 		{
-			glUniform1i(u_data_lineType, 0);
+			if(m_bInterpol)
+				glUniform1i(u_data_lineType, 0);
+			else
+				glUniform1i(u_data_lineType, 1);
 			glUniform1i(u_data_round, 0);
 		}break;
 	}

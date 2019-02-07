@@ -105,15 +105,12 @@ void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &proj[0][0]);
 	textShader->release();
-
-	//scale	= 1./(view*glm::vec4(1,0,0,0)).x;
 }
 
 void	GTextLabel::initializeGL()
 {
 	if(!bTextureLoaded)
 	{
-//		initializeOpenGLFunctions();
 		bTextureLoaded	= true;
 
 		textShader = new QOpenGLShaderProgram();

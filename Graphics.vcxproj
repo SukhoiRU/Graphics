@@ -547,6 +547,8 @@
     <CustomBuild Include="shaders\gaxe.frag">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="shaders\fbo.frag" />
+    <None Include="shaders\fbo.vert" />
     <None Include="shaders\gaxe.vert" />
     <None Include="shaders\gaxearg.frag" />
     <None Include="shaders\gaxearg.vert" />

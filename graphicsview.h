@@ -34,6 +34,7 @@ public:
     virtual void	initializeGL() override;
     virtual void	resizeGL(int width, int height) override;
     virtual void	paintGL() override;
+	void	drawScene();
 
     void	setPageInfo();
 
@@ -106,6 +107,11 @@ private:
 	int		u_cameraToView;
 	mat4	m_proj;
 	mat4	m_view;
+
+	QOpenGLShaderProgram*	m_fbo_program;
+	GLuint	fboVAO, fboVBO;
+	GLuint	fbo, fboTexture[2];
+
 };
 
 #endif // GRAPHICS_VIEW_H

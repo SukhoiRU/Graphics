@@ -26,7 +26,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(16);
+    format.setSamples(8);
 //	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
@@ -71,6 +71,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	m_clickPos	= vec2(0.f);
 
 	fbo	= 0;
+	qFBO	= nullptr;
+	qFBO_unsamled	= nullptr;
 }
 
 GraphicsView::~GraphicsView()
@@ -215,7 +217,7 @@ void GraphicsView::resizeGL(int width, int height)
 {
 	//Меняем матрицу проекции
     m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
-
+/*
 	//Создаем framebuffer
 	if(fbo)	
 	{
@@ -245,6 +247,32 @@ void GraphicsView::resizeGL(int width, int height)
 			qDebug() << "Framebuffer ERROR!";
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);//defaultFramebufferObject());
+*/
+	QOpenGLFramebufferObjectFormat	fmt;
+	fmt.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	fmt.setMipmap(true);
+	fmt.setSamples(8);
+	fmt.setTextureTarget(GL_TEXTURE_2D);
+	fmt.setInternalTextureFormat(GL_RGBA32F_ARB);
+
+	QOpenGLFramebufferObjectFormat	fmt2;
+	fmt2.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	fmt2.setMipmap(true);
+	fmt2.setTextureTarget(GL_TEXTURE_2D);
+	fmt2.setInternalTextureFormat(GL_RGBA32F_ARB);
+
+	if(qFBO)
+	{
+		delete qFBO;
+		delete qFBO_unsamled;
+	}
+	qFBO	= new QOpenGLFramebufferObject(width, height, fmt);
+	qFBO_unsamled	= new QOpenGLFramebufferObject(width, height, fmt2);
+	if(!qFBO->isValid())
+	{
+		int a = 0;
+	}
+
 	drawScene();
 
 	//Меняем полосы прокрутки
@@ -266,42 +294,17 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-//	makeCurrent();
-	drawScene();
-
-//	makeCurrent();
-/*	int vp[4];
-	glGetIntegerv(GL_VIEWPORT, vp);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//Очистка вида
-	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_STENCIL_TEST);
 	glEnable(GL_MULTISAMPLE);
 
-	//Подключаем программу fbo
-	m_fbo_program->bind();
+	drawScene();
+	////Копирование картинки из буфера
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, qFBO_unsamled->handle());
+	//glBlitFramebuffer(0,0,width(),height(), 0,0,width(),height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-	//Подключаем буфер
-	glBindVertexArray(fboVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	
-	//Выводим текстуру
-	//glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
-	//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	//glBindTexture(GL_TEXTURE_2D, 0);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-	glBlitFramebuffer(0,0,vp[2],vp[3], 0,0,vp[2],vp[3], GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-	//Отключаем буфер
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	m_fbo_program->release();
-*/
-	//Рисуем мышь
+	//Отрисовка мыши
 	if(m_bOnMouse)
 	{
 		m_program->bind();
@@ -370,10 +373,11 @@ void GraphicsView::drawScene()
 {
 	t0.start();
 
-	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glViewport(0, 0, width(), height());
+	//qFBO->bind();
 
-	//glEnable(GL_CULL_FACE);
+//	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
@@ -442,7 +446,23 @@ void GraphicsView::drawScene()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	m_program->release();
+/*
+	//Разсемплирование буфера
+	qFBO->blitFramebuffer(qFBO_unsamled, qFBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
+	if(0)
+	{
+		//Сохранение картинок
+		QImage	image	= qFBO->toImage();
+		image.save("fbo.png", nullptr, 100);
+
+		{
+			QImage	image	= qFBO_unsamled->toImage();
+			image.save("fbo_unsampled.png", nullptr, 100);
+		}
+	}
+
+	qFBO->bindDefault();*/
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//GLuint	id	= defaultFramebufferObject();
 	//glBindFramebuffer(GL_FRAMEBUFFER, id);

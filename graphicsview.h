@@ -108,6 +108,8 @@ private:
 	mat4	m_proj;
 	mat4	m_view;
 
+	QOpenGLFramebufferObject*	qFBO;
+	QOpenGLFramebufferObject*	qFBO_unsamled;
 	QOpenGLShaderProgram*	m_fbo_program;
 	GLuint	fboVAO, fboVBO;
 	GLuint	fbo, fboTexture[2];

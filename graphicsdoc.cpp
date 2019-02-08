@@ -12,6 +12,7 @@
 #include "Dialogs/graphselect.h"
 #include "Dialogs/locator_view.h"
 #include "Graph/GAxe.h"
+#include "Graph/GTextLabel.h"
 
 Panel::~Panel()
 {
@@ -32,6 +33,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
 	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
@@ -67,6 +69,10 @@ GraphicsDoc::~GraphicsDoc()
 		delete p;
 	}
 	m_PanelList.clear();
+
+	//Удаляем статические данные объектов
+	Graph::GAxe::finalDelete();
+	Graph::GTextLabel::finalDelete();
 
 	delete ui->oglView;
 	delete ui;
@@ -284,6 +290,7 @@ void	GraphicsDoc::on_PanelDelete()
 	int	cur	= pBox->currentIndex();
 	if(cur == -1)	return;
 
+	emit panelDeleted(&m_PanelList.at(cur)->Axes);
 	delete m_PanelList.at(cur);
 	m_PanelList.erase(m_PanelList.begin()+cur);
 

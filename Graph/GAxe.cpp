@@ -84,9 +84,7 @@ GAxe::GAxe()
 
 	textLabel	= new GTextLabel;
 	m_program	= 0;
-	dataVAO		= 0;
 	dataVBO		= 0;
-	axeVAO		= 0;
 	axeVBO		= 0;
 	oldGrid		= QSizeF(5.0f, 5.0f);
 }
@@ -94,7 +92,19 @@ GAxe::GAxe()
 GAxe::~GAxe()
 {
 	clearGL();
-	delete textLabel;
+	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO = 0;}
+	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
+	if(textLabel) {delete textLabel; textLabel = 0;}
+}
+
+void	GAxe::finalDelete()
+{
+	//Удаляем статические переменные
+	if(cross_texture)
+		glDeleteTextures(1, &cross_texture);
+	if(m_program)		delete m_program;
+	if(m_data_program)	delete m_data_program;
+	if(m_cross_program)	delete m_cross_program;
 }
 
 void	GAxe::initializeGL()
@@ -189,11 +199,6 @@ void	GAxe::initializeGL()
 
 void	GAxe::clearGL()
 {
-	if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO	= 0; }
-	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
-
-	if(axeVAO)	{ glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; }
-	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO	= 0; }
 	textLabel->clearGL();
 }
 
@@ -262,42 +267,30 @@ void	GAxe::setAxeLength(int len)
 	}
 
 	//Буфер для оси
-	if(axeVAO)
+	if(axeVBO)
 	{ 
-		glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; 
-		glDeleteBuffers(1, &axeVBO); axeVBO	= 0; 
-		glGenVertexArrays(1, &axeVAO);		
-		glBindVertexArray(axeVAO); 
-		GLenum err	= glGetError();
-		if(err)
-			qDebug() << "error" << err;
+		int old	= axeVBO;
+		glDeleteBuffers(1, &axeVBO);
 		glGenBuffers(1, &axeVBO);
+		if(old != axeVBO)
+		{
+			qDebug() << "axeVBO";
+		}
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	else
 	{
-		glGenVertexArrays(1, &axeVAO);
-		glBindVertexArray(axeVAO);
 		glGenBuffers(1, &axeVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-
-	glGenVertexArrays(1, &axeVAO);
-	glBindVertexArray(axeVAO);
-	glGenBuffers(1, &axeVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
 
 	//Текстовые метки
 	QSizeF grid	= oldGrid;
@@ -463,7 +456,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniform1i(u_round, 1);
 	
 	//Рисуем шкалу
-	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -547,7 +539,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
-	glBindVertexArray(0);
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel, m_view, m_proj);
@@ -586,7 +577,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 
 	//Подключаем буфер графика
-	glBindVertexArray(dataVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -632,8 +622,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniform3fv(u_data_color, 1, &color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_data_program->release();
 }
@@ -1230,31 +1218,29 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				}
 				if(!m_bOpenGL_inited)	return;
 
-				if(dataVAO)
+				if(dataVBO)
 				{
-					//Удаляем буферы
-					glDeleteVertexArrays(1, &dataVAO); dataVAO = 0;
-					glDeleteBuffers(1, &dataVBO); dataVBO	= 0;
-
-					glGenVertexArrays(1, &dataVAO);
-					glBindVertexArray(dataVAO);
+					int old	= dataVBO;
+					glDeleteBuffers(1, &dataVBO);
 					glGenBuffers(1, &dataVBO);
+					if(old != dataVBO)
+					{
+						qDebug() << "dataVBO";
+					}
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
 					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 					glEnableVertexAttribArray(0);
-					glBindVertexArray(0);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
 				else
 				{
-					glGenVertexArrays(1, &dataVAO);
-					glBindVertexArray(dataVAO);
 					glGenBuffers(1, &dataVBO);
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
 					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 					glEnableVertexAttribArray(0);
-					glBindVertexArray(0);
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
 
 				//Обновляем VAO оси

@@ -5,9 +5,9 @@
 
 class QCursor;
 class QOpenGLShaderProgram;
-class GTextLabel;
 
 namespace Graph{
+	class GTextLabel;
 
 class GAxeArg : public GraphObject  //Класс оси графика
 {
@@ -24,8 +24,8 @@ private:
 	int		u_modelToWorld;
 	int		u_worldToCamera;
 	int		u_cameraToView;
-	GLuint	gridVAO, gridVBO;
-	GLuint	axeVAO, axeVBO;
+	GLuint	gridVBO;
+	GLuint	axeVBO;
 	int		nCountGrid;
 	int		nCountAxe;
 

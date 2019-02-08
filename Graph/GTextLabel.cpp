@@ -2,6 +2,8 @@
 #include "GTextLabel.h"
 #include <QDomDocument>
 
+namespace Graph{
+
 bool	GTextLabel::bFontLoaded	= false;
 vector<GTextLabel::FontInfo*>	GTextLabel::fonts;
 
@@ -19,7 +21,6 @@ int					GTextLabel::u_alpha;
 GTextLabel::GTextLabel()
 {
 	fontIndex	= 0;
-	textVAO		= 0;
 	textVBO		= 0;
 
 	if(!bFontLoaded)
@@ -88,14 +89,28 @@ void	GTextLabel::loadFontInfo()
 	}
 }
 
-
 GTextLabel::~GTextLabel()
 {
-    for(size_t f = 0; f < fonts.size(); f++)
-		delete fonts.at(f);
-	fonts.clear();
-
     clearGL();
+	if(textVBO)	{glDeleteBuffers(1, &textVBO); textVBO = 0;}
+}
+
+void	GTextLabel::finalDelete()
+{
+	//Удаляем шрифты
+	if(bFontLoaded)
+	{
+		for(size_t f = 0; f < fonts.size(); f++)
+			delete fonts.at(f);
+		fonts.clear();
+	}
+
+	//Чистим текстуру
+	if(bTextureLoaded)
+		glDeleteTextures(1, &texture);
+
+	//И программу
+	if(textShader)	delete textShader;
 }
 
 void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
@@ -146,14 +161,8 @@ void	GTextLabel::initializeGL()
 	}
 
 	// Configure VAO/VBO for texture quads
-	glGenVertexArrays(1, &textVAO);
 	glGenBuffers(1, &textVBO);
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_STATIC_DRAW);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_data.clear();
@@ -161,8 +170,6 @@ void	GTextLabel::initializeGL()
 
 void	GTextLabel::clearGL()
 {
-	if(textVAO)	{glDeleteVertexArrays(1, &textVAO); textVAO = 0;}
-	if(textVBO)	{glDeleteBuffers(1, &textVBO); textVBO = 0;}
 }
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
@@ -222,12 +229,10 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 void	GTextLabel::prepare()
 {
 	//Заливаем данные в буфер
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec4), m_data.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -239,7 +244,6 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniform3f(u_color, color.r, color.g, color.b);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
@@ -248,7 +252,6 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, m_data.size());
 
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -327,4 +330,6 @@ GLfloat	GTextLabel::topLine()
 	const CharInfo&	info	= font->charMap.at('0');
 
 	return (info.origSize.y - info.offset.y)/scale;
+}
+
 }

@@ -13,6 +13,8 @@ using std::map;
 
 class QOpenGLShaderProgram;
 
+namespace Graph{
+
 class GTextLabel
 {
 private:
@@ -48,7 +50,7 @@ private:
 	//Данные для каждого объекта
 	vector<vec4>	m_data;
 
-	GLuint	textVAO, textVBO;
+	GLuint	textVBO;
 	int		fontIndex;
 	GLfloat	scale;
 
@@ -59,6 +61,8 @@ public:
 	~GTextLabel();
 	void	initializeGL();
 	void	clearGL();
+	static void	finalDelete();
+
 	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();
@@ -70,4 +74,5 @@ public:
 	GLfloat	topLine();
 };
 
+}
 #endif // GTEXTLABEL_H

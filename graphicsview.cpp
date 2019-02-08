@@ -87,18 +87,20 @@ GraphicsView::~GraphicsView()
 	settings.setValue("GraphicsView/m_scale", m_scale);
 	settings.sync();
 
-	delete	axeArg;
-	if(pPageSetup)
-		delete pPageSetup;
+	if(axeArg)	{delete	axeArg; axeArg = 0;}
+	if(pPageSetup)	{delete pPageSetup; pPageSetup = 0;}
 	teardownGL();
 }
 
 void GraphicsView::teardownGL()
 {
     // Actually destroy our OpenGL information
+	if(pageVBO)	{ glDeleteBuffers(1, &pageVBO); pageVBO = 0; }
 	if(pageVAO)	{glDeleteVertexArrays(1, &pageVAO); pageVAO = 0;}
-	if(pageVBO)	{glDeleteBuffers(1, &pageVBO); pageVBO = 0;}
-    delete m_program;
+	if(m_program)	{delete m_program; m_program = 0;}
+
+	if(fboVBO)	{glDeleteBuffers(1, &fboVBO); fboVBO = 0;}
+	if(m_fbo_program) {delete m_fbo_program; m_fbo_program = 0;}
 }
 
 void GraphicsView::pause(bool hold)
@@ -149,8 +151,6 @@ void GraphicsView::initializeGL()
 		m_fbo_program->link();
 
 		//Создаем буфер для двух треугольников
-		glGenVertexArrays(1, &fboVAO);
-		glBindVertexArray(fboVAO);
 		glGenBuffers(1, &fboVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
 		vector<vec4>	data;
@@ -161,7 +161,6 @@ void GraphicsView::initializeGL()
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec4), data.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -638,10 +637,8 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		//Добавляем объект в список выделенных
 		pGraph->m_IsSelected	= true;
 		m_SelectedObjects.push_back(pGraph);
-		pStatus->showMessage(QString("dataVAO = %1, dataVBO = %2, axeVAO = %3, axeVBO = %4")
-							 .arg(((Graph::GAxe*)pGraph)->dataVAO)
+		pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
 							 .arg(((Graph::GAxe*)pGraph)->dataVBO)
-							.arg(((Graph::GAxe*)pGraph)->axeVAO)
 							.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
 	}
 	else
@@ -973,3 +970,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	}
 }
 
+void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* axes)
+{
+	m_pPanel	= nullptr;
+}

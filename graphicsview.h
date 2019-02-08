@@ -47,7 +47,8 @@ public slots:
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
-    void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+	void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+    void	on_panelDeleted(vector<Graph::GAxe*>* axes);
     void    pause(bool hold);
 protected slots:
 	void	teardownGL();
@@ -111,7 +112,7 @@ private:
 	QOpenGLFramebufferObject*	qFBO;
 	QOpenGLFramebufferObject*	qFBO_unsamled;
 	QOpenGLShaderProgram*	m_fbo_program;
-	GLuint	fboVAO, fboVBO;
+	GLuint	fboVBO;
 	GLuint	fbo, fboTexture[2];
 
 };

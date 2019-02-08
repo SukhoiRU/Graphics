@@ -199,6 +199,9 @@ void	GAxe::initializeGL()
 
 void	GAxe::clearGL()
 {
+	if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO = 0; }
+	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO = 0; }
+
 	textLabel->clearGL();
 }
 

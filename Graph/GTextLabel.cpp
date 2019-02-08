@@ -170,6 +170,7 @@ void	GTextLabel::initializeGL()
 
 void	GTextLabel::clearGL()
 {
+	if(textVBO)	{ glDeleteBuffers(1, &textVBO); textVBO = 0; }
 }
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)

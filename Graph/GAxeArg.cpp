@@ -85,7 +85,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(3.5f*m_scale, m_scale);
+		textLabel->setFont(2.5f*m_scale, m_scale);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;

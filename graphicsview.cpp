@@ -26,8 +26,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(1);
-	format.setOption(QSurfaceFormat::DebugContext);
+    format.setSamples(16);
+//	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -213,7 +213,7 @@ void	GraphicsView::updatePageBuffer()
 
 void GraphicsView::resizeGL(int width, int height)
 {
-	//Меням матрицу проекции
+	//Меняем матрицу проекции
     m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
 
 	//Создаем framebuffer
@@ -230,9 +230,9 @@ void GraphicsView::resizeGL(int width, int height)
 		//Текстурное прикрепление
 		glGenTextures(2, fboTexture);
 		glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture[0], 0);
 
 		glBindTexture(GL_TEXTURE_2D, fboTexture[1]);
@@ -244,7 +244,7 @@ void GraphicsView::resizeGL(int width, int height)
 		if(err != GL_FRAMEBUFFER_COMPLETE)
 			qDebug() << "Framebuffer ERROR!";
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);//defaultFramebufferObject());
 	drawScene();
 
 	//Меняем полосы прокрутки
@@ -266,12 +266,18 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-	//drawScene();
-	
+//	makeCurrent();
+	drawScene();
+
+//	makeCurrent();
+/*	int vp[4];
+	glGetIntegerv(GL_VIEWPORT, vp);
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//Очистка вида
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_STENCIL_TEST);
-	glDisable(GL_MULTISAMPLE);
+	glEnable(GL_MULTISAMPLE);
 
 	//Подключаем программу fbo
 	m_fbo_program->bind();
@@ -283,15 +289,18 @@ void GraphicsView::paintGL()
 	glEnableVertexAttribArray(0);
 	
 	//Выводим текстуру
-	glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
+	//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+	glBlitFramebuffer(0,0,vp[2],vp[3], 0,0,vp[2],vp[3], GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	//Отключаем буфер
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_fbo_program->release();
-
+*/
 	//Рисуем мышь
 	if(m_bOnMouse)
 	{
@@ -361,7 +370,8 @@ void GraphicsView::drawScene()
 {
 	t0.start();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	//glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -433,7 +443,9 @@ void GraphicsView::drawScene()
 	}
 	m_program->release();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//GLuint	id	= defaultFramebufferObject();
+	//glBindFramebuffer(GL_FRAMEBUFFER, id);
 	//emit dt(t0.elapsed());
 }
 
@@ -538,7 +550,7 @@ void GraphicsView::update()
     m_view  = rotate(m_view, angle, vec3(0.f,0.f,1.0f));
     m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
-	drawScene();
+	//drawScene();
 	// Schedule a redraw
 	QOpenGLWidget::update();
 }

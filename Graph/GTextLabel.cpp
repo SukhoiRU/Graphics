@@ -31,7 +31,7 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial.xml");
+	QFile file(":/Resources/fonts/arial_new.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
 		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arial.xml").arg(file.errorString()));
@@ -67,7 +67,7 @@ void	GTextLabel::loadFontInfo()
 		//Читаем шрифт
 		FontInfo*	font	= new FontInfo;
 		font->name	= n.attribute("name");
-		font->size	= n.attribute("size").remove("px").toInt();
+		font->size	= n.attribute("size").remove("pt").toInt();
 		for(QDomElement c = n.firstChildElement("char"); !c.isNull(); c = c.nextSiblingElement("char"))
 		{
 			//Читаем описание символа
@@ -127,7 +127,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial.png"));
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial_new.png"));
 		texSize.x	= gl_texture->width();
 		texSize.y	= gl_texture->height();
 		texture	= gl_texture->textureId();
@@ -180,42 +180,42 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		
 		//Левый верхний
 		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= info.tex.y/(float)texSize.y;
+		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Левый нижний
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Правый верхний
-		point.x	= x + (info.offset.x + info.size.x)/scale;
-		point.y	= y + (info.origSize.y - info.offset.y)/scale;
-		point.z	= (info.tex.x + info.size.x)/(float)texSize.x;
-		point.w	= info.tex.y/(float)texSize.y;
+		point.x	= x + (info.offset.x + info.size.x+1)/scale;
+		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
+		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
+		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
 		m_data.push_back(point);
 
 		//Правый нижний
-		point.x	= x + (info.offset.x + info.size.x)/scale;
+		point.x	= x + (info.offset.x + info.size.x+1)/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= (info.tex.x + info.size.x)/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Левый нижний
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Продвигаемся на символ дальше
-		x += (info.origSize.x +0)/scale;
+		x += (info.origSize.x +1)/scale;
 	}
 }
 
@@ -236,7 +236,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	// Activate corresponding render state	
 //	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
-	glUniform3f(u_color, color.x, color.y, color.z);
+	glUniform3f(u_color, color.r, color.g, color.b);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(textVAO);
@@ -294,7 +294,7 @@ vec2	GTextLabel::textSize(const QString& str)
 		//if(i == str.length()-1)	size.x -= (info.origSize.x - info.offset.x - info.size.x);
 		
 		//Продвигаемся на символ дальше
-		size.x += info.origSize.x;
+		size.x += info.origSize.x+1;
 
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}

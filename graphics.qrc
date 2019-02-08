@@ -54,5 +54,7 @@
         <file>shaders/gaxe_data_triangles.geom</file>
         <file>shaders/fbo.frag</file>
         <file>shaders/fbo.vert</file>
+        <file>Resources/fonts/arial_new.png</file>
+        <file>Resources/fonts/arial_new.xml</file>
     </qresource>
 </RCC>

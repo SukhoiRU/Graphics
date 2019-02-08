@@ -278,12 +278,12 @@ void GraphicsView::resizeGL(int width, int height)
 	//Меняем полосы прокрутки
     vBar->setMinimum(0);
     vBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
-    vBar->setPageStep(50);
+    vBar->setPageStep(pageSize.height());
     vBar->setSingleStep(1);
 
     hBar->setMinimum(0);
     hBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
-    hBar->setPageStep(50);
+    hBar->setPageStep(pageSize.width());
     hBar->setSingleStep(1);
 
     if(vBar->maximum() == 0)    vBar->hide();
@@ -292,17 +292,27 @@ void GraphicsView::resizeGL(int width, int height)
     else                        hBar->show();
 }
 
+//#define USE_FBO
+
 void GraphicsView::paintGL()
 {
 	//Очистка вида
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_STENCIL_TEST);
-	glEnable(GL_MULTISAMPLE);
+	glStencilMask(0xFF);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_STENCIL_TEST);
+	glDisable(GL_LINE_SMOOTH);
+
+#ifdef USE_FBO
+	//Копирование картинки из буфера
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, qFBO_unsamled->handle());
+	glBlitFramebuffer(0,0,width(),height(), 0,0,width(),height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#else
 	drawScene();
-	////Копирование картинки из буфера
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, qFBO_unsamled->handle());
-	//glBlitFramebuffer(0,0,width(),height(), 0,0,width(),height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#endif // USE_FBO
 
 	//Отрисовка мыши
 	if(m_bOnMouse)
@@ -371,12 +381,14 @@ void GraphicsView::paintGL()
 
 void GraphicsView::drawScene()
 {
+	if(!oglInited)	return;
 	t0.start();
 
+#ifdef USE_FBO
 	glViewport(0, 0, width(), height());
-	//qFBO->bind();
+	qFBO->bind();
 
-//	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -387,6 +399,7 @@ void GraphicsView::drawScene()
 	//Очистка вида
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#endif // USE_FBO
 
 	//Устанавливаем матрицы для объектов
 	Graph::GraphObject::m_proj	= m_proj;
@@ -446,7 +459,8 @@ void GraphicsView::drawScene()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	m_program->release();
-/*
+
+#ifdef USE_FBO
 	//Разсемплирование буфера
 	qFBO->blitFramebuffer(qFBO_unsamled, qFBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
@@ -462,11 +476,8 @@ void GraphicsView::drawScene()
 		}
 	}
 
-	qFBO->bindDefault();*/
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//GLuint	id	= defaultFramebufferObject();
-	//glBindFramebuffer(GL_FRAMEBUFFER, id);
-	//emit dt(t0.elapsed());
+	qFBO->bindDefault();
+#endif // USE_FBO
 }
 
 void GraphicsView::paintOverGL(QPainter* p)
@@ -638,6 +649,7 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		m_SelectedObjects.clear();
 	}
 
+	drawScene();
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -662,6 +674,7 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 		}
 	}
 
+	drawScene();
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -726,6 +739,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
+			drawScene();
 			emit axesMoved();
 		}
 		else
@@ -736,6 +750,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.width()*TimeScale;
+				drawScene();
 			}
 		}
 	}

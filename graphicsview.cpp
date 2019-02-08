@@ -17,6 +17,8 @@ using namespace Graph;
 
 #include "Graph/GTextLabel.h"
 
+//#define USE_FBO
+
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
@@ -248,6 +250,8 @@ void GraphicsView::resizeGL(int width, int height)
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);//defaultFramebufferObject());
 */
+
+#ifdef USE_FBO
 	QOpenGLFramebufferObjectFormat	fmt;
 	fmt.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
 	fmt.setMipmap(true);
@@ -274,6 +278,7 @@ void GraphicsView::resizeGL(int width, int height)
 	}
 
 	drawScene();
+#endif // USE_FBO
 
 	//Меняем полосы прокрутки
     vBar->setMinimum(0);
@@ -291,8 +296,6 @@ void GraphicsView::resizeGL(int width, int height)
     if(hBar->maximum() == 0)    hBar->hide();
     else                        hBar->show();
 }
-
-//#define USE_FBO
 
 void GraphicsView::paintGL()
 {
@@ -581,7 +584,6 @@ void GraphicsView::update()
     m_view  = rotate(m_view, angle, vec3(0.f,0.f,1.0f));
     m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
-	//drawScene();
 	// Schedule a redraw
 	QOpenGLWidget::update();
 }
@@ -636,6 +638,11 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		//Добавляем объект в список выделенных
 		pGraph->m_IsSelected	= true;
 		m_SelectedObjects.push_back(pGraph);
+		pStatus->showMessage(QString("dataVAO = %1, dataVBO = %2, axeVAO = %3, axeVBO = %4")
+							 .arg(((Graph::GAxe*)pGraph)->dataVAO)
+							 .arg(((Graph::GAxe*)pGraph)->dataVBO)
+							.arg(((Graph::GAxe*)pGraph)->axeVAO)
+							.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
 	}
 	else
 	{
@@ -649,7 +656,9 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		m_SelectedObjects.clear();
 	}
 
+#ifdef USE_FBO
 	drawScene();
+#endif // USE_FBO
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -674,7 +683,9 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 		}
 	}
 
+#ifdef USE_FBO
 	drawScene();
+#endif // USE_FBO
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -739,7 +750,9 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
+#ifdef USE_FBO
 			drawScene();
+#endif // USE_FBO
 			emit axesMoved();
 		}
 		else
@@ -750,7 +763,9 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.width()*TimeScale;
+#ifdef USE_FBO
 				drawScene();
+#endif // USE_FBO
 			}
 		}
 	}
@@ -769,7 +784,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	if(mdf.testFlag(Qt::NoModifier))
 	{
 		Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+#ifdef USE_FBO
 		drawScene();
+#endif // USE_FBO
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{
@@ -796,7 +813,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 		//Двигаем ноль так, чтобы попасть в то же время
 		Time0	= curTime - dLen*TimeScale;
+#ifdef USE_FBO
 		drawScene();
+#endif // USE_FBO
 	}
 
 	event->accept();

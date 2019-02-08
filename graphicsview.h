@@ -40,6 +40,7 @@ public:
 
 	QScrollBar*	vBar;
 	QScrollBar*	hBar;
+	QStatusBar*	pStatus;
 
 public slots:
 	void	openPageSetup();
@@ -48,7 +49,6 @@ public slots:
     void    saveSVG();
     void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
     void    pause(bool hold);
-
 protected slots:
 	void	teardownGL();
 	void	update();

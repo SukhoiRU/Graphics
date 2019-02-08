@@ -262,8 +262,33 @@ void	GAxe::setAxeLength(int len)
 	}
 
 	//Буфер для оси
-	if(axeVAO)	{ glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; }
-	if(axeVBO)	{ glDeleteBuffers(1, &axeVBO); axeVBO	= 0; }
+	if(axeVAO)
+	{ 
+		glDeleteVertexArrays(1, &axeVAO); axeVAO	= 0; 
+		glDeleteBuffers(1, &axeVBO); axeVBO	= 0; 
+		glGenVertexArrays(1, &axeVAO);		
+		glBindVertexArray(axeVAO); 
+		GLenum err	= glGetError();
+		if(err)
+			qDebug() << "error" << err;
+		glGenBuffers(1, &axeVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+	}
+	else
+	{
+		glGenVertexArrays(1, &axeVAO);
+		glBindVertexArray(axeVAO);
+		glGenBuffers(1, &axeVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+	}
 
 	glGenVertexArrays(1, &axeVAO);
 	glBindVertexArray(axeVAO);
@@ -1205,17 +1230,32 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				}
 				if(!m_bOpenGL_inited)	return;
 
-				if(dataVAO)	{ glDeleteVertexArrays(1, &dataVAO); dataVAO = 0; }
-				if(dataVBO)	{ glDeleteBuffers(1, &dataVBO); dataVBO	= 0; }
+				if(dataVAO)
+				{
+					//Удаляем буферы
+					glDeleteVertexArrays(1, &dataVAO); dataVAO = 0;
+					glDeleteBuffers(1, &dataVBO); dataVBO	= 0;
 
-				glGenVertexArrays(1, &dataVAO);
-				glBindVertexArray(dataVAO);
-				glGenBuffers(1, &dataVBO);
-				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-				glEnableVertexAttribArray(0);
-				glBindVertexArray(0);
+					glGenVertexArrays(1, &dataVAO);
+					glBindVertexArray(dataVAO);
+					glGenBuffers(1, &dataVBO);
+					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+					glEnableVertexAttribArray(0);
+					glBindVertexArray(0);
+				}
+				else
+				{
+					glGenVertexArrays(1, &dataVAO);
+					glBindVertexArray(dataVAO);
+					glGenBuffers(1, &dataVBO);
+					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+					glEnableVertexAttribArray(0);
+					glBindVertexArray(0);
+				}
 
 				//Обновляем VAO оси
 				setAxeLength(m_AxeLength);

@@ -5,6 +5,9 @@ HEADERS += \
     $$PWD/Dialogs/qgridtree.h \
     $$PWD/Dialogs/treeitem.h \
     $$PWD/Dialogs/treemodel.h \
+    $$PWD/Dialogs/locator_item.h \
+    $$PWD/Dialogs/locator_model.h \
+    $$PWD/Dialogs/locator_view.h \
     $$PWD/GeneratedFiles/ui_graphicsdoc.h \
     $$PWD/GeneratedFiles/ui_graphselect.h \
     $$PWD/GeneratedFiles/ui_PageSetup.h \
@@ -24,6 +27,9 @@ SOURCES += \
     $$PWD/Dialogs/qgridtree.cpp \
     $$PWD/Dialogs/treeitem.cpp \
     $$PWD/Dialogs/treemodel.cpp \
+    $$PWD/Dialogs/locator_item.cpp \
+    $$PWD/Dialogs/locator_model.cpp \
+    $$PWD/Dialogs/locator_view.cpp \
     $$PWD/Graph/GAxe.cpp \
     $$PWD/Graph/GAxeArg.cpp \
     $$PWD/Graph/GraphObject.cpp \

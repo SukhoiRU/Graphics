@@ -277,13 +277,14 @@ void	GTextLabel::setFont(int size, GLfloat scale)
 	}
 
 	//Берем самый крупный
-	fontIndex	= fonts.size()-1;
+	fontIndex	= std::max(0, (int)(fonts.size()-1));
 }
 
 vec2	GTextLabel::textSize(const QString& str)
 {
 	vec2	size(0.0f);
 	if(str.isEmpty())	return vec2(0.0f);
+	if(fonts.empty())	return vec2(0.0f);
 	
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);

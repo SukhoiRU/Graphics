@@ -239,12 +239,7 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         m_pArg->FitToScale();
     }
 */
-    //Обновим данные осей
-    for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
-    {
-        Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
-        //Axe->UpdateRecord(&m_BufArray);
-    }
+	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 }
 
 void	GraphicsDoc::on_PanelListChanged()
@@ -347,7 +342,37 @@ void GraphicsDoc::on_actionAddAxe_triggered()
     if(dlg.exec() == QDialog::Accepted)
     {
         //Добавляем ось
-        int a = dlg.m_nBufIndex;
-        int b = dlg.m_nAccIndex;
+        int nAcc	= dlg.m_nBufIndex;
+        int AccIndex = dlg.m_nAccIndex;
+
+		if(!m_pActivePanel)			return;
+		if(m_BufArray.empty())		return;
+
+		//Создаем оси
+		Accumulation*	pAcc					= m_BufArray.at(nAcc);
+
+		Graph::GAxe*	pAxe	= new Graph::GAxe;
+		pAxe->m_Name		= pAcc->GetName(AccIndex);
+		pAxe->m_Path		= pAcc->GetPath(AccIndex);
+		pAxe->m_nAcc		= nAcc;
+		pAxe->m_Record		= AccIndex;
+		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
+		pAxe->m_nMarker		= 0;//GetNextMarker();
+		pAxe->setAxeLength(4);
+		pAxe->m_Min			= -10;
+		pAxe->m_AxeScale	= 10;
+		pAxe->SetPosition(20, 200);
+//		pAxe->UpdateRecord();
+
+		//Axe.FitToScale();
+
+		////Вызовем диалог параметров оси
+		//Dialog::CAxeParam	dlg(&Axe);
+		//if(IDOK != dlg.DoModal()) return 0;
+
+		//Добавляем информацию в активную панель
+		m_pActivePanel->Axes.push_back(pAxe);
+
+		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
     }
 }

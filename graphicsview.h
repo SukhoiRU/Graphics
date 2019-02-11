@@ -34,20 +34,22 @@ public:
     virtual void	initializeGL() override;
     virtual void	resizeGL(int width, int height) override;
     virtual void	paintGL() override;
+	void	drawScene();
 
     void	setPageInfo();
 
 	QScrollBar*	vBar;
 	QScrollBar*	hBar;
+	QStatusBar*	pStatus;
 
 public slots:
 	void	openPageSetup();
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
-    void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+	void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+    void	on_panelDeleted(vector<Graph::GAxe*>* axes);
     void    pause(bool hold);
-
 protected slots:
 	void	teardownGL();
 	void	update();
@@ -106,6 +108,13 @@ private:
 	int		u_cameraToView;
 	mat4	m_proj;
 	mat4	m_view;
+
+	QOpenGLFramebufferObject*	qFBO;
+	QOpenGLFramebufferObject*	qFBO_unsamled;
+	QOpenGLShaderProgram*	m_fbo_program;
+	GLuint	fboVBO;
+	GLuint	fbo, fboTexture[2];
+
 };
 
 #endif // GRAPHICS_VIEW_H

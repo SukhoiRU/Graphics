@@ -9,5 +9,6 @@ uniform float alpha;
 void main()
 {
 	vec4 sampled	= vec4(1.0, 1.0, 1.0, texture(text, TexCoords).a);
+	//if(sampled.a < 0.1)	sampled.a = 0.1;
 	color	= vec4(textColor, alpha)*sampled;
 }

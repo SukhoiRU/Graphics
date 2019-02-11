@@ -15,23 +15,18 @@ GAxeArg::GAxeArg()
 	nCountAxe	= 0;
 
 	m_program	= 0;
-	gridVAO	= 0;
 	gridVBO	= 0;
-	axeVAO	= 0;
 	axeVBO	= 0;
 	textLabel	= new GTextLabel;
 }
 
 GAxeArg::~GAxeArg()
 {
-	if(gridVAO)	{glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
 	if(gridVBO)	{glDeleteBuffers(1, &gridVBO); gridVBO	= 0;}
-
-	if(axeVAO)	{glDeleteVertexArrays(1, &axeVAO); axeVAO = 0;}
 	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
 
 	if(m_program) { delete m_program; m_program = 0;}
-	delete textLabel;
+	if(textLabel) { delete textLabel; textLabel = 0;}
 }
 
 void	GAxeArg::initializeGL()
@@ -85,7 +80,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(3.5f*m_scale, m_scale);
+		textLabel->setFont(2.5f*m_scale, m_scale);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
@@ -161,35 +156,64 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		dataGrid.push_back(Vertex(vec2(area.width(), 0), color));
 
 		//Пересоздаем буфер
-		if(gridVAO) {glDeleteVertexArrays(1, &gridVAO); gridVAO = 0;}
-		if(gridVBO) {glDeleteBuffers(1, &gridVBO); gridVBO = 0;}
-
-		glGenVertexArrays(1, &gridVAO);
-		glBindVertexArray(gridVAO);
-		glGenBuffers(1, &gridVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-		glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		if(gridVBO)
+		{
+			int old	= gridVBO;
+			glDeleteBuffers(1, &gridVBO);
+			glGenBuffers(1, &gridVBO);
+			if(old != gridVBO)
+			{
+				qDebug() << "gridVBO";
+			}
+			glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+			glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		else
+		{
+			glGenBuffers(1, &gridVBO);
+			glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+			glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
 
 		//Буфер для оси
-		if(axeVAO) { glDeleteVertexArrays(1, &axeVAO); axeVAO = 0; }
-		if(axeVBO) { glDeleteBuffers(1, &axeVBO); axeVBO = 0; }
-		glGenVertexArrays(1, &axeVAO);
-		glBindVertexArray(axeVAO);
-		glGenBuffers(1, &axeVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-		glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		if(axeVBO) 
+		{
+			int old	= axeVBO;
+			glDeleteBuffers(1, &axeVBO);
+			glGenBuffers(1, &axeVBO);
+			if(old != axeVBO)
+			{
+				qDebug() << "axeArgVBO";
+			}
+			glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+			glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		else
+		{
+			glGenBuffers(1, &axeVBO);
+			glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+			glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
 
 		textLabel->prepare();
 	}
@@ -204,7 +228,6 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 	//Рисуем сетку
-	glBindVertexArray(gridVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -266,7 +289,6 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
 
-	glBindVertexArray(axeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -280,10 +302,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 	m_program->release();
 
 	dataModel	= translate(mat4(1.f), vec3(area.x() - dt/TimeScale*grid.width(), area.y(), 0.f));

@@ -17,6 +17,8 @@ using namespace Graph;
 
 #include "Graph/GTextLabel.h"
 
+//#define USE_FBO
+
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
@@ -26,8 +28,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(16);
-	format.setOption(QSurfaceFormat::DebugContext);
+    format.setSamples(8);
+//	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -69,6 +71,10 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	oglInited	= false;
 	m_mousePos	= vec2(0.f);
 	m_clickPos	= vec2(0.f);
+
+	fbo	= 0;
+	qFBO	= nullptr;
+	qFBO_unsamled	= nullptr;
 }
 
 GraphicsView::~GraphicsView()
@@ -81,18 +87,20 @@ GraphicsView::~GraphicsView()
 	settings.setValue("GraphicsView/m_scale", m_scale);
 	settings.sync();
 
-	delete	axeArg;
-	if(pPageSetup)
-		delete pPageSetup;
+	if(axeArg)	{delete	axeArg; axeArg = 0;}
+	if(pPageSetup)	{delete pPageSetup; pPageSetup = 0;}
 	teardownGL();
 }
 
 void GraphicsView::teardownGL()
 {
     // Actually destroy our OpenGL information
+	if(pageVBO)	{ glDeleteBuffers(1, &pageVBO); pageVBO = 0; }
 	if(pageVAO)	{glDeleteVertexArrays(1, &pageVAO); pageVAO = 0;}
-	if(pageVBO)	{glDeleteBuffers(1, &pageVBO); pageVBO = 0;}
-    delete m_program;
+	if(m_program)	{delete m_program; m_program = 0;}
+
+	if(fboVBO)	{glDeleteBuffers(1, &fboVBO); fboVBO = 0;}
+	if(m_fbo_program) {delete m_fbo_program; m_fbo_program = 0;}
 }
 
 void GraphicsView::pause(bool hold)
@@ -135,8 +143,28 @@ void GraphicsView::initializeGL()
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
+
+		//Создаем программу для вывода из текстуры
+		m_fbo_program = new QOpenGLShaderProgram();
+		m_fbo_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/fbo.vert");
+        m_fbo_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fbo.frag");
+		m_fbo_program->link();
+
+		//Создаем буфер для двух треугольников
+		glGenBuffers(1, &fboVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
+		vector<vec4>	data;
+		data.push_back(vec4(-1.f, +1.f, 0.f, 1.f));
+		data.push_back(vec4(-1.f, -1.f, 0.f, 0.f));
+		data.push_back(vec4(+1.f, +1.f, 1.f, 1.f));
+		data.push_back(vec4(+1.f, -1.f, 1.f, 0.f));
+		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec4), data.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
+	//Создаем поле графиков
 	axeArg->initializeGL();
 	m_GraphObjects.push_back(axeArg);
 }
@@ -188,32 +216,182 @@ void	GraphicsView::updatePageBuffer()
 
 void GraphicsView::resizeGL(int width, int height)
 {
+	//Меняем матрицу проекции
+    m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
+/*
+	//Создаем framebuffer
+	if(fbo)	
+	{
+		//Очищаем имеюшийся буфер
+		glDeleteTextures(1, fboTexture);
+		glDeleteFramebuffers(1, &fbo);
+	}
+
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	{
+		//Текстурное прикрепление
+		glGenTextures(2, fboTexture);
+		glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture[0], 0);
+
+		glBindTexture(GL_TEXTURE_2D, fboTexture[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, fboTexture[1], 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if(err != GL_FRAMEBUFFER_COMPLETE)
+			qDebug() << "Framebuffer ERROR!";
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);//defaultFramebufferObject());
+*/
+
+#ifdef USE_FBO
+	QOpenGLFramebufferObjectFormat	fmt;
+	fmt.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	fmt.setMipmap(true);
+	fmt.setSamples(8);
+	fmt.setTextureTarget(GL_TEXTURE_2D);
+	fmt.setInternalTextureFormat(GL_RGBA32F_ARB);
+
+	QOpenGLFramebufferObjectFormat	fmt2;
+	fmt2.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	fmt2.setMipmap(true);
+	fmt2.setTextureTarget(GL_TEXTURE_2D);
+	fmt2.setInternalTextureFormat(GL_RGBA32F_ARB);
+
+	if(qFBO)
+	{
+		delete qFBO;
+		delete qFBO_unsamled;
+	}
+	qFBO	= new QOpenGLFramebufferObject(width, height, fmt);
+	qFBO_unsamled	= new QOpenGLFramebufferObject(width, height, fmt2);
+	if(!qFBO->isValid())
+	{
+		int a = 0;
+	}
+
+	drawScene();
+#endif // USE_FBO
+
+	//Меняем полосы прокрутки
     vBar->setMinimum(0);
     vBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
-    vBar->setPageStep(50);
+    vBar->setPageStep(pageSize.height());
     vBar->setSingleStep(1);
 
     hBar->setMinimum(0);
     hBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
-    hBar->setPageStep(50);
+    hBar->setPageStep(pageSize.width());
     hBar->setSingleStep(1);
 
     if(vBar->maximum() == 0)    vBar->hide();
     else                        vBar->show();
     if(hBar->maximum() == 0)    hBar->hide();
     else                        hBar->show();
-
-    m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
-
-//    GLfloat	aspect	= 1.25;
-//    if(height)	aspect	= width/(GLfloat)height;
-//    m_proj	= glm::perspective<float>(glm::radians(45.f), aspect, 0.1f, 1000.0f);
 }
 
 void GraphicsView::paintGL()
 {
+	//Очистка вида
+	glStencilMask(0xFF);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_STENCIL_TEST);
+	glDisable(GL_LINE_SMOOTH);
+
+#ifdef USE_FBO
+	//Копирование картинки из буфера
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, qFBO_unsamled->handle());
+	glBlitFramebuffer(0,0,width(),height(), 0,0,width(),height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#else
+	drawScene();
+#endif // USE_FBO
+
+	//Отрисовка мыши
+	if(m_bOnMouse)
+	{
+		m_program->bind();
+
+		//Заливаем матрицы в шейдер
+		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+
+		//Растягиваем прямоугольник на всю область
+		QRectF	area;
+		area.moveBottomLeft(pageBorders.bottomLeft() + QPointF(0, graphBorders.bottom()));
+		area.setWidth(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.right());
+		area.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
+
+		mat4	areaMat(1.0f);
+		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
+		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+
+		//Трафарет для оси
+		glBindVertexArray(pageVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glStencilMask(0xFF);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+		glFinish();
+
+		//Получаем мышь
+		QPointF	pLocal	= mapFromGlobal(QCursor::pos());
+
+		//Переводим мышь в координаты модели
+		vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+		mat4	iView	= glm::inverse(m_proj*m_view);
+		vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
+		mouse.x	= world.x;
+		mouse.y	= world.y;
+
+		//Растягиваем единичные палки мыши во всю область
+		areaMat	= mat4(1.0f);
+		areaMat	= translate(areaMat, vec3(mouse.x, mouse.y, 0));
+		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glDrawArrays(GL_LINES, 0, 4);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		m_program->release();
+	}
+}
+
+void GraphicsView::drawScene()
+{
+	if(!oglInited)	return;
 	t0.start();
-	//glEnable(GL_CULL_FACE);
+
+#ifdef USE_FBO
+	glViewport(0, 0, width(), height());
+	qFBO->bind();
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
@@ -223,6 +401,7 @@ void GraphicsView::paintGL()
 	//Очистка вида
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#endif // USE_FBO
 
 	//Устанавливаем матрицы для объектов
 	Graph::GraphObject::m_proj	= m_proj;
@@ -280,94 +459,27 @@ void GraphicsView::paintGL()
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		//Рисуем мышь
-		if(m_bOnMouse)
-		{
-			m_program->bind();
-			//Заливаем матрицы в шейдер
-			glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-			glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-
-			//Растягиваем прямоугольник на всю область
-			QRectF	area;
-			area.moveBottomLeft(pageBorders.bottomLeft() + QPointF(0, graphBorders.bottom()));
-			area.setWidth(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.right());
-			area.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
-
-			mat4	areaMat(1.0f);
-			areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
-			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
-			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-
-			//Трафарет для оси
-			glBindVertexArray(pageVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-
-			glStencilMask(0xFF);
-			glClear(GL_STENCIL_BUFFER_BIT);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-			glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
-			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-			glStencilMask(0x00);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-			glFinish();
-			//Получаем мышь
-			QPointF	pLocal	= mapFromGlobal(QCursor::pos());
-
-			//Переводим мышь в координаты модели
-			vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
-			mat4	iView	= glm::inverse(m_proj*m_view);
-			vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
-			mouse.x	= world.x;
-			mouse.y	= world.y;
-/*
-			//Получаем мышь в поле графиков
-			glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
-			glm::vec4	graph	= glm::inverse(graphM)*world;
-			curTime	= Time0	+ graph.x/gridStep.width()*TimeScale;
-
-
-			//Сохраняем в классе
-			m_mousePos.x	= world.x;
-			m_mousePos.y	= world.y;
-
-			//Переключаем курсор
-			if(m_mousePos.x > pageBorders.left()+graphBorders.left() &&
-			   m_mousePos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
-			   m_mousePos.y > pageBorders.bottom()+graphBorders.bottom() &&
-			   m_mousePos.y < pageSize.height()-pageBorders.top()-graphBorders.top())
-			{
-				m_bOnMouse	= true;
-			}
-			else
-			{
-				m_bOnMouse	= false;
-			}
-*/
-
-			//Растягиваем единичные палки мыши во всю область
-			areaMat	= mat4(1.0f);
-			areaMat	= translate(areaMat, vec3(mouse.x, mouse.y, 0));
-			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
-			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-			glStencilFunc(GL_EQUAL, 1, 0xFF);			
-			glDrawArrays(GL_LINES, 0, 4);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
 	}
 	m_program->release();
-	//emit dt(t0.elapsed());
+
+#ifdef USE_FBO
+	//Разсемплирование буфера
+	qFBO->blitFramebuffer(qFBO_unsamled, qFBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	if(0)
+	{
+		//Сохранение картинок
+		QImage	image	= qFBO->toImage();
+		image.save("fbo.png", nullptr, 100);
+
+		{
+			QImage	image	= qFBO_unsamled->toImage();
+			image.save("fbo_unsampled.png", nullptr, 100);
+		}
+	}
+
+	qFBO->bindDefault();
+#endif // USE_FBO
 }
 
 void GraphicsView::paintOverGL(QPainter* p)
@@ -525,6 +637,9 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		//Добавляем объект в список выделенных
 		pGraph->m_IsSelected	= true;
 		m_SelectedObjects.push_back(pGraph);
+		pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
+							 .arg(((Graph::GAxe*)pGraph)->dataVBO)
+							.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
 	}
 	else
 	{
@@ -538,6 +653,9 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		m_SelectedObjects.clear();
 	}
 
+#ifdef USE_FBO
+	drawScene();
+#endif // USE_FBO
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -562,6 +680,9 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 		}
 	}
 
+#ifdef USE_FBO
+	drawScene();
+#endif // USE_FBO
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
@@ -594,7 +715,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	   world.y > pageBorders.bottom()+graphBorders.bottom() &&
 	   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 	{
-		setCursor(Qt::BlankCursor);
+		//setCursor(Qt::BlankCursor);
 		m_bOnMouse	= true;
 	}
 	else
@@ -626,6 +747,9 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
+#ifdef USE_FBO
+			drawScene();
+#endif // USE_FBO
 			emit axesMoved();
 		}
 		else
@@ -636,6 +760,9 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.width()*TimeScale;
+#ifdef USE_FBO
+				drawScene();
+#endif // USE_FBO
 			}
 		}
 	}
@@ -654,6 +781,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	if(mdf.testFlag(Qt::NoModifier))
 	{
 		Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+#ifdef USE_FBO
+		drawScene();
+#endif // USE_FBO
 	}
 	else if(mdf.testFlag(Qt::ControlModifier))
 	{
@@ -680,6 +810,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 		//Двигаем ноль так, чтобы попасть в то же время
 		Time0	= curTime - dLen*TimeScale;
+#ifdef USE_FBO
+		drawScene();
+#endif // USE_FBO
 	}
 
 	event->accept();
@@ -837,3 +970,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	}
 }
 
+void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* axes)
+{
+	m_pPanel	= nullptr;
+}

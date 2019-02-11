@@ -42,6 +42,7 @@ private slots:
 
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+	void	panelDeleted(vector<Graph::GAxe*>* axes);
 	void	dataChanged(std::vector<Accumulation*>* pBuffer);	//Признак загрузки новых данных
 	void	dataRemoved(std::vector<Accumulation*>* pBuffer);	//Признак смены данных в том же накоплении
 

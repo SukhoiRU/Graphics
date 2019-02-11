@@ -2,6 +2,8 @@
 #include "GTextLabel.h"
 #include <QDomDocument>
 
+namespace Graph{
+
 bool	GTextLabel::bFontLoaded	= false;
 vector<GTextLabel::FontInfo*>	GTextLabel::fonts;
 
@@ -19,7 +21,6 @@ int					GTextLabel::u_alpha;
 GTextLabel::GTextLabel()
 {
 	fontIndex	= 0;
-	textVAO		= 0;
 	textVBO		= 0;
 
 	if(!bFontLoaded)
@@ -31,7 +32,7 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial.xml");
+	QFile file(":/Resources/fonts/arial_new.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
 		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arial.xml").arg(file.errorString()));
@@ -67,7 +68,7 @@ void	GTextLabel::loadFontInfo()
 		//Читаем шрифт
 		FontInfo*	font	= new FontInfo;
 		font->name	= n.attribute("name");
-		font->size	= n.attribute("size").remove("px").toInt();
+		font->size	= n.attribute("size").remove("pt").toInt();
 		for(QDomElement c = n.firstChildElement("char"); !c.isNull(); c = c.nextSiblingElement("char"))
 		{
 			//Читаем описание символа
@@ -88,14 +89,28 @@ void	GTextLabel::loadFontInfo()
 	}
 }
 
-
 GTextLabel::~GTextLabel()
 {
- //   for(size_t f = 0; f < fonts.size(); f++)
-	//	delete fonts.at(f);
-	//fonts.clear();
-
     clearGL();
+	if(textVBO)	{glDeleteBuffers(1, &textVBO); textVBO = 0;}
+}
+
+void	GTextLabel::finalDelete()
+{
+	//Удаляем шрифты
+	if(bFontLoaded)
+	{
+		for(size_t f = 0; f < fonts.size(); f++)
+			delete fonts.at(f);
+		fonts.clear();
+	}
+
+	//Чистим текстуру
+	if(bTextureLoaded)
+		glDeleteTextures(1, &texture);
+
+	//И программу
+	if(textShader)	delete textShader;
 }
 
 void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
@@ -105,15 +120,12 @@ void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &proj[0][0]);
 	textShader->release();
-
-	//scale	= 1./(view*glm::vec4(1,0,0,0)).x;
 }
 
 void	GTextLabel::initializeGL()
 {
 	if(!bTextureLoaded)
 	{
-//		initializeOpenGLFunctions();
 		bTextureLoaded	= true;
 
 		textShader = new QOpenGLShaderProgram();
@@ -130,7 +142,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial.png"));
+		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial_new.png"));
 		texSize.x	= gl_texture->width();
 		texSize.y	= gl_texture->height();
 		texture	= gl_texture->textureId();
@@ -149,14 +161,8 @@ void	GTextLabel::initializeGL()
 	}
 
 	// Configure VAO/VBO for texture quads
-	glGenVertexArrays(1, &textVAO);
 	glGenBuffers(1, &textVBO);
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_STATIC_DRAW);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_data.clear();
@@ -164,8 +170,7 @@ void	GTextLabel::initializeGL()
 
 void	GTextLabel::clearGL()
 {
-	if(textVAO)	{glDeleteVertexArrays(1, &textVAO); textVAO = 0;}
-	if(textVBO)	{glDeleteBuffers(1, &textVBO); textVBO = 0;}
+	if(textVBO)	{ glDeleteBuffers(1, &textVBO); textVBO = 0; }
 }
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
@@ -183,54 +188,52 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		
 		//Левый верхний
 		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= info.tex.y/(float)texSize.y;
+		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Левый нижний
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Правый верхний
-		point.x	= x + (info.offset.x + info.size.x)/scale;
-		point.y	= y + (info.origSize.y - info.offset.y)/scale;
-		point.z	= (info.tex.x + info.size.x)/(float)texSize.x;
-		point.w	= info.tex.y/(float)texSize.y;
+		point.x	= x + (info.offset.x + info.size.x+1)/scale;
+		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
+		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
+		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
 		m_data.push_back(point);
 
 		//Правый нижний
-		point.x	= x + (info.offset.x + info.size.x)/scale;
+		point.x	= x + (info.offset.x + info.size.x+1)/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= (info.tex.x + info.size.x)/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Левый нижний
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)texSize.x;
-		point.w	= (info.tex.y + info.size.y)/(float)texSize.y;
+		point.z	= info.tex.x/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Продвигаемся на символ дальше
-		x += (info.origSize.x +0)/scale;
+		x += (info.origSize.x +1)/scale;
 	}
 }
 
 void	GTextLabel::prepare()
 {
 	//Заливаем данные в буфер
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec4), m_data.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -239,10 +242,9 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	// Activate corresponding render state	
 //	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
-	glUniform3f(u_color, color.x, color.y, color.z);
+	glUniform3f(u_color, color.r, color.g, color.b);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(textVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
@@ -251,7 +253,6 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, m_data.size());
 
-	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -276,14 +277,13 @@ void	GTextLabel::setFont(int size, GLfloat scale)
 	}
 
 	//Берем самый крупный
-	fontIndex	= std::max(0, (int)(fonts.size()-1));
+	fontIndex	= fonts.size()-1;
 }
 
 vec2	GTextLabel::textSize(const QString& str)
 {
 	vec2	size(0.0f);
 	if(str.isEmpty())	return vec2(0.0f);
-	if(fonts.empty())	return vec2(0.0f);
 	
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);
@@ -298,7 +298,7 @@ vec2	GTextLabel::textSize(const QString& str)
 		//if(i == str.length()-1)	size.x -= (info.origSize.x - info.offset.x - info.size.x);
 		
 		//Продвигаемся на символ дальше
-		size.x += info.origSize.x;
+		size.x += info.origSize.x+1;
 
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}
@@ -331,4 +331,6 @@ GLfloat	GTextLabel::topLine()
 	const CharInfo&	info	= font->charMap.at('0');
 
 	return (info.origSize.y - info.offset.y)/scale;
+}
+
 }

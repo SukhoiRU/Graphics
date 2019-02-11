@@ -287,5 +287,11 @@
     <None Include="shaders\gaxe_data.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\fbo.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\fbo.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

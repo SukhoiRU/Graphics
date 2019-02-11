@@ -12,6 +12,7 @@
 #include "Dialogs/graphselect.h"
 #include "Dialogs/locator_view.h"
 #include "Graph/GAxe.h"
+#include "Graph/GTextLabel.h"
 
 Panel::~Panel()
 {
@@ -30,8 +31,9 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	ui->splitter->setStretchFactor(1, 0);
 
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
-	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged, Qt::QueuedConnection);
-	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged, Qt::QueuedConnection);
+	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
 	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
@@ -55,6 +57,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	on_PanelListChanged();
 
 	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
+	ui->oglView->pStatus	= ui->statusBar;
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -66,6 +69,10 @@ GraphicsDoc::~GraphicsDoc()
 		delete p;
 	}
 	m_PanelList.clear();
+
+	//Удаляем статические данные объектов
+	Graph::GAxe::finalDelete();
+	Graph::GTextLabel::finalDelete();
 
 	delete ui->oglView;
 	delete ui;
@@ -232,7 +239,12 @@ void	GraphicsDoc::LoadOrion(QString FileName)
         m_pArg->FitToScale();
     }
 */
-	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+    //Обновим данные осей
+    for(size_t pos = 0; pos < m_pActivePanel->Axes.size(); pos++)
+    {
+        Graph::GAxe*	Axe	= m_pActivePanel->Axes[pos];
+        //Axe->UpdateRecord(&m_BufArray);
+    }
 }
 
 void	GraphicsDoc::on_PanelListChanged()
@@ -278,6 +290,7 @@ void	GraphicsDoc::on_PanelDelete()
 	int	cur	= pBox->currentIndex();
 	if(cur == -1)	return;
 
+	emit panelDeleted(&m_PanelList.at(cur)->Axes);
 	delete m_PanelList.at(cur);
 	m_PanelList.erase(m_PanelList.begin()+cur);
 
@@ -334,37 +347,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
     if(dlg.exec() == QDialog::Accepted)
     {
         //Добавляем ось
-        int nAcc	= dlg.m_nBufIndex;
-        int AccIndex = dlg.m_nAccIndex;
-
-		if(!m_pActivePanel)			return;
-		if(m_BufArray.empty())		return;
-
-		//Создаем оси
-		Accumulation*	pAcc					= m_BufArray.at(nAcc);
-
-		Graph::GAxe*	pAxe	= new Graph::GAxe;
-		pAxe->m_Name		= pAcc->GetName(AccIndex);
-		pAxe->m_Path		= pAcc->GetPath(AccIndex);
-		pAxe->m_nAcc		= nAcc;
-		pAxe->m_Record		= AccIndex;
-		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
-		pAxe->m_nMarker		= 0;//GetNextMarker();
-		pAxe->setAxeLength(4);
-		pAxe->m_Min			= -10;
-		pAxe->m_AxeScale	= 10;
-		pAxe->SetPosition(20, 200);
-//		pAxe->UpdateRecord();
-
-		//Axe.FitToScale();
-
-		////Вызовем диалог параметров оси
-		//Dialog::CAxeParam	dlg(&Axe);
-		//if(IDOK != dlg.DoModal()) return 0;
-
-		//Добавляем информацию в активную панель
-		m_pActivePanel->Axes.push_back(pAxe);
-
-		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+        int a = dlg.m_nBufIndex;
+        int b = dlg.m_nAccIndex;
     }
 }

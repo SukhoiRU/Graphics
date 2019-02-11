@@ -7,10 +7,10 @@ class QCursor;
 class QDomElement;
 class Accumulation;
 class QOpenGLShaderProgram;
-class GTextLabel;
 using glm::ivec2;
 
 namespace Graph{
+	class GTextLabel;
 
 class GAxe : public GraphObject  //Класс оси графика
 {
@@ -21,6 +21,7 @@ class GAxe : public GraphObject  //Класс оси графика
 //		Данные
 //////////////////////////////////////////////////////////////////////////////////
 private:
+public:
 	vec2			m_BottomRight;	//Положение нижнего правого угла, мм
 	vec2			m_FrameBR;		//Положение нижнего правого угла рамки, мм
 
@@ -41,8 +42,8 @@ private:
 
 	//Данные для OpenGL
 	vector<vec2>	m_data;
-	GLuint	dataVAO, dataVBO;
-	GLuint	axeVAO, axeVBO;
+	GLuint	dataVBO;
+	GLuint	axeVBO;
 	GTextLabel*		textLabel;
 	QSizeF	oldGrid;
 	QRectF	oldArea;
@@ -132,6 +133,7 @@ public:
 	//Рисование
 	virtual void	initializeGL();
 	virtual void	clearGL();
+	static  void	finalDelete();
 	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha);					//Полное рисование
 //	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 

@@ -223,7 +223,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		m_data.push_back(point);
 
 		//Продвигаемся на символ дальше
-		x += (info.origSize.x +1)/scale;
+		x += (info.origSize.x + 0)/scale;
 	}
 }
 
@@ -299,7 +299,7 @@ vec2	GTextLabel::textSize(const QString& str)
 		//if(i == str.length()-1)	size.x -= (info.origSize.x - info.offset.x - info.size.x);
 		
 		//Продвигаемся на символ дальше
-		size.x += info.origSize.x+1;
+		size.x += info.origSize.x+0;
 
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}

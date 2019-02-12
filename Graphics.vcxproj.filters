@@ -293,5 +293,11 @@
     <None Include="shaders\fbo.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\markers.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\markers.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

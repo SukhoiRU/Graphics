@@ -56,5 +56,7 @@
         <file>shaders/fbo.vert</file>
         <file>Resources/fonts/arial_new.png</file>
         <file>Resources/fonts/arial_new.xml</file>
+        <file>shaders/markers.frag</file>
+        <file>shaders/markers.vert</file>
     </qresource>
 </RCC>

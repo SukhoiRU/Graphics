@@ -34,14 +34,14 @@ int		GAxe::u_data_lineType		= 0;
 int		GAxe::u_data_baseLine		= 0;
 int		GAxe::u_data_pixelSize		= 0;
 
-QOpenGLShaderProgram*	GAxe::m_data2_program	= nullptr;
-int		GAxe::u_data2_modelToWorld	= 0;
-int		GAxe::u_data2_worldToCamera	= 0;
-int		GAxe::u_data2_cameraToView	= 0;
-int		GAxe::u_data2_color			= 0;
-int		GAxe::u_data2_alpha			= 0;
-int		GAxe::u_data2_round			= 0;
-int		GAxe::u_data2_lineType		= 0;
+QOpenGLShaderProgram*	GAxe::m_marker_program	= nullptr;
+int		GAxe::u_marker_ortho		= 0;
+int		GAxe::u_marker_size			= 0;
+int		GAxe::u_marker_orientation	= 0;
+int		GAxe::u_marker_linewidth	= 0;
+int		GAxe::u_marker_antialias	= 0;
+int		GAxe::u_marker_fg_color		= 0;
+int		GAxe::u_marker_bg_color		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_cross_program	= nullptr;
 int		GAxe::u_cross_modelToWorld	= 0;
@@ -104,6 +104,7 @@ void	GAxe::finalDelete()
 		glDeleteTextures(1, &cross_texture);
 	if(m_program)		delete m_program;
 	if(m_data_program)	delete m_data_program;
+	if(m_marker_program)delete m_marker_program;
 	if(m_cross_program)	delete m_cross_program;
 }
 
@@ -145,24 +146,23 @@ void	GAxe::initializeGL()
 		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
 		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
 		m_data_program->release();
-/*
-		//Программа для графиков треугольниками
-		m_data2_program	= new QOpenGLShaderProgram;
-		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_data.vert");
-		m_data2_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_data.frag");
-        m_data2_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe_data_triangles.geom");
-		m_data2_program->link();
 
-		m_data2_program->bind();
-		u_data2_modelToWorld	= m_data2_program->uniformLocation("modelToWorld");
-		u_data2_worldToCamera	= m_data2_program->uniformLocation("worldToCamera");
-		u_data2_cameraToView	= m_data2_program->uniformLocation("cameraToView");
-		u_data2_color			= m_data2_program->uniformLocation("color");
-		u_data2_alpha			= m_data2_program->uniformLocation("alpha");
-		u_data2_round			= m_data2_program->uniformLocation("round");
-		u_data2_lineType		= m_data2_program->uniformLocation("lineType");
-		m_data2_program->release();
-*/
+		//Программа для маркеров
+		m_marker_program	= new QOpenGLShaderProgram;
+		m_marker_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/markers.vert");
+		m_marker_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/markers.frag");
+		m_marker_program->link();
+
+		m_marker_program->bind();
+		u_marker_ortho			= m_marker_program->uniformLocation("ortho");
+		u_marker_size			= m_marker_program->uniformLocation("size");
+		u_marker_orientation	= m_marker_program->uniformLocation("orientation");
+		u_marker_linewidth		= m_marker_program->uniformLocation("linewidth");
+		u_marker_antialias		= m_marker_program->uniformLocation("antialias");
+		u_marker_fg_color		= m_marker_program->uniformLocation("fg_color");
+		u_marker_bg_color		= m_marker_program->uniformLocation("bg_color");
+		m_marker_program->release();
+
 		//Программа для креста на оси
 		m_cross_program	= new QOpenGLShaderProgram;
 		m_cross_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_cross.vert");
@@ -520,6 +520,39 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		m_cross_program->release();
+	}
+
+	//Маркер возле оси
+	{
+		m_marker_program->bind();
+		glEnable(GL_PROGRAM_POINT_SIZE);
+
+		//Матрица проекции
+		mat4	data(1.0f);
+		data	= translate(data, vec3(m_BottomRight.x+grid.width(), m_BottomRight.y + m_AxeLength*grid.height() + grid.height(), 0.f));
+		data	= scale(data, vec3(grid.width(), grid.width(), 1.0f));
+		mat4	mpv	= m_proj*m_view*data;
+		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
+
+		glUniform1f(u_marker_size, 100.f);
+		glUniform1f(u_marker_orientation, 0.3f*m_Record/57.3f);
+		glUniform1f(u_marker_linewidth, 2.f);
+		glUniform1f(u_marker_antialias, 1.f);
+		vec4	fg_color	= vec4(0.3f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
+		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
+		vec4	bg_color	= vec4(color, 1.0f);
+		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
+
+		//Рисуем нулевую точку из буфера оси
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glDrawArrays(GL_POINTS, 1, 1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glDisable(GL_PROGRAM_POINT_SIZE);
+		m_marker_program->release();
 	}
 
 	//Область графиков для трафарета

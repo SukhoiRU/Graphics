@@ -557,6 +557,8 @@
     <None Include="shaders\gaxe_data.frag" />
     <None Include="shaders\gaxe_data.geom" />
     <None Include="shaders\gaxe_data.vert" />
+    <None Include="shaders\markers.frag" />
+    <None Include="shaders\markers.vert" />
     <None Include="shaders\simple.frag" />
     <None Include="shaders\simple.vert" />
     <None Include="shaders\textlabel.frag" />

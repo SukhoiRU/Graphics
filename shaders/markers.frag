@@ -7,7 +7,7 @@ uniform float size, linewidth, antialias;
 uniform vec4 fg_color, bg_color;
 
 in vec2 rotation;
-in vec2 v_size;
+in float v_size;
 out vec4 fColor;
 
 vec4 stroke(float distance,  // Signed distance to line
@@ -168,6 +168,6 @@ void main()
 	vec2 P = gl_PointCoord.xy - vec2(0.5, 0.5);
 	P = vec2(rotation.x * P.x - rotation.y * P.y,
 			rotation.y * P.x + rotation.x * P.y);
-	float distance = heart(P * v_size, size);
-	fColor = outline(distance, linewidth, antialias, fg_color, bg_color);
+	float distance = square(P * v_size, size);
+	fColor = stroke(distance, linewidth, antialias, bg_color);//, bg_color);
 }

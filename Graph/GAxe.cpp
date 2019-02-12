@@ -549,7 +549,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_POINTS, 1, 1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glDisable(GL_PROGRAM_POINT_SIZE);
 		m_marker_program->release();
@@ -663,6 +662,38 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	m_data_program->release();
+
+	//Рисуем набор маркеров
+	{
+		m_marker_program->bind();
+		glEnable(GL_PROGRAM_POINT_SIZE);
+
+		//Настройка uniform
+		mat4	mpv	= m_proj*m_view*dataModel;
+		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
+
+		glUniform1f(u_marker_size, 20.f);
+		glUniform1f(u_marker_orientation, 0.0f*m_Record/57.3f);
+		glUniform1f(u_marker_linewidth, 2.f);
+		glUniform1f(u_marker_antialias, 1.f);
+		vec4	fg_color	= vec4(0.99f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
+		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
+		vec4	bg_color	= vec4(color, 1.0f);
+		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
+
+		//Рисуем нулевую точку из буфера оси
+		int	dN	= (nStopIndex - nStartIndex)/5;
+		for(int i = 0; i < 5; i++)
+		{
+			glDrawArrays(GL_POINTS, nStartIndex + i*dN + m_Record, 1);
+		}
+
+		glDisable(GL_PROGRAM_POINT_SIZE);
+		m_marker_program->release();
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 }
 
 void	GAxe::Draw_DEC_S()

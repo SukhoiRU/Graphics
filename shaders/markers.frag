@@ -168,6 +168,6 @@ void main()
 	vec2 P = gl_PointCoord.xy - vec2(0.5, 0.5);
 	P = vec2(rotation.x * P.x - rotation.y * P.y,
 			rotation.y * P.x + rotation.x * P.y);
-	float distance = ring(P * v_size, size);
+	float distance = heart(P * v_size, size);
 	fColor = outline(distance, linewidth, antialias, fg_color, bg_color);
 }

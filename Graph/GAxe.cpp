@@ -672,11 +672,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		mat4	mpv	= m_proj*m_view*dataModel;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 20.f);
-		glUniform1f(u_marker_orientation, 0.0f*m_Record/57.3f);
+		glUniform1f(u_marker_size, 5.f*m_scale);
+		static float angle = 0;
+		angle += 2./60./50.;
+		glUniform1f(u_marker_orientation, angle);
 		glUniform1f(u_marker_linewidth, 2.f);
 		glUniform1f(u_marker_antialias, 1.f);
-		vec4	fg_color	= vec4(0.99f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
+		vec4	fg_color	= vec4(0.999f*vec3(1.,0,0), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
 		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
 		vec4	bg_color	= vec4(color, 1.0f);
 		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);

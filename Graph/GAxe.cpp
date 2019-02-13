@@ -529,15 +529,18 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		//Матрица проекции
 		mat4	data(1.0f);
-		data	= translate(data, vec3(m_BottomRight.x+0.2*grid.width(), m_BottomRight.y + m_AxeLength*grid.height() + 0.2*grid.height(), 0.f));
-		data	= scale(data, vec3(grid.width(), grid.width(), 1.0f));
+		data	= translate(data, vec3(m_BottomRight.x+grid.width(), m_BottomRight.y + 0.5*grid.height(), 0.f));
+		//data	= scale(data, vec3(grid.width(), grid.width(), 1.0f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 15.f);
-		glUniform1f(u_marker_orientation, 0.3f*m_Record/57.3f);
-		glUniform1f(u_marker_linewidth, 1.f);
-		glUniform1f(u_marker_antialias, 0.5f);
+		glUniform1f(u_marker_size, grid.width()*m_scale);
+		QTime	time	= QTime::currentTime();
+		GLfloat	angle	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
+
+		glUniform1f(u_marker_orientation, angle);
+		glUniform1f(u_marker_linewidth, 0.25f*m_scale);
+		glUniform1f(u_marker_antialias, 1.0f);
 		vec4	fg_color	= vec4(0.99f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
 		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
 		vec4	bg_color	= vec4(color, 1.0f);
@@ -547,7 +550,14 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glDrawArrays(GL_POINTS, 1, 1);
+		
+		for(int i = 0; i < m_AxeLength; i++)
+		{
+			data	= translate(mat4(1.), vec3(m_BottomRight.x+grid.width(), m_BottomRight.y + i*grid.height() + 0.5*grid.height(), 0.f));
+			mat4	mpv	= m_proj*m_view*data;
+			glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
+			glDrawArrays(GL_POINTS, 1, 1);
+		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glDisable(GL_PROGRAM_POINT_SIZE);
@@ -672,7 +682,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		mat4	mpv	= m_proj*m_view*dataModel;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 2.5f*m_scale);
+		glUniform1f(u_marker_size, 5.f*m_scale);
 		static float angle = 0;
 		angle += 2./60./50.;
 		glUniform1f(u_marker_orientation, angle);

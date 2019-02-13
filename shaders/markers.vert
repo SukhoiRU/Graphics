@@ -6,8 +6,8 @@ uniform mat4 ortho;
 uniform float size, orientation, linewidth, antialias;
 
 layout(location=0) in vec2 position;
-out vec2 rotation;
-out float v_size;
+flat out vec2 rotation;
+flat out float v_size;
 
 void main(void) 
 {

@@ -6,8 +6,8 @@ const float M_SQRT_2 = 1.4142135623730951;
 uniform float size, linewidth, antialias;
 uniform vec4 fg_color, bg_color;
 
-in vec2 rotation;
-in float v_size;
+flat in vec2 rotation;
+flat in float v_size;
 out vec4 fColor;
 
 vec4 stroke(float distance,  // Signed distance to line
@@ -20,10 +20,10 @@ vec4 stroke(float distance,  // Signed distance to line
   float border_distance = abs(signed_distance) - t;
   float alpha = border_distance / antialias;
   alpha = exp(-alpha * alpha);
-  if (border_distance < 0.0)
-    return stroke;
-  else
-    return vec4(stroke.rgb, stroke.a * alpha);
+
+	if(border_distance > (linewidth/2. + antialias))	discard;
+	else if (border_distance < 0.0)	return stroke;
+  else														return vec4(stroke.rgb, stroke.a * alpha);
 }
 
 vec4 filled(float distance,  // Signed distance to line
@@ -36,12 +36,17 @@ vec4 filled(float distance,  // Signed distance to line
   float border_distance = abs(signed_distance) - t;
   float alpha = border_distance / antialias;
   alpha = exp(-alpha * alpha);
-  if (border_distance < 0.0)
-    return fill;
-  else if (signed_distance < 0.0)
-    return fill;
-  else
-    return vec4(fill.rgb, alpha * fill.a);
+
+  if (border_distance < 0.0)			return fill;	//Внутри обводки
+  else if (signed_distance < 0.0)	return fill;	//Внутри фигуры
+  else 
+	{
+		//Снаружи фигуры
+		if(border_distance > (linewidth/2. + antialias))	discard;
+		else	return vec4(fill.rgb, alpha * fill.a);
+  }
+                
+	
 }
 
 vec4 outline(float distance,  // Signed distance to line
@@ -50,17 +55,25 @@ vec4 outline(float distance,  // Signed distance to line
              vec4 stroke,     // Stroke color
              vec4 fill)       // Fill color
 {
-  float t = linewidth / 2.0 - antialias;
-  float signed_distance = distance;
-  float border_distance = abs(signed_distance) - t;
-  float alpha = border_distance / antialias;
-  alpha = exp(-alpha * alpha);
-  if (border_distance < 0.0)
-    return stroke;
-  else if (signed_distance < 0.0)
-    return mix(fill, stroke, sqrt(alpha));
-  else
-    return vec4(stroke.rgb, stroke.a * alpha);
+	float t = linewidth / 2.0 - antialias;
+	float signed_distance = distance;
+	float border_distance = abs(signed_distance) - t;
+	float alpha = border_distance / antialias;
+	alpha = exp(-alpha * alpha);
+
+	if (border_distance < 0.0)			return stroke;
+	else if (signed_distance < 0.0)
+	{
+		//Внутри фигуры
+		if(border_distance > (linewidth/2. + antialias))	return fill;
+		else																							return mix(fill, stroke, sqrt(alpha));
+	}	
+	else
+	{
+		//Снаружи фигуры
+		if(border_distance > (linewidth/2. + antialias))	discard;
+		else																							return vec4(stroke.rgb, stroke.a * alpha);
+	}
 }
 
 float disc(vec2 P, float size) 
@@ -163,11 +176,38 @@ float pin(vec2 P, float size)
 	return max( min(r1,max(max(r2,r3),-P.y)), -r4);
 }
 
+float axeGrid(vec2 P, float size)
+{
+    float dx1	= 0.75/5.*size;
+    float dx2	= 1.5/5.*size;
+    float dy = 0.5 * size / 5.;
+
+    //Вертикальная линия
+    float	v	= max(abs(P.x), max(P.y-0.5*size, -0.5*size-P.y));
+    
+    //Нижний штрих
+    float	d	= max(abs(P.y-0.5*size), max(P.x-0., -dx2-P.x));
+    float	r	= min(v,d);
+    
+    //Короткий штрих
+    for(float i = 2.*dy; i < 10.*dy; i+= 2.*dy)
+    {
+	    d	= max(abs(P.y-0.5*size+i), max(P.x, -dx1-P.x));    
+    	r = min(r, d);
+    }
+
+		//Верхний штрих
+    d	= max(abs(P.y+0.5*size), max(P.x-0., -dx2-P.x));
+		r = min(r, d);
+
+    return r;
+}
+
 void main() 
 {
 	vec2 P = gl_PointCoord.xy - vec2(0.5, 0.5);
 	P = vec2(rotation.x * P.x - rotation.y * P.y,
 			rotation.y * P.x + rotation.x * P.y);
-	float distance = square(P * v_size, size);
+	float distance = axeGrid(P * v_size, size);
 	fColor = stroke(distance, linewidth, antialias, bg_color);//, bg_color);
 }

@@ -28,7 +28,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(16);
+    format.setSamples(8);
 //	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 

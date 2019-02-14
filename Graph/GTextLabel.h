@@ -22,9 +22,9 @@ private:
 	struct CharInfo{
 		int		id;			//Код символа в UNICODE
 		ivec2	tex;		//Координаты в текстуре
-		ivec2	size;		//Размеры символа
+		vec2	size;		//Размеры символа
 		ivec2	offset;		//Смещение символа относительно оригинала
-		ivec2	origSize;	//Исходный размер символа
+		vec2	origSize;	//Исходный размер символа
 	};
 
 	struct FontInfo
@@ -45,10 +45,14 @@ private:
 	static	int					u_worldToCamera;
 	static	int					u_cameraToView;
 	static	int					u_color;
-	static	int					u_alpha;
 
 	//Данные для каждого объекта
-	vector<vec4>	m_data;
+	struct Data 
+	{
+		vec2	point;
+		vec3	text;
+	};
+	vector<Data>	m_data;
 
 	GLuint	textVBO;
 	int		fontIndex;

@@ -27,7 +27,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(3, 3);
+    format.setVersion(4, 3);
     format.setSamples(1);
 //	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
@@ -304,9 +304,9 @@ void GraphicsView::paintGL()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
-	glEnable(GL_LINE_SMOOTH);
+	glDisable(GL_LINE_SMOOTH);
 
 #ifdef USE_FBO
 	//Копирование картинки из буфера

@@ -16,7 +16,6 @@ int					GTextLabel::u_modelToWorld;
 int					GTextLabel::u_worldToCamera;
 int					GTextLabel::u_cameraToView;
 int					GTextLabel::u_color;
-int					GTextLabel::u_alpha;
 
 GTextLabel::GTextLabel()
 {
@@ -138,30 +137,24 @@ void	GTextLabel::initializeGL()
 		u_worldToCamera	= textShader->uniformLocation("worldToCamera");
 		u_cameraToView	= textShader->uniformLocation("cameraToView");
 		u_color			= textShader->uniformLocation("textColor");
-		u_alpha			= textShader->uniformLocation("alpha");
 		textShader->release();
 
 		// Prepare texture
 		glGenTextures(1, &texture);
+		glActiveTexture(0);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 96, 96, 127);
-		for(int code = 0x0020; code < 0x0070; code++)
+		for(int code = 0x0020; code < 0x007F; code++)
 		{
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 96, 96, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
-
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, 96, 96, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
 		}
 
-		// Disable byte-alignment restriction
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-		// Generate texture
-		glBindTexture(GL_TEXTURE_2D, texture);
 		// Set texture options
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
@@ -191,49 +184,56 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	{
 		//Получаем информацию о символе
 		const QChar		c		= str.at(i);
-		const CharInfo&	info	= font->charMap.at(c.unicode());
+		const CharInfo&	info2	= font->charMap.at(c.unicode());
+		CharInfo	info	= info2;
+		info.tex	= ivec2(0);
+		info.size	= vec2(2.f*scale);
+		info.offset	= ivec2(0);
+		info.origSize	= info.size;
 		
 		//Создаем два треугольника. Координаты в миллиметрах документа!
-		vec4	point;
+		Data	data;
+		data.text.z	= c.unicode()-0x0020;
+		if(data.text.z > 126)	data.text.z	= 126;
 		
 		//Левый верхний
-		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
-		point.z	= info.tex.x/(float)(texSize.x-0);
-		point.w	= info.tex.y/(float)(texSize.y-0);
-		m_data.push_back(point);
+		data.point.x	= x + info.offset.x;
+		data.point.y	= y + (info.origSize.y - info.offset.y);
+		data.text.x		= 0;
+		data.text.y		= 0;
+		m_data.push_back(data);
 
 		//Левый нижний
-		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
-		m_data.push_back(point);
+		data.point.x	= x + info.offset.x;
+		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.text.x		= 0;
+		data.text.y		= 1;
+		m_data.push_back(data);
 
 		//Правый верхний
-		point.x	= x + (info.offset.x + info.size.x+1)/scale;
-		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
-		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
-		point.w	= info.tex.y/(float)(texSize.y-0);
-		m_data.push_back(point);
-		m_data.push_back(point);
+		data.point.x	= x + (info.offset.x + info.size.x);
+		data.point.y	= y + (info.origSize.y - info.offset.y);
+		data.text.x		= 1;
+		data.text.y		= 0;
+		m_data.push_back(data);
+		m_data.push_back(data);
 
 		//Правый нижний
-		point.x	= x + (info.offset.x + info.size.x+1)/scale;
-		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
-		m_data.push_back(point);
+		data.point.x	= x + (info.offset.x + info.size.x);
+		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.text.x		= 1;
+		data.text.y		= 1;
+		m_data.push_back(data);
 
 		//Левый нижний
-		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= info.tex.x/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
-		m_data.push_back(point);
+		data.point.x	= x + info.offset.x;
+		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.text.x		= 0;
+		data.text.y		= 1;
+		m_data.push_back(data);
 
 		//Продвигаемся на символ дальше
-		x += (info.origSize.x + 0)/scale;
+		x += (info.origSize.x)*0.4;
 	}
 }
 
@@ -241,33 +241,34 @@ void	GTextLabel::prepare()
 {
 	//Заливаем данные в буфер
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec4), m_data.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(Data), m_data.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void	GTextLabel::renderText(vec3 color, float alpha)
 {
-	// Activate corresponding render state	
-//	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
 	glUniform3f(u_color, color.r, color.g, color.b);
-	glUniform1f(u_alpha, 1.0f);//alpha);
-	glActiveTexture(GL_TEXTURE0);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
 
 	// Render glyph texture over quad
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	glDrawArrays(GL_TRIANGLES, 0, m_data.size());
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	textShader->release();
-//	glDisable(GL_MULTISAMPLE);
 }
 
 void	GTextLabel::setFont(int size, GLfloat scale)

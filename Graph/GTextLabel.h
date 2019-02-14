@@ -18,6 +18,7 @@ namespace Graph{
 class GTextLabel
 {
 private:
+public:
 	// Holds all state information relevant to a character as loaded using FreeType
 	struct CharInfo{
 		int		id;			//Код символа в UNICODE

@@ -142,13 +142,16 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/fonts/arial_new.png"));
-		texSize.x	= gl_texture->width();
-		texSize.y	= gl_texture->height();
-		texture	= gl_texture->textureId();
+		QImage	im(":/Resources/fonts/arial_new.png");
+		texSize.x	= im.width();
+		texSize.y	= im.height();
+
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, im.width(), im.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, im.bits());
 
 		// Disable byte-alignment restriction
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		// Generate texture
 		glBindTexture(GL_TEXTURE_2D, texture);

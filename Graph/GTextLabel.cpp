@@ -253,6 +253,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 {
 	textShader->bind();
 	glUniform3f(u_color, color.r, color.g, color.b);
+	glUniform1f(textShader->uniformLocation("pxRange"), 96./scale);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);

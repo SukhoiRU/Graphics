@@ -670,7 +670,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	m_data_program->release();
 
@@ -704,7 +703,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glDisable(GL_PROGRAM_POINT_SIZE);
 		m_marker_program->release();
 	}
-
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }

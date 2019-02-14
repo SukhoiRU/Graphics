@@ -175,6 +175,11 @@ void	GTextLabel::clearGL()
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
+	if(str == "Vh_SNP")
+	{
+		int a = 0;
+	}
+
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
 	for(int i = 0; i < str.length(); i++)

@@ -28,7 +28,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
-    format.setSamples(8);
+    format.setSamples(1);
 //	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
@@ -306,7 +306,7 @@ void GraphicsView::paintGL()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
-	glDisable(GL_LINE_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
 
 #ifdef USE_FBO
 	//Копирование картинки из буфера
@@ -715,7 +715,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	   world.y > pageBorders.bottom()+graphBorders.bottom() &&
 	   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 	{
-		//setCursor(Qt::BlankCursor);
+		setCursor(Qt::BlankCursor);
 		m_bOnMouse	= true;
 	}
 	else

@@ -84,6 +84,12 @@ void	GTextLabel::loadFontInfo()
 			info.origSize.x	= c.attribute("OrigWidth").toInt();
 			info.origSize.y	= c.attribute("OrigHeight").toInt();
 			
+//			CharInfo	info	= info2;
+			info.tex	= ivec2(0);
+			info.size	= vec2(15.);//GraphObject::m_scale);
+			info.offset	= vec2(0, 2.);
+			info.origSize	= info.size;
+
 			font->charMap.insert(std::pair<int, CharInfo>(info.id, info));
 		}
 		fonts.push_back(font);
@@ -177,12 +183,6 @@ void	GTextLabel::clearGL()
 
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
-	if(str == "Vh_SNP")
-	{
-		int a = 0;
-	}
-	float    scale    = GraphObject::m_scale;
-
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
 	for(int i = 0; i < str.length(); i++)
@@ -195,16 +195,17 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 			int a = 0;
 		}
 
-		const CharInfo&	info2	= font->charMap.at(c.unicode());
-		CharInfo	info	= info2;
-		info.tex	= ivec2(0);
-		info.size	= vec2(16./GraphObject::m_scale);
-		info.offset	= ivec2(0);
-		info.origSize	= info.size;
+		const CharInfo&	info	= font->charMap.at(c.unicode());
 		
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= c.unicode()-0x0020;
+		if(data.text.z == 16)	
+			data.text.z = 37 - 0x0020;
+		if(data.text.z == 0)
+			data.text.z = 37 - 0x0020;
+		//data.text.z = 32 - 0x0020;
+
 		if(data.text.z > 126)	data.text.z	= 126;
 		
 		//Левый верхний
@@ -268,7 +269,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
 
 	glUniform3f(u_color, color.r, color.g, color.b);
-	glUniform1f(textShader->uniformLocation("pxRange"), 12.);//*GraphObject::m_scale);
+	glUniform1f(textShader->uniformLocation("pxRange"), 12.);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
@@ -323,12 +324,13 @@ vec2	GTextLabel::textSize(const QString& str)
 		//if(i == str.length()-1)	size.x -= (info.origSize.x - info.offset.x - info.size.x);
 		
 		//Продвигаемся на символ дальше
-		size.x += info.origSize.x+0;
+		size.x += info.origSize.x*0.4;
 
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}
+	size.y *= 0.8;
 
-	return    size/GraphObject::m_scale;
+	return    size;
 }
 
 GLfloat	GTextLabel::baseLine()
@@ -337,7 +339,7 @@ GLfloat	GTextLabel::baseLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y - info.size.y)/GraphObject::m_scale;
+	return 0.8*(float)(info.origSize.y - info.offset.y);
 }
 
 GLfloat	GTextLabel::midLine()
@@ -346,7 +348,7 @@ GLfloat	GTextLabel::midLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/GraphObject::m_scale;
+	return 0.5*(info.origSize.y - info.offset.y);
 }
 
 GLfloat	GTextLabel::topLine()
@@ -355,7 +357,7 @@ GLfloat	GTextLabel::topLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y)/GraphObject::m_scale;
+	return info.origSize.y - info.offset.y;
 }
 
 }

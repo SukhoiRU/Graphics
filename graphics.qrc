@@ -31,8 +31,9 @@
         <file>Resources/images/open.png</file>
         <file>Resources/images/paste.png</file>
         <file>Resources/images/save.png</file>
-        <file>Resources/fonts/courier.png</file>
-        <file>Resources/fonts/courier.xml</file>
+        <file>Resources/images/delete.png</file>
+        <file>Resources/fonts/arialn.png</file>
+        <file>Resources/fonts/arialn.xml</file>
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
         <file>shaders/gaxe.frag</file>
@@ -41,11 +42,6 @@
         <file>shaders/gaxearg.vert</file>
         <file>shaders/textlabel.frag</file>
         <file>shaders/textlabel.vert</file>
-        <file>Resources/fonts/arial.png</file>
-        <file>Resources/fonts/arial.xml</file>
-        <file>Resources/fonts/arial_s.png</file>
-        <file>Resources/fonts/arial_s.xml</file>
-        <file>Resources/images/delete.png</file>
         <file>shaders/gaxe_cross.frag</file>
         <file>shaders/gaxe_cross.vert</file>
         <file>shaders/gaxe_data.frag</file>
@@ -54,8 +50,6 @@
         <file>shaders/gaxe_data_triangles.geom</file>
         <file>shaders/fbo.frag</file>
         <file>shaders/fbo.vert</file>
-        <file>Resources/fonts/arial_new.png</file>
-        <file>Resources/fonts/arial_new.xml</file>
         <file>shaders/markers.frag</file>
         <file>shaders/markers.vert</file>
     </qresource>

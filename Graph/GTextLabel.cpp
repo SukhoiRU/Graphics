@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GTextLabel.h"
+#include "GraphObject.h"
 #include <QDomDocument>
 
 namespace Graph{
@@ -22,6 +23,7 @@ GTextLabel::GTextLabel()
 {
 	fontIndex	= 0;
 	textVBO		= 0;
+	m_model		= mat4(1.f);
 
 	if(!bFontLoaded)
 		loadFontInfo();
@@ -32,10 +34,10 @@ void	GTextLabel::loadFontInfo()
 	bFontLoaded	= true;
 
 	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial_new.xml");
+	QFile file(":/Resources/fonts/arialn.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
 	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arial.xml").arg(file.errorString()));
+		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arialn.xml").arg(file.errorString()));
 		return;
 	}
 
@@ -46,7 +48,7 @@ void	GTextLabel::loadFontInfo()
 	int errorColumn;
 	if(!xml.setContent(&file, true, &errorStr, &errorLine, &errorColumn))
 	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("%1\nParse error at line %2, column %3:\n%4").arg(":/Resources/fonts/courier.xml").arg(errorLine).arg(errorColumn).arg(errorStr));
+		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("%1\nParse error at line %2, column %3:\n%4").arg(":/Resources/fonts/arialn.xml").arg(errorLine).arg(errorColumn).arg(errorStr));
 		return;
 	}
 
@@ -113,13 +115,15 @@ void	GTextLabel::finalDelete()
 	if(textShader)	delete textShader;
 }
 
-void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
+void	GTextLabel::setMatrix(glm::mat4 model)
 {
-	textShader->bind();
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &proj[0][0]);
-	textShader->release();
+	if(m_model != model)
+	{
+		//Сохраняем новую матрицу положения надписи
+		m_model	= model;
+
+		//Пересчитываем координаты точек для попадания в пиксельную сетку
+	}
 }
 
 void	GTextLabel::initializeGL()
@@ -142,7 +146,7 @@ void	GTextLabel::initializeGL()
 		textShader->release();
 
 		// Prepare texture
-		QImage	im(":/Resources/fonts/arial_new.png");
+		QImage	im(":/Resources/fonts/arialn.png");
 		texSize.x	= im.width();
 		texSize.y	= im.height();
 
@@ -182,6 +186,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	{
 		int a = 0;
 	}
+	float	scale	= GraphObject::m_scale;
 
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
@@ -196,7 +201,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		
 		//Левый верхний
 		point.x	= x + info.offset.x/scale;
-		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
+		point.y	= y + (info.origSize.y - info.offset.y)/scale;
 		point.z	= info.tex.x/(float)(texSize.x-0);
 		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
@@ -205,29 +210,29 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
 		point.z	= info.tex.x/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
+		point.w	= (info.tex.y + info.size.y)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Правый верхний
-		point.x	= x + (info.offset.x + info.size.x+1)/scale;
-		point.y	= y + (info.origSize.y - info.offset.y+1)/scale;
-		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
+		point.x	= x + (info.offset.x + info.size.x)/scale;
+		point.y	= y + (info.origSize.y - info.offset.y)/scale;
+		point.z	= (info.tex.x + info.size.x)/(float)(texSize.x-0);
 		point.w	= info.tex.y/(float)(texSize.y-0);
 		m_data.push_back(point);
 		m_data.push_back(point);
 
 		//Правый нижний
-		point.x	= x + (info.offset.x + info.size.x+1)/scale;
+		point.x	= x + (info.offset.x + info.size.x)/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
-		point.z	= (info.tex.x + info.size.x+1)/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
+		point.z	= (info.tex.x + info.size.x)/(float)(texSize.x-0);
+		point.w	= (info.tex.y + info.size.y)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Левый нижний
 		point.x	= x + info.offset.x/scale;
 		point.y	= y + (info.origSize.y - info.offset.y - info.size.y)/scale;
 		point.z	= info.tex.x/(float)(texSize.x-0);
-		point.w	= (info.tex.y + info.size.y+1)/(float)(texSize.y-0);
+		point.w	= (info.tex.y + info.size.y)/(float)(texSize.y-0);
 		m_data.push_back(point);
 
 		//Продвигаемся на символ дальше
@@ -250,6 +255,10 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	// Activate corresponding render state	
 //	glEnable(GL_MULTISAMPLE);
 	textShader->bind();
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
+	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &GraphObject::m_view[0][0]);
+	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
+
 	glUniform3f(u_color, color.r, color.g, color.b);
 	glUniform1f(u_alpha, 1.0f);//alpha);
 	glActiveTexture(GL_TEXTURE0);
@@ -268,11 +277,8 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 //	glDisable(GL_MULTISAMPLE);
 }
 
-void	GTextLabel::setFont(int size, GLfloat scale)
+void	GTextLabel::setFont(int size)
 {
-	//Устанавливаем цвет
-	this->scale	= scale;
-
 	//Подбираем наиболее подходящий шрифт
 	for(int i = 0; i < fonts.size(); i++)
 	{
@@ -312,7 +318,7 @@ vec2	GTextLabel::textSize(const QString& str)
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}
 
-	return	size/scale;
+	return	size/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::baseLine()
@@ -321,7 +327,7 @@ GLfloat	GTextLabel::baseLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y - info.size.y)/scale;
+	return (info.origSize.y - info.offset.y - info.size.y)/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::midLine()
@@ -330,7 +336,7 @@ GLfloat	GTextLabel::midLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/scale;
+	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::topLine()
@@ -339,7 +345,7 @@ GLfloat	GTextLabel::topLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y)/scale;
+	return (info.origSize.y - info.offset.y)/GraphObject::m_scale;
 }
 
 }

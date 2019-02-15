@@ -80,7 +80,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(2.5f*m_scale, m_scale);
+		textLabel->setFont(2.5f*m_scale);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
@@ -306,7 +306,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	m_program->release();
 
 	dataModel	= translate(mat4(1.f), vec3(area.x() - dt/TimeScale*grid.width(), area.y(), 0.f));
-	textLabel->setMatrix(dataModel, m_view, m_proj);
+	textLabel->setMatrix(dataModel);
 	textLabel->renderText(vec3(0.f), 1);
 }
 

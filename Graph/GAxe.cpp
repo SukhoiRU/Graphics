@@ -299,7 +299,7 @@ void	GAxe::setAxeLength(int len)
 	QSizeF grid	= oldGrid;
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(m_scale*2.8f, m_scale);
+	textLabel->setFont(m_scale*2.8f);
 
 	if(m_DataType == Bool)
 	{
@@ -587,7 +587,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	}
 
 	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel, m_view, m_proj);
+	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 
 	//График с нулевым масштабом не рисуем

@@ -298,6 +298,8 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
+	t0.start();
+
 	//Очистка вида
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -379,12 +381,12 @@ void GraphicsView::paintGL()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_program->release();
 	}
+	//emit dt(t0.elapsed());
 }
 
 void GraphicsView::drawScene()
 {
 	if(!oglInited)	return;
-	t0.start();
 
 #ifdef USE_FBO
 	glViewport(0, 0, width(), height());
@@ -461,7 +463,6 @@ void GraphicsView::drawScene()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	m_program->release();
-
 #ifdef USE_FBO
 	//Разсемплирование буфера
 	qFBO->blitFramebuffer(qFBO_unsamled, qFBO, GL_COLOR_BUFFER_BIT, GL_NEAREST);

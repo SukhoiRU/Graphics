@@ -47,6 +47,7 @@ void main()
   //if(ddX != vec2(0.0))
   sigDist *= dot(msdfUnit, 0.5 / fwidth(TexCoords.xy));
   float opacity = clamp(sigDist + 0.5, 0.0, 1.0);
+  if(opacity < 0.05) opacity = 0.05;
   color = vec4(textColor, opacity);
 //      color = mix(vec4(1.0,1.,1.,1.0), vec4(textColor,1.0), opacity);
 }

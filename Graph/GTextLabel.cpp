@@ -86,7 +86,7 @@ void	GTextLabel::loadFontInfo()
 			
 //			CharInfo	info	= info2;
 			info.tex	= ivec2(0);
-			info.size	= vec2(6.);
+			info.size	= vec2(6.5);
 			info.offset	= vec2(0, 2.);
 			info.origSize	= info.size;
 
@@ -187,6 +187,17 @@ void	GTextLabel::clearGL()
 	if(textVBO)	{ glDeleteBuffers(1, &textVBO); textVBO = 0; }
 }
 
+/*
+	// Load first 128 characters of ASCII set и еще русские буквы и спецсимволы
+	for(GLuint c = 0; c < (128+95+79); c++)
+	{
+		// Load character glyph
+		GLuint code	= c;
+		if(code > 127+95)
+			code += 0x2100-(128+95);
+		else if(code > 127)
+			code += 0x0400-128;
+*/
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
 	//Выбираем шрифт
@@ -201,13 +212,23 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 			int a = 0;
 		}
 
-		const CharInfo&	info	= font->charMap.at(c.unicode());
+		CharInfo&	info	= font->charMap.at(c.unicode());
+		static float sz	= 7.0;
+		info.size	= vec2(sz);
 		
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= c.unicode()-0x0020;
 
-		if(data.text.z > 126)	data.text.z	= 126;
+		if(data.text.z > 126)	
+		{
+			data.text.z	= 126;
+			if(c.unicode() < 0x0410 || c.unicode() > 0x0450)
+			{
+				int a = 0;
+			}
+		}
+
 		
 		//Левый верхний
 		data.point.x	= x + info.offset.x;

@@ -153,14 +153,17 @@ void	GTextLabel::initializeGL()
 		glGenTextures(1, &texture);
 		glActiveTexture(0);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 96, 96, 127);
+		QImage	ch1	= QImage(QString(":/Resources/fonts/arialN/49.png"));
+		int	w	= ch1.width();
+		int	h	= ch1.height();
+		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, w, h, 127);
 		for(int code = 0x0020; code < 0x007F; code++)
 		{
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
 			//Контроль формата!!!
 			if(ch.format() != QImage::Format_RGB32)
 				ch	= ch.convertToFormat(QImage::Format_RGB32);
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, 96, 96, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
 		}
 
 		// Set texture options

@@ -156,7 +156,7 @@ void	GTextLabel::initializeGL()
 		QImage	ch1	= QImage(QString(":/Resources/fonts/arialN/49.png"));
 		int	w	= ch1.width();
 		int	h	= ch1.height();
-		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, w, h, 127);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 127, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		for(int code = 0x0020; code < 0x007F; code++)
 		{
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));

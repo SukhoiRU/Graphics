@@ -6,6 +6,7 @@ using glm::ivec2;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::mat4;
 #include <vector>
 #include <map>
 using std::vector;
@@ -53,10 +54,10 @@ private:
 		vec3	text;
 	};
 	vector<Data>	m_data;
+	mat4			m_model;
 
 	GLuint	textVBO;
 	int		fontIndex;
-	GLfloat	scale;
 
 	void	loadFontInfo();
 
@@ -67,10 +68,10 @@ public:
 	void	clearGL();
 	static void	finalDelete();
 
-	void	setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj);
+	void	setMatrix(glm::mat4 model);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();
-	void	setFont(int size, GLfloat scale);
+	void	setFont(int size);
 	void	renderText(vec3 color, float alpha);
 	vec2	textSize(const QString& str);
 	GLfloat	baseLine();

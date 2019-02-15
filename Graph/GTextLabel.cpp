@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GTextLabel.h"
+#include "GraphObject.h"
 #include <QDomDocument>
 
 namespace Graph{
@@ -21,6 +22,7 @@ GTextLabel::GTextLabel()
 {
 	fontIndex	= 0;
 	textVBO		= 0;
+	m_model		= mat4(1.0f);
 
 	if(!bFontLoaded)
 		loadFontInfo();
@@ -112,13 +114,15 @@ void	GTextLabel::finalDelete()
 	if(textShader)	delete textShader;
 }
 
-void	GTextLabel::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 proj)
+void	GTextLabel::setMatrix(glm::mat4 model)
 {
-	textShader->bind();
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &proj[0][0]);
-	textShader->release();
+	if(m_model != model)
+	{
+		//Сохраняем новую матрицу положения надписи
+		m_model    = model;
+
+		//Пересчитываем координаты точек для попадания в пиксельную сетку
+	}
 }
 
 void	GTextLabel::initializeGL()
@@ -153,8 +157,8 @@ void	GTextLabel::initializeGL()
 		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
@@ -177,6 +181,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	{
 		int a = 0;
 	}
+	float    scale    = GraphObject::m_scale;
 
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
@@ -184,10 +189,16 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	{
 		//Получаем информацию о символе
 		const QChar		c		= str.at(i);
+
+		if(c.unicode() == '0')
+		{
+			int a = 0;
+		}
+
 		const CharInfo&	info2	= font->charMap.at(c.unicode());
 		CharInfo	info	= info2;
 		info.tex	= ivec2(0);
-		info.size	= vec2(2.f*scale);
+		info.size	= vec2(16./GraphObject::m_scale);
 		info.offset	= ivec2(0);
 		info.origSize	= info.size;
 		
@@ -252,8 +263,12 @@ void	GTextLabel::prepare()
 void	GTextLabel::renderText(vec3 color, float alpha)
 {
 	textShader->bind();
+	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
+	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &GraphObject::m_view[0][0]);
+	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
+
 	glUniform3f(u_color, color.r, color.g, color.b);
-	glUniform1f(textShader->uniformLocation("pxRange"), 96./scale);
+	glUniform1f(textShader->uniformLocation("pxRange"), 12.);//*GraphObject::m_scale);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
@@ -272,11 +287,8 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	textShader->release();
 }
 
-void	GTextLabel::setFont(int size, GLfloat scale)
+void	GTextLabel::setFont(int size)
 {
-	//Устанавливаем цвет
-	this->scale	= scale;
-
 	//Подбираем наиболее подходящий шрифт
 	for(int i = 0; i < fonts.size(); i++)
 	{
@@ -316,7 +328,7 @@ vec2	GTextLabel::textSize(const QString& str)
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}
 
-	return	size/scale;
+	return    size/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::baseLine()
@@ -325,7 +337,7 @@ GLfloat	GTextLabel::baseLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y - info.size.y)/scale;
+	return (info.origSize.y - info.offset.y - info.size.y)/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::midLine()
@@ -334,7 +346,7 @@ GLfloat	GTextLabel::midLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/scale;
+	return ((float)info.origSize.y - (float)info.offset.y - (float)info.size.y*0.5)/GraphObject::m_scale;
 }
 
 GLfloat	GTextLabel::topLine()
@@ -343,7 +355,7 @@ GLfloat	GTextLabel::topLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return (info.origSize.y - info.offset.y)/scale;
+	return (info.origSize.y - info.offset.y)/GraphObject::m_scale;
 }
 
 }

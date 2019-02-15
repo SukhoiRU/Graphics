@@ -27,7 +27,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setVersion(4, 3);
+    format.setVersion(3, 3);
     format.setSamples(1);
 //	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
@@ -565,7 +565,7 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-	GLfloat	angle	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	angle	= glm::radians(5.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);

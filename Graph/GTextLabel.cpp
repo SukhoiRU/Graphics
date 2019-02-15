@@ -86,7 +86,7 @@ void	GTextLabel::loadFontInfo()
 			
 //			CharInfo	info	= info2;
 			info.tex	= ivec2(0);
-			info.size	= vec2(15.);//GraphObject::m_scale);
+			info.size	= vec2(6.);
 			info.offset	= vec2(0, 2.);
 			info.origSize	= info.size;
 
@@ -157,6 +157,9 @@ void	GTextLabel::initializeGL()
 		for(int code = 0x0020; code < 0x007F; code++)
 		{
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
+			//Контроль формата!!!
+			if(ch.format() != QImage::Format_RGB32)
+				ch	= ch.convertToFormat(QImage::Format_RGB32);
 			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, 96, 96, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
 		}
 
@@ -200,11 +203,6 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= c.unicode()-0x0020;
-		if(data.text.z == 16)	
-			data.text.z = 37 - 0x0020;
-		if(data.text.z == 0)
-			data.text.z = 37 - 0x0020;
-		//data.text.z = 32 - 0x0020;
 
 		if(data.text.z > 126)	data.text.z	= 126;
 		

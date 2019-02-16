@@ -3,6 +3,9 @@
 #include "GraphObject.h"
 #include <QDomDocument>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 namespace Graph{
 
 bool	GTextLabel::bFontLoaded	= false;
@@ -149,6 +152,12 @@ void	GTextLabel::initializeGL()
 		u_color			= textShader->uniformLocation("textColor");
 		textShader->release();
 
+		//Подключаем FreeType
+		FT_Library library;
+		FT_Error error = FT_Init_FreeType(&library);
+		FT_Face face;
+		error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
+
 		// Prepare texture
 		glGenTextures(1, &texture);
 		glActiveTexture(0);
@@ -164,8 +173,33 @@ void	GTextLabel::initializeGL()
 			if(ch.format() != QImage::Format_RGB32)
 				ch	= ch.convertToFormat(QImage::Format_RGB32);
 			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
+
+			FT_UInt  glyph_index;
+			/* retrieve glyph index from character code */
+			glyph_index = FT_Get_Char_Index(face,code);
+			FT_Error error = FT_Load_Char(face, code, FT_LOAD_NO_SCALE);
+			int a = 0;
+
 		}
 
+		FT_Done_Face(face);
+		FT_Done_FreeType(library);
+/*
+	spaceAdvance = font->face->glyph->advance.x/64.;
+	error = FT_Load_Char(font->face, '\t', FT_LOAD_NO_SCALE);
+	if (error)
+		return false;
+	tabAdvance = font->face->glyph->advance.x/64.;
+
+bool getKerning(double &output, FontHandle *font, int unicode1, int unicode2) {
+	FT_Vector kerning;
+	if (FT_Get_Kerning(font->face, FT_Get_Char_Index(font->face, unicode1), FT_Get_Char_Index(font->face, unicode2), FT_KERNING_UNSCALED, &kerning)) {
+		output = 0;
+		return false;
+	}
+	output = kerning.x/64.;
+	return true;
+}*/
 		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

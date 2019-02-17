@@ -43,6 +43,6 @@ void main()
   float sigDist = median(sample.r, sample.g, sample.b) - 0.5;
   sigDist *= dot(msdfUnit, 0.5 / fwidth(TexCoords.xy));
   float opacity = clamp(sigDist + 0.5, 0.0, 1.0);
-  //if(opacity < 0.05) opacity = 0.05;
+  if(opacity < 0.05) opacity = 0.05;
   color = vec4(textColor, opacity);
 }

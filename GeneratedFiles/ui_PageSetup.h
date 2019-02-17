@@ -297,7 +297,7 @@ public:
         zoomSlider = new QSlider(Dialog);
         zoomSlider->setObjectName(QStringLiteral("zoomSlider"));
         zoomSlider->setMinimum(100);
-        zoomSlider->setMaximum(1000);
+        zoomSlider->setMaximum(2000);
         zoomSlider->setOrientation(Qt::Horizontal);
 
         gridLayout_4->addWidget(zoomSlider, 4, 0, 1, 1);

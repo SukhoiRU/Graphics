@@ -21,17 +21,17 @@ class GTextLabel
 private:
 	// Holds all state information relevant to a character as loaded using FreeType
 	struct CharInfo{
-		int		id;			//Код символа в UNICODE
-		ivec2	tex;		//Координаты в текстуре
+		int		unicode;	//Код символа в UNICODE
+		int		layer;		//Слой в текстуре
 		vec2	size;		//Размеры символа
-		vec2	offset;		//Смещение символа относительно оригинала
-		vec2	origSize;	//Исходный размер символа
+		vec2	offset;		//Смещение символа относительно baseline
+		float	advance;	//Смещение к следующему символу
 	};
 
 	struct FontInfo
 	{
 		QString		name;	//Название шрифта
-		int			size;	//Размер в пикселях
+		GLfloat		size;	//Размер
 		map<int, CharInfo>	charMap;	//Описатель шрифта
 	};
 
@@ -71,10 +71,9 @@ public:
 	void	setMatrix(glm::mat4 model);
 	void	addString(QString str, GLfloat x, GLfloat y);
 	void	prepare();
-	void	setFont(int size);
+	void	setFont(GLfloat size);
 	void	renderText(vec3 color, float alpha);
 	vec2	textSize(const QString& str);
-	GLfloat	baseLine();
 	GLfloat	midLine();
 	GLfloat	topLine();
 };

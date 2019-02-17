@@ -4,6 +4,7 @@
 #include <QDomDocument>
 
 #include <ft2build.h>
+#include <freetype/freetype.h>
 #include FT_FREETYPE_H
 
 namespace Graph{
@@ -27,14 +28,14 @@ GTextLabel::GTextLabel()
 	textVBO		= 0;
 	m_model		= mat4(1.0f);
 
-	if(!bFontLoaded)
-		loadFontInfo();
+	//if(!bFontLoaded)
+	//	loadFontInfo();
 }
 
 void	GTextLabel::loadFontInfo()
 {
 	bFontLoaded	= true;
-
+/*
 	//Читаем описатель шрифта
 	QFile file(":/Resources/fonts/arial_new.xml");
 	if(!file.open(QFile::ReadOnly | QFile::Text))
@@ -97,6 +98,7 @@ void	GTextLabel::loadFontInfo()
 		}
 		fonts.push_back(font);
 	}
+*/
 }
 
 GTextLabel::~GTextLabel()
@@ -157,30 +159,45 @@ void	GTextLabel::initializeGL()
 		FT_Error error = FT_Init_FreeType(&library);
 		FT_Face face;
 		error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
+		fonts.clear();
+		FontInfo*	font	= new FontInfo;
+		font->name	= face->family_name;
 
-		// Prepare texture
+		//Загружаем текстурный массив
 		glGenTextures(1, &texture);
 		glActiveTexture(0);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+
+		//Определяем размер текстур по первому символу
 		QImage	ch1	= QImage(QString(":/Resources/fonts/arialN/49.png"));
 		int	w	= ch1.width();
 		int	h	= ch1.height();
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 127, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		
+		int layer	= 0;
 		for(int code = 0x0020; code < 0x007F; code++)
 		{
+			//Загружаем символ с контролем формата
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
-			//Контроль формата!!!
 			if(ch.format() != QImage::Format_RGB32)
 				ch	= ch.convertToFormat(QImage::Format_RGB32);
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, code-0x0020, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
 
-			FT_UInt  glyph_index;
-			/* retrieve glyph index from character code */
-			glyph_index = FT_Get_Char_Index(face,code);
+			//Создаем описание символа
+			CharInfo	info;
 			FT_Error error = FT_Load_Char(face, code, FT_LOAD_NO_SCALE);
-			int a = 0;
+			info.unicode	= code;
+			info.layer		= layer;
+			info.size.x		= face->glyph->metrics.width/2048.;
+			info.size.y		= face->glyph->metrics.height/2048.;
+			info.offset.x	= face->glyph->metrics.horiBearingX/2048.;
+			info.offset.y	= face->glyph->metrics.horiBearingY/2048.;
+			info.advance	= face->glyph->metrics.horiAdvance/2048.;
+			font->charMap.insert(std::pair<int, CharInfo>(code, info));
 
+			layer++;
 		}
+		fonts.push_back(font);
 
 		FT_Done_Face(face);
 		FT_Done_FreeType(library);
@@ -239,69 +256,63 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	for(int i = 0; i < str.length(); i++)
 	{
 		//Получаем информацию о символе
-		const QChar		c		= str.at(i);
-
-		if(c.unicode() == '0')
+		const QChar	c		= str.at(i);
+		int	code	= c.unicode();
+		if(code > 126)
 		{
-			int a = 0;
-		}
-
-		CharInfo&	info	= font->charMap.at(c.unicode());
-		static float sz	= 7.0;
-		info.size	= vec2(sz);
-		
-		//Создаем два треугольника. Координаты в миллиметрах документа!
-		Data	data;
-		data.text.z	= c.unicode()-0x0020;
-
-		if(data.text.z > 126)	
-		{
-			data.text.z	= 126;
-			if(c.unicode() < 0x0410 || c.unicode() > 0x0450)
+			code	= 126;
+			if(code < 0x0410 || code > 0x0450)
 			{
 				int a = 0;
 			}
 		}
 
-		
+		CharInfo	info	= font->charMap.at(code);
+		vec2	texSize	= vec2(std::max(info.size.x, info.size.y)*font->size);
+//		vec2	texSize	= vec2(font->size);
+
+		//Создаем два треугольника. Координаты в миллиметрах документа!
+		Data	data;
+		data.text.z	= info.layer;
+
 		//Левый верхний
-		data.point.x	= x + info.offset.x;
-		data.point.y	= y + (info.origSize.y - info.offset.y);
+		data.point.x	= x - font->size*(info.offset.x);
+		data.point.y	= y + texSize.y + font->size*(info.offset.y);
 		data.text.x		= 0;
 		data.text.y		= 0;
 		m_data.push_back(data);
 
 		//Левый нижний
-		data.point.x	= x + info.offset.x;
-		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.point.x	= x - font->size*(info.offset.x);
+		data.point.y	= y + font->size*(info.offset.y);
 		data.text.x		= 0;
 		data.text.y		= 1;
 		m_data.push_back(data);
 
 		//Правый верхний
-		data.point.x	= x + (info.offset.x + info.size.x);
-		data.point.y	= y + (info.origSize.y - info.offset.y);
+		data.point.x	= x + texSize.x - font->size*(info.offset.x);
+		data.point.y	= y + texSize.y + font->size*(info.offset.y);
 		data.text.x		= 1;
 		data.text.y		= 0;
 		m_data.push_back(data);
 		m_data.push_back(data);
 
 		//Правый нижний
-		data.point.x	= x + (info.offset.x + info.size.x);
-		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.point.x	= x + texSize.x - font->size*(info.offset.x);
+		data.point.y	= y + font->size*(info.offset.y);
 		data.text.x		= 1;
 		data.text.y		= 1;
 		m_data.push_back(data);
 
 		//Левый нижний
-		data.point.x	= x + info.offset.x;
-		data.point.y	= y + (info.origSize.y - info.offset.y - info.size.y);
+		data.point.x	= x - font->size*(info.offset.x);
+		data.point.y	= y + font->size*(info.offset.y);
 		data.text.x		= 0;
 		data.text.y		= 1;
 		m_data.push_back(data);
 
 		//Продвигаемся на символ дальше
-		x += (info.origSize.x)*0.4;
+		x += info.advance*font->size;
 	}
 }
 
@@ -325,7 +336,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
 
 	glUniform3f(u_color, color.r, color.g, color.b);
-	glUniform1f(textShader->uniformLocation("pxRange"), 12.);
+	glUniform1f(textShader->uniformLocation("pxRange"), 2.);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
@@ -344,8 +355,13 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	textShader->release();
 }
 
-void	GTextLabel::setFont(int size)
+void	GTextLabel::setFont(GLfloat size)
 {
+	fontIndex	= 0;
+	FontInfo*	f	= fonts.at(fontIndex);
+	f->size	= size;
+
+/*
 	//Подбираем наиболее подходящий шрифт
 	for(int i = 0; i < fonts.size(); i++)
 	{
@@ -359,6 +375,7 @@ void	GTextLabel::setFont(int size)
 
 	//Берем самый крупный
 	fontIndex	= std::max(0, (int)(fonts.size()-1));
+*/
 }
 
 vec2	GTextLabel::textSize(const QString& str)
@@ -366,6 +383,7 @@ vec2	GTextLabel::textSize(const QString& str)
 	vec2	size(0.0f);
 	if(str.isEmpty())	return vec2(0.0f);
 	if(fonts.empty())	return vec2(0.0f);
+/*
 	
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);
@@ -385,26 +403,18 @@ vec2	GTextLabel::textSize(const QString& str)
 		if(info.origSize.y > size.y)	size.y	= info.origSize.y;
 	}
 	size.y *= 0.8;
+*/
 
 	return    size;
-}
-
-GLfloat	GTextLabel::baseLine()
-{
-	//Выбираем шрифт
-	FontInfo*		font	= fonts.at(fontIndex);
-	const CharInfo&	info	= font->charMap.at('0');
-
-	return 0.8*(float)(info.origSize.y - info.offset.y);
 }
 
 GLfloat	GTextLabel::midLine()
 {
 	//Выбираем шрифт
 	FontInfo*		font	= fonts.at(fontIndex);
-	const CharInfo&	info	= font->charMap.at('0');
+	const CharInfo&	info	= font->charMap.at('x');
 
-	return 0.5*(info.origSize.y - info.offset.y);
+	return 0.5*(info.size.y);
 }
 
 GLfloat	GTextLabel::topLine()
@@ -413,7 +423,7 @@ GLfloat	GTextLabel::topLine()
 	FontInfo*		font	= fonts.at(fontIndex);
 	const CharInfo&	info	= font->charMap.at('0');
 
-	return info.origSize.y - info.offset.y;
+	return 0*info.offset.y;
 }
 
 }

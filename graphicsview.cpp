@@ -66,6 +66,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	Time0		= 200;
 	TimeScale	= 20;
 	curTime		= Time0;
+	angle		= 0;
 
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
@@ -75,6 +76,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	fbo	= 0;
 	qFBO	= nullptr;
 	qFBO_unsamled	= nullptr;
+
+	m_pLabel	= new Graph::GTextLabel;
 }
 
 GraphicsView::~GraphicsView()
@@ -88,6 +91,7 @@ GraphicsView::~GraphicsView()
 	settings.sync();
 
 	if(axeArg)	{delete	axeArg; axeArg = 0;}
+	if(m_pLabel) {delete m_pLabel; m_pLabel = 0;}
 	if(pPageSetup)	{delete pPageSetup; pPageSetup = 0;}
 	teardownGL();
 }
@@ -167,6 +171,12 @@ void GraphicsView::initializeGL()
 	//Создаем поле графиков
 	axeArg->initializeGL();
 	m_GraphObjects.push_back(axeArg);
+
+	m_pLabel->initializeGL();
+	m_pLabel->setFont(10.);
+//	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
+	m_pLabel->addString("(A.a_p!)", 0, 0);
+	m_pLabel->prepare();
 }
 
 struct Vertex
@@ -309,6 +319,7 @@ void GraphicsView::paintGL()
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
+	glBindVertexArray(pageVAO);
 
 #ifdef USE_FBO
 	//Копирование картинки из буфера
@@ -317,6 +328,15 @@ void GraphicsView::paintGL()
 #else
 	drawScene();
 #endif // USE_FBO
+
+	{
+		mat4 dataModel	= mat4(1.f);
+		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 2.*gridStep.height(), 0.f));
+		//m_pLabel->addString("A", , );
+
+		m_pLabel->setMatrix(dataModel);
+		m_pLabel->renderText(vec3(1., 0., 0.0f), 1.0f);
+	}
 
 	//Отрисовка мыши
 	if(m_bOnMouse)
@@ -339,7 +359,6 @@ void GraphicsView::paintGL()
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
 		//Трафарет для оси
-		glBindVertexArray(pageVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
@@ -377,10 +396,10 @@ void GraphicsView::paintGL()
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
 		glDrawArrays(GL_LINES, 0, 4);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_program->release();
 	}
+	glBindVertexArray(0);
 	//emit dt(t0.elapsed());
 }
 
@@ -424,7 +443,6 @@ void GraphicsView::drawScene()
     glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
     glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	{
-		glBindVertexArray(pageVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
@@ -459,7 +477,6 @@ void GraphicsView::drawScene()
 			m_SelectedObjects.at(j)->Draw(Time0, TimeScale, gridStep, area, 1.0f);
 		}
 
-		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	m_program->release();
@@ -565,7 +582,7 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-	GLfloat	angle	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
+	GLfloat	angle	= glm::radians(this->angle)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
 	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
     GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
@@ -869,6 +886,10 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
             SelectObject(nullptr);
 		}
 	}
+	else if(buttons & Qt::RightButton)
+	{
+		onCustomMenuRequested(event->pos());
+	}
 
 	event->accept();
 }
@@ -974,4 +995,18 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* axes)
 {
 	m_pPanel	= nullptr;
+}
+
+void	GraphicsView::onCustomMenuRequested(QPoint pos)
+{
+	QMenu*		menu			= new QMenu(this);
+	QAction*	actAngle		= new QAction("Качалка", this);
+
+	actAngle->setCheckable(true);
+	actAngle->setChecked(angle != 0.);
+
+	connect(actAngle, &QAction::toggled, [=](bool bCheck){if(bCheck) angle = 5.; else angle = 0;});
+
+	menu->addAction(actAngle);
+	menu->popup(mapToGlobal(pos));
 }

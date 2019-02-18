@@ -268,45 +268,46 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		}
 
 		CharInfo	info	= font->charMap.at(code);
-		vec2	texSize	= vec2(std::max(info.size.x, info.size.y)*font->size);
-//		vec2	texSize	= vec2(font->size);
+		float		texSize	= (std::max(info.size.x, info.size.y)*font->size);
+		vec2		center	= vec2(x, y) + font->size*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
+		data.point.z	= 2./64*font->size/texSize;
 		data.text.z	= info.layer;
 
 		//Левый верхний
-		data.point.x	= x - font->size*(info.offset.x);
-		data.point.y	= y + texSize.y + font->size*(info.offset.y);
+		data.point.x	= center.x - 0.5*texSize;
+		data.point.y	= center.y + 0.5*texSize;
 		data.text.x		= 0;
 		data.text.y		= 0;
 		m_data.push_back(data);
 
 		//Левый нижний
-		data.point.x	= x - font->size*(info.offset.x);
-		data.point.y	= y + font->size*(info.offset.y);
+		data.point.x	= center.x - 0.5*texSize;
+		data.point.y	= center.y - 0.5*texSize;
 		data.text.x		= 0;
 		data.text.y		= 1;
 		m_data.push_back(data);
 
 		//Правый верхний
-		data.point.x	= x + texSize.x - font->size*(info.offset.x);
-		data.point.y	= y + texSize.y + font->size*(info.offset.y);
+		data.point.x	= center.x + 0.5*texSize;
+		data.point.y	= center.y + 0.5*texSize;
 		data.text.x		= 1;
 		data.text.y		= 0;
 		m_data.push_back(data);
 		m_data.push_back(data);
 
 		//Правый нижний
-		data.point.x	= x + texSize.x - font->size*(info.offset.x);
-		data.point.y	= y + font->size*(info.offset.y);
+		data.point.x	= center.x + 0.5*texSize;
+		data.point.y	= center.y - 0.5*texSize;
 		data.text.x		= 1;
 		data.text.y		= 1;
 		m_data.push_back(data);
 
 		//Левый нижний
-		data.point.x	= x - font->size*(info.offset.x);
-		data.point.y	= y + font->size*(info.offset.y);
+		data.point.x	= center.x - 0.5*texSize;
+		data.point.y	= center.y - 0.5*texSize;
 		data.text.x		= 0;
 		data.text.y		= 1;
 		m_data.push_back(data);
@@ -322,9 +323,9 @@ void	GTextLabel::prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(Data), m_data.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -336,13 +337,14 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
 
 	glUniform3f(u_color, color.r, color.g, color.b);
-	glUniform1f(textShader->uniformLocation("pxRange"), 2.);
+	static float pxRange	= 2;
+	glUniform1f(textShader->uniformLocation("pxRange"), pxRange);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
 
 	// Render glyph texture over quad
 	glActiveTexture(GL_TEXTURE0);

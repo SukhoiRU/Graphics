@@ -17,6 +17,7 @@ namespace Graph{
 class GraphObject;
 class GAxe;
 class GAxeArg;
+class GTextLabel;
 }
 
 class GTextLabel;
@@ -72,6 +73,7 @@ protected:
     virtual void wheelEvent(QWheelEvent *event) override;
 	virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
+	void	onCustomMenuRequested(QPoint pos);
 
 	void	paintOverGL(QPainter* p);
 
@@ -91,11 +93,13 @@ private:
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
 	vector<Graph::GraphObject*>	m_GraphObjects;
 	vector<Graph::GraphObject*>	m_SelectedObjects;
+	Graph::GTextLabel*			m_pLabel;
 
 	//Начальное время и масштаб
 	double		Time0;
 	double		TimeScale;
 	double		curTime;
+	float		angle;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*	m_program;

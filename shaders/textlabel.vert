@@ -1,8 +1,8 @@
 #version 330 core
 
-layout(location = 0) in vec2 vertex;
+layout(location = 0) in vec3 vertex;
 layout(location = 1) in vec3 text;
-out vec3 TexCoords;
+out vec4 TexCoords;
 
 uniform mat4 modelToWorld;
 uniform mat4 worldToCamera;
@@ -14,5 +14,5 @@ void main()
   //pos.x			= int(pos.x);
   //pos.y			= int(pos.y);
   gl_Position	= cameraToView * pos;
-  TexCoords		= text;
+  TexCoords		= vec4(text, vertex.z);
 }

@@ -50,7 +50,7 @@ private:
 	//Данные для каждого объекта
 	struct Data 
 	{
-		vec2	point;
+		vec3	point;
 		vec3	text;
 	};
 	vector<Data>	m_data;

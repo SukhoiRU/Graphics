@@ -251,6 +251,11 @@ void	GTextLabel::clearGL()
 */
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
+	FT_Library library;
+	FT_Error error = FT_Init_FreeType(&library);
+	FT_Face face;
+	error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
+
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
 	for(int i = 0; i < str.length(); i++)
@@ -267,13 +272,24 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 			}
 		}
 
+		FT_Vector kerning;
+		kerning.x	= 0;
+		kerning.y	= 0;
+		if(i)
+		{
+			int prev	= str.at(i-1).unicode();
+			if(prev > 126) prev = 126;
+			if(FT_Get_Kerning(face, FT_Get_Char_Index(face, prev), FT_Get_Char_Index(face, code), FT_KERNING_UNSCALED, &kerning));
+			int a = 0;
+		}
+
 		CharInfo	info	= font->charMap.at(code);
 		float		texSize	= (std::max(info.size.x, info.size.y)*font->size);
 		vec2		center	= vec2(x, y) + font->size*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
-		data.point.z	= 2./64*font->size/texSize;
+		data.point.z	= texSize/font->size;
 		data.text.z	= info.layer;
 
 		//Левый верхний
@@ -313,8 +329,11 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		m_data.push_back(data);
 
 		//Продвигаемся на символ дальше
-		x += info.advance*font->size;
+		x += (info.advance + 2.*kerning.x/2048.)*font->size;
 	}
+	FT_Done_Face(face);
+	FT_Done_FreeType(library);
+
 }
 
 void	GTextLabel::prepare()
@@ -337,8 +356,8 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
 
 	glUniform3f(u_color, color.r, color.g, color.b);
-	static float pxRange	= 2;
-	glUniform1f(textShader->uniformLocation("pxRange"), pxRange);
+	static float pxRange	= 1;
+	glUniform1f(textShader->uniformLocation("pxRange"), 0.03 + 1./GraphObject::m_scale);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);

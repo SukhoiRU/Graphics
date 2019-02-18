@@ -175,7 +175,7 @@ void GraphicsView::initializeGL()
 	m_pLabel->initializeGL();
 	m_pLabel->setFont(10.);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
-	m_pLabel->addString("(A.a_p!)", 0, 0);
+	m_pLabel->addString("AV/.Wpi", 0, 0);
 	m_pLabel->prepare();
 }
 

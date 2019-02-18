@@ -289,8 +289,9 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
-		data.point.z	= texSize/font->size;
 		data.text.z	= info.layer;
+		data.corr.x	= 0.7/texSize*font->size;
+		data.corr.y	= 0;
 
 		//Левый верхний
 		data.point.x	= center.x - 0.5*texSize;
@@ -342,9 +343,11 @@ void	GTextLabel::prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(Data), m_data.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -357,13 +360,15 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 
 	glUniform3f(u_color, color.r, color.g, color.b);
 	static float pxRange	= 1;
-	glUniform1f(textShader->uniformLocation("pxRange"), 0.03 + 1./GraphObject::m_scale);
+	glUniform1f(textShader->uniformLocation("pxRange"), 2.);//0.03 + 1./GraphObject::m_scale);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (void*)(3*sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 
 	// Render glyph texture over quad
 	glActiveTexture(GL_TEXTURE0);

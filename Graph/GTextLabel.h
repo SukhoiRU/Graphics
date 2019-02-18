@@ -50,8 +50,9 @@ private:
 	//Данные для каждого объекта
 	struct Data 
 	{
-		vec3	point;
+		vec2	point;
 		vec3	text;
+		vec2	corr;
 	};
 	vector<Data>	m_data;
 	mat4			m_model;

@@ -498,7 +498,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		mat4	cross(1.0f);
 		if(m_DataType == Bool)
-			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y, 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.5*textLabel->midLine(), 0.f));
 		else
 			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.width(), 0.6f*grid.width(), 1.0f));

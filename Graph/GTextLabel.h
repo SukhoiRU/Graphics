@@ -69,6 +69,7 @@ private:
 	FontInfo*	font;
 
 	void	loadFontInfo();
+	bool	getNextCode(int& code);
 
 public:
 	GTextLabel();

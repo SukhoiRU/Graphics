@@ -183,10 +183,11 @@ void	GTextLabel::initializeGL()
 		font->bbox_max	= vec2(face->bbox.xMax/2048.f, face->bbox.yMax/2048.f);
 
 		//Выделяем под текстуру память
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 127, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 171, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		
 		int layer	= 0;
-		for(int code = 0x0020; code < 0x007F; code++)
+		int code	= 0;
+		while(getNextCode(code))
 		{
 			//Загружаем символ с контролем формата
 			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
@@ -229,6 +230,25 @@ void	GTextLabel::initializeGL()
 	m_data.clear();
 }
 
+bool	GTextLabel::getNextCode(int& code)
+{
+	if(code < 32)			{ code = 32; return true; }
+	else if(code < 126)		{ code++; return true; }
+	else if(code == 126)	{ code = 169; return true; }
+	else if(code == 169)	{ code = 171; return true; }
+	else if(code == 171)	{ code = 174; return true; }
+	else if(code == 174)	{ code = 187; return true; }
+	else if(code == 187)	{ code = 1025; return true; }
+	else if(code == 1025)	{ code = 1040; return true; }
+	else if(code < 1105)	{ code++; return true;}
+	else if(code == 1105)	{ code = 8211; return true;}
+	else if(code == 8211)	{ code = 8212; return true;}
+	else if(code == 8212)	{ code = 8220; return true;}
+	else if(code == 8220)	{ code = 8221; return true;}
+	else
+		return false;
+}
+
 void	GTextLabel::clearGL()
 {
 	if(textVBO)	{ glDeleteBuffers(1, &textVBO); textVBO = 0; }
@@ -254,7 +274,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		int code	= str.at(i).unicode();
 		auto	it	= font->charMap.find(code);
 		if(it == font->charMap.end())
-			code	= 126;
+			code	= 127;
 
 		CharInfo	info	= font->charMap.at(code);
 		float		texSize	= (std::max(info.size.x, info.size.y)*fontSize)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
@@ -372,7 +392,7 @@ vec2	GTextLabel::textSize(const QString& str1)
 		int code	= str.at(i).unicode();
 		auto	it	= font->charMap.find(code);
 		if(it == font->charMap.end())
-			code	= 126;
+			code	= 127;
 
 		const CharInfo&	info	= font->charMap.at(code);
 		x += info.advance;
@@ -382,7 +402,6 @@ vec2	GTextLabel::textSize(const QString& str1)
 
 GLfloat	GTextLabel::midLine()
 {
-	//Выбираем шрифт
 	return font->midline*fontSize;
 }
 

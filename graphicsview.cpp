@@ -173,9 +173,11 @@ void GraphicsView::initializeGL()
 	m_GraphObjects.push_back(axeArg);
 
 	m_pLabel->initializeGL();
-	m_pLabel->setFont(20);
+	m_pLabel->setFont(10);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
-	m_pLabel->addString("AV/.Wpi$()", 0, 0);
+	m_pLabel->addString("AV/.Wpi$", 0, 0);
+	m_pLabel->setFont(5.7);
+	m_pLabel->addString("(И ещё «по-русски» можно)", 0, -10);
 	m_pLabel->prepare();
 }
 
@@ -231,7 +233,7 @@ void GraphicsView::resizeGL(int width, int height)
 	{
 		GLfloat	aspect	= 1.25;
 		if(height)	aspect	= width/(GLfloat)height;
-		m_proj	= glm::perspective<float>(glm::radians(80.f), aspect, 0.1f, 1000.0f);
+		m_proj	= glm::perspective<float>(glm::radians(45.f), aspect, 0.1f, 10000.0f);
 	}
 	else
 		m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
@@ -591,7 +593,7 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-    GLfloat	dist	= 400. + 200.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
+    GLfloat	dist	= 800. + 400.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
 	if(!m_bPerspective)	dist	= 400.;
 
     m_view  = mat4(1.0f);

@@ -284,13 +284,13 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		}
 
 		CharInfo	info	= font->charMap.at(code);
-		float		texSize	= (std::max(info.size.x, info.size.y)*font->size);
+		float		texSize	= (std::max(info.size.x, info.size.y)*font->size)*(32.+24.)/32.;
 		vec2		center	= vec2(x, y) + font->size*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= info.layer;
-		data.corr.x	= 0.7/texSize*font->size;
+		data.corr.x	= 1.;//0.7/texSize*font->size;
 		data.corr.y	= 0;
 
 		//Левый верхний
@@ -330,7 +330,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		m_data.push_back(data);
 
 		//Продвигаемся на символ дальше
-		x += (info.advance + 2.*kerning.x/2048.)*font->size;
+		x += (info.advance + 0*kerning.x/2048.)*font->size;
 	}
 	FT_Done_Face(face);
 	FT_Done_FreeType(library);
@@ -360,7 +360,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 
 	glUniform3f(u_color, color.r, color.g, color.b);
 	static float pxRange	= 1;
-	glUniform1f(textShader->uniformLocation("pxRange"), 2.);//0.03 + 1./GraphObject::m_scale);
+	glUniform1f(textShader->uniformLocation("pxRange"), 12.);//0.03 + 1./GraphObject::m_scale);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);

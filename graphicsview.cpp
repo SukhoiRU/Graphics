@@ -66,7 +66,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	Time0		= 200;
 	TimeScale	= 20;
 	curTime		= Time0;
-	angle		= 0;
+	m_bTurning	= false;
+	m_bPerspective	= false;
 
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
@@ -173,7 +174,7 @@ void GraphicsView::initializeGL()
 	m_GraphObjects.push_back(axeArg);
 
 	m_pLabel->initializeGL();
-	m_pLabel->setFont(10.);
+	m_pLabel->setFont(15.);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
 	m_pLabel->addString("AV/.Wpi", 0, 0);
 	m_pLabel->prepare();
@@ -227,7 +228,16 @@ void	GraphicsView::updatePageBuffer()
 void GraphicsView::resizeGL(int width, int height)
 {
 	//Меняем матрицу проекции
-    m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
+	if(m_bPerspective)
+	{
+		GLfloat	aspect	= 1.25;
+		if(height)	aspect	= width/(GLfloat)height;
+		m_proj	= glm::perspective<float>(glm::radians(80.f), aspect, 0.1f, 1000.0f);
+	}
+	else
+		m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
+
+
 /*
 	//Создаем framebuffer
 	if(fbo)	
@@ -331,7 +341,7 @@ void GraphicsView::paintGL()
 
 	{
 		mat4 dataModel	= mat4(1.f);
-		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 2.*gridStep.height(), 0.f));
+		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 4.*gridStep.height(), 0.f));
 		//m_pLabel->addString("A", , );
 
 		m_pLabel->setMatrix(dataModel);
@@ -582,15 +592,8 @@ void GraphicsView::setScale(float scale)
 void GraphicsView::update()
 {
 	QTime	time	= QTime::currentTime();
-	GLfloat	angle	= glm::radians(this->angle)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
-	GLfloat	anglex	= glm::radians(0.)*sin(0.2*time.msecsSinceStartOfDay()/1000.*6.28);
-	GLfloat	angley	= glm::radians(0.)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
-    GLfloat	dist	= 400. + 0.*200.*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28);
-//	Time0	= 500 + 500*sin(0.1f*time.msecsSinceStartOfDay()/1000.*6.28);
-//	TimeScale	= 50;
-	//QPoint	cur	= QCursor::pos();
-	//cur.setX(cur.x() + 2.0f*sin(0.15*time.msecsSinceStartOfDay()/1000.*6.28));
-	//QCursor::setPos(cur);
+    GLfloat	dist	= 400. + 200.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
+	if(!m_bPerspective)	dist	= 400.;
 
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
@@ -598,8 +601,24 @@ void GraphicsView::update()
     m_view	= translate(m_view, -vec3(hBar->value(), -vBar->value(), 0.f));
 
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
-    m_view  = rotate(m_view, angle, vec3(0.f,0.f,1.0f));
-    m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
+	if(m_bTurning)
+	{
+		float angle	= 5.;
+		GLfloat	anglez	= glm::radians(angle)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
+		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*time.msecsSinceStartOfDay()/1000.*6.28);
+		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*time.msecsSinceStartOfDay()/1000.*6.28);
+		if(m_bPerspective)
+		{
+			m_view  = rotate(m_view, anglex, vec3(1.f, 0.f, 0.0f));
+			m_view  = rotate(m_view, angley, vec3(0.f, 1.f, 0.0f));
+		}
+		m_view  = rotate(m_view, anglez, vec3(0.f, 0.f, 1.0f));
+	}
+
+	if(m_bPerspective)
+		m_view  = translate(m_view, -vec3(pageSize.width(), -0*pageSize.height(), 0.f));
+	else
+		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
 	QOpenGLWidget::update();
@@ -1001,12 +1020,17 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 {
 	QMenu*		menu			= new QMenu(this);
 	QAction*	actAngle		= new QAction("Качалка", this);
+	QAction*	actPersp		= new QAction("Перспектива", this);
 
 	actAngle->setCheckable(true);
-	actAngle->setChecked(angle != 0.);
+	actAngle->setChecked(m_bTurning);
+	actPersp->setCheckable(true);
+	actPersp->setChecked(m_bPerspective);
 
-	connect(actAngle, &QAction::toggled, [=](bool bCheck){if(bCheck) angle = 5.; else angle = 0;});
+	connect(actAngle, &QAction::toggled, [=](bool bCheck){m_bTurning = bCheck;});
+	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(width(), height());});
 
 	menu->addAction(actAngle);
+	menu->addAction(actPersp);
 	menu->popup(mapToGlobal(pos));
 }

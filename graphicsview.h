@@ -99,7 +99,8 @@ private:
 	double		Time0;
 	double		TimeScale;
 	double		curTime;
-	float		angle;
+	bool		m_bTurning;
+	bool		m_bPerspective;
 	
 	// OpenGL State Information
 	QOpenGLShaderProgram*	m_program;

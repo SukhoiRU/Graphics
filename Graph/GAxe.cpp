@@ -299,7 +299,7 @@ void	GAxe::setAxeLength(int len)
 	QSizeF grid	= oldGrid;
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(5.0f);
+	textLabel->setFont(3.8f);
 
 	if(m_DataType == Bool)
 	{

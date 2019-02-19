@@ -201,22 +201,7 @@ void	GTextLabel::initializeGL()
 
 		FT_Done_Face(face);
 		FT_Done_FreeType(library);
-/*
-	spaceAdvance = font->face->glyph->advance.x/64.;
-	error = FT_Load_Char(font->face, '\t', FT_LOAD_NO_SCALE);
-	if (error)
-		return false;
-	tabAdvance = font->face->glyph->advance.x/64.;
 
-bool getKerning(double &output, FontHandle *font, int unicode1, int unicode2) {
-	FT_Vector kerning;
-	if (FT_Get_Kerning(font->face, FT_Get_Char_Index(font->face, unicode1), FT_Get_Char_Index(font->face, unicode2), FT_KERNING_UNSCALED, &kerning)) {
-		output = 0;
-		return false;
-	}
-	output = kerning.x/64.;
-	return true;
-}*/
 		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -251,11 +236,6 @@ void	GTextLabel::clearGL()
 */
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
-	FT_Library library;
-	FT_Error error = FT_Init_FreeType(&library);
-	FT_Face face;
-	error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
-
 	//Выбираем шрифт
 	FontInfo*	font	= fonts.at(fontIndex);
 	for(int i = 0; i < str.length(); i++)
@@ -272,17 +252,6 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 			}
 		}
 
-		FT_Vector kerning;
-		kerning.x	= 0;
-		kerning.y	= 0;
-		if(i)
-		{
-			int prev	= str.at(i-1).unicode();
-			if(prev > 126) prev = 126;
-			if(FT_Get_Kerning(face, FT_Get_Char_Index(face, prev), FT_Get_Char_Index(face, code), FT_KERNING_UNSCALED, &kerning));
-			int a = 0;
-		}
-
 		CharInfo	info	= font->charMap.at(code);
 		float		texSize	= (std::max(info.size.x, info.size.y)*font->size)*(32.+24.)/32.;
 		vec2		center	= vec2(x, y) + font->size*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
@@ -290,7 +259,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= info.layer;
-		data.corr.x	= 1.;//0.7/texSize*font->size;
+		data.corr.x	= 1.;
 		data.corr.y	= 0;
 
 		//Левый верхний
@@ -330,11 +299,8 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		m_data.push_back(data);
 
 		//Продвигаемся на символ дальше
-		x += (info.advance + 0*kerning.x/2048.)*font->size;
+		x += info.advance*font->size;
 	}
-	FT_Done_Face(face);
-	FT_Done_FreeType(library);
-
 }
 
 void	GTextLabel::prepare()

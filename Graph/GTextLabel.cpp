@@ -132,8 +132,6 @@ void	GTextLabel::setMatrix(glm::mat4 model)
 	{
 		//Сохраняем новую матрицу положения надписи
 		m_model    = model;
-
-		//Пересчитываем координаты точек для попадания в пиксельную сетку
 	}
 }
 
@@ -233,8 +231,8 @@ void	GTextLabel::initializeGL()
 bool	GTextLabel::getNextCode(int& code)
 {
 	if(code < 32)			{ code = 32; return true; }
-	else if(code < 126)		{ code++; return true; }
-	else if(code == 126)	{ code = 169; return true; }
+	else if(code < 127)		{ code++; return true; }
+	else if(code == 127)	{ code = 169; return true; }
 	else if(code == 169)	{ code = 171; return true; }
 	else if(code == 171)	{ code = 174; return true; }
 	else if(code == 174)	{ code = 187; return true; }
@@ -254,17 +252,6 @@ void	GTextLabel::clearGL()
 	if(textVBO)	{ glDeleteBuffers(1, &textVBO); textVBO = 0; }
 }
 
-/*
-	// Load first 128 characters of ASCII set и еще русские буквы и спецсимволы
-	for(GLuint c = 0; c < (128+95+79); c++)
-	{
-		// Load character glyph
-		GLuint code	= c;
-		if(code > 127+95)
-			code += 0x2100-(128+95);
-		else if(code > 127)
-			code += 0x0400-128;
-*/
 void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 {
 	str	= str.trimmed();

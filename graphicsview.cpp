@@ -175,9 +175,9 @@ void GraphicsView::initializeGL()
 	m_pLabel->initializeGL();
 	m_pLabel->setFont(10);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
-	m_pLabel->addString("AV/.Wpi$", 0, 0);
+	m_pLabel->addString("AV/.Wpi$¡", 0, 0);
 	m_pLabel->setFont(5.7);
-	m_pLabel->addString("(И ещё «по-русски» можно)", 0, -10);
+	m_pLabel->addString("(И ещё «по-русски» можно)", 10, -10);
 	m_pLabel->prepare();
 }
 
@@ -330,6 +330,8 @@ void GraphicsView::paintGL()
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
+	glEnable(GL_PROGRAM_POINT_SIZE);
+
 	glBindVertexArray(pageVAO);
 
 #ifdef USE_FBO

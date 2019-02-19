@@ -31,9 +31,13 @@ private:
 	struct FontInfo
 	{
 		QString		name;		//Название шрифта
-		GLfloat		size;		//Размер
 		GLuint		pxrange;	//Рамка вокруг символа
 		GLuint		texSize;	//Размер текстуры
+		GLfloat		midline;	//Высота середины 'x'
+		GLfloat		ascender;
+		GLfloat		descender;
+		vec2		bbox_min;
+		vec2		bbox_max;
 		map<int, CharInfo>	charMap;	//Описатель шрифта
 	};
 
@@ -61,6 +65,8 @@ private:
 
 	GLuint	textVBO;
 	int		fontIndex;
+	GLfloat	fontSize;	//Текущий размер шрифта, мм
+	FontInfo*	font;
 
 	void	loadFontInfo();
 
@@ -79,6 +85,8 @@ public:
 	vec2	textSize(const QString& str);
 	GLfloat	midLine();
 	GLfloat	topLine();
+	GLfloat	bottomLine();
+	void	bBox(vec2& min, vec2& max);
 };
 
 }

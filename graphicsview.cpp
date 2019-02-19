@@ -29,7 +29,6 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
     format.setSamples(1);
-//	format.setOption(QSurfaceFormat::DebugContext);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -174,9 +173,9 @@ void GraphicsView::initializeGL()
 	m_GraphObjects.push_back(axeArg);
 
 	m_pLabel->initializeGL();
-	m_pLabel->setFont(15.);
+	m_pLabel->setFont(20);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
-	m_pLabel->addString("AV/.Wpi", 0, 0);
+	m_pLabel->addString("AV/.Wpi$()", 0, 0);
 	m_pLabel->prepare();
 }
 

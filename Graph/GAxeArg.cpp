@@ -80,7 +80,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
-		textLabel->setFont(3.0f);
+		textLabel->setFont(3.8f);
 
 		//Собираем новый буфер для сетки
 		vector<Vertex>	dataGrid;
@@ -115,7 +115,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 			{
 				QString	timeStr	= QString("%1").arg(t);
 				vec2	strSize	= textLabel->textSize(timeStr);
-				textLabel->addString(timeStr, x0 - 0.5*strSize.x, -2. - strSize.y);
+				textLabel->addString(timeStr, x0 - 0.5*strSize.x, -1.5f - textLabel->topLine());
 			}
 
 			n++;

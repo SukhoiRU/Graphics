@@ -212,6 +212,10 @@ void	GAxe::setAxeLength(int len)
 	m_FrameBR	= m_BottomRight;
 	if(!m_bOpenGL_inited)	return;
 
+	textLabel->clearGL();
+	textLabel->initializeGL();
+	textLabel->setFont(3.8f);
+
 	//Заливка данных в видеопамять
 	vector<vec2>	data;
 
@@ -243,10 +247,10 @@ void	GAxe::setAxeLength(int len)
 		if(m_DataType == Bool)
 		{
 			vec2	textSize	= textLabel->textSize(m_Name);
-			data.push_back(vec2(-0.5f*textSize.x-1.f, -0.5f*textSize.y-0.f));
-			data.push_back(vec2(-0.5f*textSize.x-1.f, 0.5f*textSize.y-0.3f));
-			data.push_back(vec2(0.5f*textSize.x+1.f, 0.5f*textSize.y-0.3f));
-			data.push_back(vec2(0.5f*textSize.x+1.f, -0.5f*textSize.y-0.f));
+			data.push_back(vec2(-0.5f*textSize.x-1.f, textLabel->bottomLine()-textLabel->midLine()));
+			data.push_back(vec2(-0.5f*textSize.x-1.f, textLabel->topLine()-textLabel->midLine()));
+			data.push_back(vec2(0.5f*textSize.x+1.f, textLabel->topLine()-textLabel->midLine()));
+			data.push_back(vec2(0.5f*textSize.x+1.f, textLabel->bottomLine()-textLabel->midLine()));
 		}
 		else
 		{
@@ -297,17 +301,14 @@ void	GAxe::setAxeLength(int len)
 
 	//Текстовые метки
 	QSizeF grid	= oldGrid;
-	textLabel->clearGL();
-	textLabel->initializeGL();
-	textLabel->setFont(3.8f);
 
 	if(m_DataType == Bool)
 	{
-		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x*0.5f, -textLabel->textSize(m_Name).y*0.5f);
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x*0.5f, -textLabel->midLine());
 	}
 	else
 	{
-		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 1.5);
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 2.0f);
 		for(int i = 0; i <= m_AxeLength; i++)
 		{
 			QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
@@ -497,7 +498,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		mat4	cross(1.0f);
 		if(m_DataType == Bool)
-			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.15f*grid.height(), 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y, 0.f));
 		else
 			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.width(), 0.6f*grid.width(), 1.0f));
@@ -732,10 +733,13 @@ bool	GAxe::HitTest(const vec2& pt)
 	{
 		//Для Bool рамка должна быть размером надписи
 		vec2	textSize	= textLabel->textSize(m_Name);
+		float	top	= textLabel->topLine();
+		float	btm	= textLabel->bottomLine();
+		float	mid	= textLabel->midLine();
 		if(pt.x < m_BottomRight.x + 0.5f*textSize.x + 1.f &&
 		   pt.x > m_BottomRight.x - 0.5f*textSize.x - 1.f &&
-		   pt.y < m_BottomRight.y + 0.5f*textSize.y - 0.3f &&
-		   pt.y > m_BottomRight.y - 0.5f*textSize.y)
+		   pt.y < m_BottomRight.y + top-mid &&
+		   pt.y > m_BottomRight.y + btm-mid)
 			return true;
 		else
 			return false;

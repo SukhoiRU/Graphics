@@ -331,7 +331,6 @@ void GraphicsView::paintGL()
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-
 	glBindVertexArray(pageVAO);
 
 #ifdef USE_FBO

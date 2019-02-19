@@ -33,6 +33,8 @@ int		GAxe::u_data_round			= 0;
 int		GAxe::u_data_lineType		= 0;
 int		GAxe::u_data_baseLine		= 0;
 int		GAxe::u_data_pixelSize		= 0;
+int		GAxe::u_data_linewidth		= 0;
+int		GAxe::u_data_antialias		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_marker_program	= nullptr;
 int		GAxe::u_marker_ortho		= 0;
@@ -145,6 +147,8 @@ void	GAxe::initializeGL()
 		u_data_lineType			= m_data_program->uniformLocation("lineType");
 		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
 		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
+		u_data_linewidth		= m_data_program->uniformLocation("linewidth");
+		u_data_antialias		= m_data_program->uniformLocation("antialias");
 		m_data_program->release();
 
 		//Программа для маркеров
@@ -435,7 +439,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		else						nMax	= n;
 	}
 
-	int	nStartIndex	= max(0, nMin);
+	int	nStartIndex	= max(0, nMin-1);
 
 	nMin	= 0;
 	nMax	= m_data.size()-1;
@@ -445,7 +449,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(m_data.at(n).x <= t0 + TimeScale*(area.width()/grid.width()))	nMin	= n;
 		else																nMax	= n;
 	}
-	int	nStopIndex	= min(int(m_data.size()-1), nMax);
+	int	nStopIndex	= min(int(m_data.size()-1), nMax+1);
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -641,7 +645,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	vec4	pixelSize	= m_proj*vec4(1.0f, 1.0f, 0.0f, 0.0f);
 	glUniform2f(u_data_pixelSize, pixelSize.x, pixelSize.y);
 
-	if(m_IsSelected && 1)
+	if(m_IsSelected)	glUniform1f(u_data_linewidth, 2.5f);
+	else				glUniform1f(u_data_linewidth, 0.5f);
+	glUniform1f(u_data_antialias, 1.0f);
+	if(m_IsSelected && 0)
 	{
 		//Рисуем график со смещением
 		vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
@@ -651,13 +658,15 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
 		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
 		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+		glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
 	}
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	m_data_program->release();

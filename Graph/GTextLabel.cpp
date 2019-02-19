@@ -161,7 +161,8 @@ void	GTextLabel::initializeGL()
 		error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
 		fonts.clear();
 		FontInfo*	font	= new FontInfo;
-		font->name	= face->family_name;
+		font->name		= face->family_name;
+		font->pxrange	= 12;
 
 		//Загружаем текстурный массив
 		glGenTextures(1, &texture);
@@ -172,6 +173,9 @@ void	GTextLabel::initializeGL()
 		QImage	ch1	= QImage(QString(":/Resources/fonts/arialN/49.png"));
 		int	w	= ch1.width();
 		int	h	= ch1.height();
+		font->texSize	= w;
+
+		//Выделяем под текстуру память
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 127, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		
 		int layer	= 0;
@@ -253,7 +257,8 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		}
 
 		CharInfo	info	= font->charMap.at(code);
-		float		texSize	= (std::max(info.size.x, info.size.y)*font->size)*(32.+24.)/32.;
+		float		texSize	= (std::max(info.size.x, info.size.y)*font->size)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
+//		float		texSize	= (std::max(info.size.x, info.size.y)*font->size)*(32.+24)/32.;
 		vec2		center	= vec2(x, y) + font->size*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
@@ -325,8 +330,7 @@ void	GTextLabel::renderText(vec3 color, float alpha)
 	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &GraphObject::m_proj[0][0]);
 
 	glUniform3f(u_color, color.r, color.g, color.b);
-	static float pxRange	= 1;
-	glUniform1f(textShader->uniformLocation("pxRange"), 12.);//0.03 + 1./GraphObject::m_scale);
+	glUniform1f(textShader->uniformLocation("pxRange"), 12.0f);	//Тут надо бы из шрифта брать...
 	
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glEnableVertexAttribArray(0);

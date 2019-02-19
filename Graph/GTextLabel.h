@@ -30,8 +30,10 @@ private:
 
 	struct FontInfo
 	{
-		QString		name;	//Название шрифта
-		GLfloat		size;	//Размер
+		QString		name;		//Название шрифта
+		GLfloat		size;		//Размер
+		GLuint		pxrange;	//Рамка вокруг символа
+		GLuint		texSize;	//Размер текстуры
 		map<int, CharInfo>	charMap;	//Описатель шрифта
 	};
 

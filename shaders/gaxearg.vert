@@ -15,6 +15,6 @@ void main()
     pos.y       = int(pos.y) + 0.5;
     gl_Position = cameraToView * pos;
 
-  //gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 0.0, 1.0);
+  gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 0.0, 1.0);
   vColor = vec4(color, 1.0);
 }

@@ -164,7 +164,6 @@ void	GTextLabel::initializeGL()
 
 		//Загружаем текстурный массив
 		glGenTextures(1, &texture);
-		glActiveTexture(0);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
 		//Определяем размер текстур по символу 'X'
@@ -319,12 +318,6 @@ void	GTextLabel::prepare()
 	//Заливаем данные в буфер
 	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(Data), m_data.data(), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), 0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7*sizeof(GLfloat), (void*)(5*sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

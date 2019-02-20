@@ -142,10 +142,6 @@ void GraphicsView::initializeGL()
 		glBindVertexArray(pageVAO);
 		glGenBuffers(1, &pageVBO);
 		updatePageBuffer();
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-		glEnableVertexAttribArray(1);
 		glBindVertexArray(0);
 
 		//Создаем программу для вывода из текстуры
@@ -163,8 +159,6 @@ void GraphicsView::initializeGL()
 		data.push_back(vec4(+1.f, +1.f, 1.f, 1.f));
 		data.push_back(vec4(+1.f, -1.f, 1.f, 0.f));
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec4), data.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -388,7 +382,7 @@ void GraphicsView::paintGL()
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-		glFinish();
+		//glFinish();
 
 		//Получаем мышь
 		QPointF	pLocal	= mapFromGlobal(QCursor::pos());

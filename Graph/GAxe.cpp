@@ -289,8 +289,6 @@ void	GAxe::setAxeLength(int len)
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	else
@@ -298,8 +296,6 @@ void	GAxe::setAxeLength(int len)
 		glGenBuffers(1, &axeVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -645,28 +641,42 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	vec4	pixelSize	= m_proj*vec4(1.0f, 1.0f, 0.0f, 0.0f);
 	glUniform2f(u_data_pixelSize, pixelSize.x, pixelSize.y);
 
-	if(m_IsSelected)	glUniform1f(u_data_linewidth, 2.5f);
-	else				glUniform1f(u_data_linewidth, 0.5f);
-	glUniform1f(u_data_antialias, 1.0f);
+	//Выставляем толщину линии
+	if(m_IsSelected)	
+	{
+		glUniform1f(u_data_linewidth, 1.5f/m_scale);
+		glUniform1f(u_data_antialias, 1.0f/m_scale);
+	}
+	else				
+	{
+		glUniform1f(u_data_linewidth, 1.0f/m_scale);
+		glUniform1f(u_data_antialias, 1.0f/m_scale);
+	}
 	if(m_IsSelected && 0)
 	{
 		//Рисуем график со смещением
-		vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
-		glUniform3fv(u_data_color, 1, &color2.r);
-		mat4	data2	= mat4(1.0f);
-		data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
-		data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
-		data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+		//vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
+		//glUniform3fv(u_data_color, 1, &color2.r);
+		//mat4	data2	= mat4(1.0f);
+		//data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
+		//data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
+		//data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
+		//glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
+
+	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+		glUniform1f(u_data_linewidth, 10.0f/m_scale);
+		glUniform1f(u_data_antialias, 10.0f/m_scale);
 		glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
+		glUniform1f(u_data_linewidth, 1.0f/m_scale);
+		glUniform1f(u_data_antialias, 1.0f/m_scale);
 	}
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	m_data_program->release();
@@ -1310,8 +1320,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 					}
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-					glEnableVertexAttribArray(0);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
 				else
@@ -1319,8 +1327,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 					glGenBuffers(1, &dataVBO);
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-					glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-					glEnableVertexAttribArray(0);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				}
 

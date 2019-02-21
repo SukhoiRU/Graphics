@@ -36,8 +36,6 @@ private:
 		GLfloat		midline;	//Высота середины 'x'
 		GLfloat		ascender;
 		GLfloat		descender;
-		vec2		bbox_min;
-		vec2		bbox_max;
 		map<int, CharInfo>	charMap;	//Описатель шрифта
 	};
 
@@ -69,7 +67,6 @@ private:
 	FontInfo*	font;
 
 	void	loadFontInfo();
-	bool	getNextCode(int& code);
 
 public:
 	GTextLabel();
@@ -87,7 +84,6 @@ public:
 	GLfloat	midLine();
 	GLfloat	topLine();
 	GLfloat	bottomLine();
-	void	bBox(vec2& min, vec2& max);
 };
 
 }

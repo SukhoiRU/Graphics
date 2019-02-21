@@ -3,10 +3,6 @@
 #include "GraphObject.h"
 #include <QDomDocument>
 
-#include <ft2build.h>
-#include <freetype/freetype.h>
-#include FT_FREETYPE_H
-
 namespace Graph{
 
 bool	GTextLabel::bFontLoaded	= false;
@@ -28,78 +24,6 @@ GTextLabel::GTextLabel()
 	textVBO		= 0;
 	m_model		= mat4(1.0f);
 	font		= 0;
-
-	//if(!bFontLoaded)
-	//	loadFontInfo();
-}
-
-void	GTextLabel::loadFontInfo()
-{
-	bFontLoaded	= true;
-/*
-	//Читаем описатель шрифта
-	QFile file(":/Resources/fonts/arial_new.xml");
-	if(!file.open(QFile::ReadOnly | QFile::Text))
-	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arial.xml").arg(file.errorString()));
-		return;
-	}
-
-	QDomDocument xml;
-
-	QString errorStr;
-	int errorLine;
-	int errorColumn;
-	if(!xml.setContent(&file, true, &errorStr, &errorLine, &errorColumn))
-	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("%1\nParse error at line %2, column %3:\n%4").arg(":/Resources/fonts/courier.xml").arg(errorLine).arg(errorColumn).arg(errorStr));
-		return;
-	}
-
-	//Проверяем тип файла
-	QDomElement root = xml.documentElement();
-	if(root.tagName() != "fontList")
-	{
-		QMessageBox::critical(nullptr, "Загрузка шрифта", "В файле должен быть список шрифтов!");
-		return;
-	}
-
-	//Сканируем шрифты
-    for(size_t f = 0; f < fonts.size(); f++)
-		delete fonts.at(f);
-	fonts.clear();
-
-	for(QDomElement n = root.firstChildElement("font"); !n.isNull(); n = n.nextSiblingElement("font"))
-	{
-		//Читаем шрифт
-		FontInfo*	font	= new FontInfo;
-		font->name	= n.attribute("name");
-		font->size	= n.attribute("size").remove("pt").toInt();
-		for(QDomElement c = n.firstChildElement("char"); !c.isNull(); c = c.nextSiblingElement("char"))
-		{
-			//Читаем описание символа
-			CharInfo	info;
-			info.id			= c.attribute("id").toInt();
-			info.tex.x		= c.attribute("x").toInt();
-			info.tex.y		= c.attribute("y").toInt();
-			info.size.x		= c.attribute("width").toInt();
-			info.size.y		= c.attribute("height").toInt();
-			info.offset.x	= c.attribute("Xoffset").toInt();
-			info.offset.y	= c.attribute("Yoffset").toInt();
-			info.origSize.x	= c.attribute("OrigWidth").toInt();
-			info.origSize.y	= c.attribute("OrigHeight").toInt();
-			
-//			CharInfo	info	= info2;
-			info.tex	= ivec2(0);
-			info.size	= vec2(6.5);
-			info.offset	= vec2(0, 2.);
-			info.origSize	= info.size;
-
-			font->charMap.insert(std::pair<int, CharInfo>(info.id, info));
-		}
-		fonts.push_back(font);
-	}
-*/
 }
 
 GTextLabel::~GTextLabel()
@@ -153,70 +77,7 @@ void	GTextLabel::initializeGL()
 		u_color			= textShader->uniformLocation("textColor");
 		textShader->release();
 
-		//Подключаем FreeType
-		FT_Library library;
-		FT_Error error = FT_Init_FreeType(&library);
-		FT_Face face;
-		error = FT_New_Face(library, "Resources\\fonts\\arialN\\arialN.ttf", 0, &face);
-		fonts.clear();
-		FontInfo*	font	= new FontInfo;
-		font->name		= face->family_name;
-
-		//Загружаем текстурный массив
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-
-		//Определяем размер текстур по символу 'X'
-		QImage	ch1	= QImage(QString(":/Resources/fonts/arialN/88.png"));
-		error	= FT_Load_Char(face, 88, FT_LOAD_NO_SCALE);
-		int	w	= ch1.width();
-		int	h	= ch1.height();
-		font->pxrange	= 12;
-		font->texSize	= w;
-		font->ascender	= face->ascender/2048.;
-		font->descender	= face->descender/2048.;
-		font->midline	= 0.5f*face->glyph->metrics.height/2048.;
-		font->bbox_min	= vec2(face->bbox.xMin/2048.f, face->bbox.yMin/2048.f);
-		font->bbox_max	= vec2(face->bbox.xMax/2048.f, face->bbox.yMax/2048.f);
-
-		//Выделяем под текстуру память
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, 171, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		
-		int layer	= 0;
-		int code	= 0;
-		while(getNextCode(code))
-		{
-			//Загружаем символ с контролем формата
-			QImage	ch	= QImage(QString(":/Resources/fonts/arialN/%1.png").arg(code));
-			if(ch.format() != QImage::Format_RGB32)
-				ch	= ch.convertToFormat(QImage::Format_RGB32);
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
-
-			//Создаем описание символа
-			CharInfo	info;
-			FT_Error error = FT_Load_Char(face, code, FT_LOAD_NO_SCALE);
-			info.unicode	= code;
-			info.layer		= layer;
-			info.size.x		= face->glyph->metrics.width/2048.;
-			info.size.y		= face->glyph->metrics.height/2048.;
-			info.offset.x	= face->glyph->metrics.horiBearingX/2048.;
-			info.offset.y	= face->glyph->metrics.horiBearingY/2048.;
-			info.advance	= face->glyph->metrics.horiAdvance/2048.;
-			font->charMap.insert(std::pair<int, CharInfo>(code, info));
-
-			layer++;
-		}
-		fonts.push_back(font);
-
-		FT_Done_Face(face);
-		FT_Done_FreeType(library);
-
-		// Set texture options
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		loadFontInfo();
 	}
 
 	// Configure VAO/VBO for texture quads
@@ -227,23 +88,104 @@ void	GTextLabel::initializeGL()
 	m_data.clear();
 }
 
-bool	GTextLabel::getNextCode(int& code)
+void	GTextLabel::loadFontInfo()
 {
-	if(code < 32)			{ code = 32; return true; }
-	else if(code < 127)		{ code++; return true; }
-	else if(code == 127)	{ code = 169; return true; }
-	else if(code == 169)	{ code = 171; return true; }
-	else if(code == 171)	{ code = 174; return true; }
-	else if(code == 174)	{ code = 187; return true; }
-	else if(code == 187)	{ code = 1025; return true; }
-	else if(code == 1025)	{ code = 1040; return true; }
-	else if(code < 1105)	{ code++; return true;}
-	else if(code == 1105)	{ code = 8211; return true;}
-	else if(code == 8211)	{ code = 8212; return true;}
-	else if(code == 8212)	{ code = 8220; return true;}
-	else if(code == 8220)	{ code = 8221; return true;}
-	else
-		return false;
+	bFontLoaded	= true;
+
+	//Читаем описатель шрифта
+	QFile file(":/Resources/fonts/arialN.xml");
+	if(!file.open(QFile::ReadOnly | QFile::Text))
+	{
+		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("Cannot read file %1:\n%2.").arg(":/Resources/fonts/arialN.xml").arg(file.errorString()));
+		return;
+	}
+
+	QDomDocument xml;
+
+	QString errorStr;
+	int errorLine;
+	int errorColumn;
+	if(!xml.setContent(&file, true, &errorStr, &errorLine, &errorColumn))
+	{
+		QMessageBox::critical(nullptr, "Загрузка шрифта", QString("%1\nParse error at line %2, column %3:\n%4").arg(":/Resources/fonts/arialN.xml").arg(errorLine).arg(errorColumn).arg(errorStr));
+		return;
+	}
+
+	//Проверяем тип файла
+	QDomElement root = xml.documentElement();
+	if(root.tagName() != "fontInfo")
+	{
+		QMessageBox::critical(nullptr, "Загрузка шрифта", "В файле должен быть список шрифтов!");
+		return;
+	}
+
+	QDomElement	n	= root.firstChildElement("Font");
+
+	//Очищаем шрифты
+	for(size_t f = 0; f < fonts.size(); f++)
+		delete fonts.at(f);
+	fonts.clear();
+
+	//Читаем шрифт
+	FontInfo*	font	= new FontInfo;
+	font->name		= n.attribute("name");
+	font->pxrange	= n.attribute("pxrange").toInt();
+	font->texSize	= n.attribute("texSize").toInt();
+	font->ascender	= n.attribute("ascender").toInt()/2048.;
+	font->descender	= n.attribute("descender").toInt()/2048.;
+	font->midline	= n.attribute("midline").toInt()/2048.;
+
+	int	count	= n.childNodes().count();
+	int	w	= font->texSize;
+	int	h	= font->texSize;
+
+	//Загружаем текстурный массив
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+
+	//Выделяем под текстуру память
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, w, h, count, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	int layer	= 0;
+	for(QDomElement c = n.firstChildElement("char"); !c.isNull(); c = c.nextSiblingElement("char"))
+	{
+		//Создаем описание символа
+		CharInfo	info;
+		info.unicode	= c.attribute("unicode").toInt();
+		info.layer		= layer;
+		info.size.x		= c.attribute("width").toInt()/2048.;
+		info.size.y		= c.attribute("height").toInt()/2048.;
+		info.offset.x	= c.attribute("horiBearingX").toInt()/2048.;
+		info.offset.y	= c.attribute("horiBearingY").toInt()/2048.;
+		info.advance	= c.attribute("horiAdvance").toInt()/2048.;
+		font->charMap.insert(std::pair<int, CharInfo>(info.unicode, info));
+
+		//Загружаем символ с контролем формата
+		QString		imgBase64	= c.attribute("texture");
+		QByteArray	imgArray;
+		QBuffer		imgBuffer(&imgArray);
+		imgBuffer.open(QIODevice::WriteOnly);
+		QDataStream	in(&imgBuffer);
+		in << imgBase64;
+		imgBuffer.close();
+
+		QImage	ch;
+		ch.loadFromData(QByteArray::fromBase64(imgArray), "PNG");
+		if(ch.format() != QImage::Format_RGB32)
+			ch	= ch.convertToFormat(QImage::Format_RGB32);
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, ch.bits());
+
+		layer++;
+
+	}
+	fonts.push_back(font);
+
+	// Set texture options
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void	GTextLabel::clearGL()
@@ -260,7 +202,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		int code	= str.at(i).unicode();
 		auto	it	= font->charMap.find(code);
 		if(it == font->charMap.end())
-			code	= 127;
+			code	= 126;
 
 		CharInfo	info	= font->charMap.at(code);
 		float		texSize	= (std::max(info.size.x, info.size.y)*fontSize)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
@@ -393,12 +335,6 @@ GLfloat	GTextLabel::topLine()
 GLfloat	GTextLabel::bottomLine()
 {
 	return font->descender*fontSize;
-}
-
-void	GTextLabel::bBox(vec2& min, vec2& max)
-{
-	min	= font->bbox_min*fontSize;
-	max	= font->bbox_max*fontSize;
 }
 
 }

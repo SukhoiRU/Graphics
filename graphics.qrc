@@ -31,8 +31,8 @@
         <file>Resources/images/open.png</file>
         <file>Resources/images/paste.png</file>
         <file>Resources/images/save.png</file>
-        <file>Resources/fonts/courier.png</file>
-        <file>Resources/fonts/courier.xml</file>
+        <file>Resources/images/delete.png</file>
+        <file>Resources/fonts/arialN.xml</file>
         <file>shaders/simple.frag</file>
         <file>shaders/simple.vert</file>
         <file>shaders/gaxe.frag</file>
@@ -41,11 +41,6 @@
         <file>shaders/gaxearg.vert</file>
         <file>shaders/textlabel.frag</file>
         <file>shaders/textlabel.vert</file>
-        <file>Resources/fonts/arial.png</file>
-        <file>Resources/fonts/arial.xml</file>
-        <file>Resources/fonts/arial_s.png</file>
-        <file>Resources/fonts/arial_s.xml</file>
-        <file>Resources/images/delete.png</file>
         <file>shaders/gaxe_cross.frag</file>
         <file>shaders/gaxe_cross.vert</file>
         <file>shaders/gaxe_data.frag</file>
@@ -54,180 +49,7 @@
         <file>shaders/gaxe_data_triangles.geom</file>
         <file>shaders/fbo.frag</file>
         <file>shaders/fbo.vert</file>
-        <file>Resources/fonts/arial_new.png</file>
-        <file>Resources/fonts/arial_new.xml</file>
         <file>shaders/markers.frag</file>
         <file>shaders/markers.vert</file>
-        <file>Resources/fonts/arialN/32.png</file>
-        <file>Resources/fonts/arialN/33.png</file>
-        <file>Resources/fonts/arialN/34.png</file>
-        <file>Resources/fonts/arialN/35.png</file>
-        <file>Resources/fonts/arialN/36.png</file>
-        <file>Resources/fonts/arialN/37.png</file>
-        <file>Resources/fonts/arialN/38.png</file>
-        <file>Resources/fonts/arialN/39.png</file>
-        <file>Resources/fonts/arialN/40.png</file>
-        <file>Resources/fonts/arialN/41.png</file>
-        <file>Resources/fonts/arialN/42.png</file>
-        <file>Resources/fonts/arialN/43.png</file>
-        <file>Resources/fonts/arialN/44.png</file>
-        <file>Resources/fonts/arialN/45.png</file>
-        <file>Resources/fonts/arialN/46.png</file>
-        <file>Resources/fonts/arialN/47.png</file>
-        <file>Resources/fonts/arialN/48.png</file>
-        <file>Resources/fonts/arialN/49.png</file>
-        <file>Resources/fonts/arialN/50.png</file>
-        <file>Resources/fonts/arialN/51.png</file>
-        <file>Resources/fonts/arialN/52.png</file>
-        <file>Resources/fonts/arialN/53.png</file>
-        <file>Resources/fonts/arialN/54.png</file>
-        <file>Resources/fonts/arialN/55.png</file>
-        <file>Resources/fonts/arialN/56.png</file>
-        <file>Resources/fonts/arialN/57.png</file>
-        <file>Resources/fonts/arialN/58.png</file>
-        <file>Resources/fonts/arialN/59.png</file>
-        <file>Resources/fonts/arialN/60.png</file>
-        <file>Resources/fonts/arialN/61.png</file>
-        <file>Resources/fonts/arialN/62.png</file>
-        <file>Resources/fonts/arialN/63.png</file>
-        <file>Resources/fonts/arialN/64.png</file>
-        <file>Resources/fonts/arialN/65.png</file>
-        <file>Resources/fonts/arialN/66.png</file>
-        <file>Resources/fonts/arialN/67.png</file>
-        <file>Resources/fonts/arialN/68.png</file>
-        <file>Resources/fonts/arialN/69.png</file>
-        <file>Resources/fonts/arialN/70.png</file>
-        <file>Resources/fonts/arialN/71.png</file>
-        <file>Resources/fonts/arialN/72.png</file>
-        <file>Resources/fonts/arialN/73.png</file>
-        <file>Resources/fonts/arialN/74.png</file>
-        <file>Resources/fonts/arialN/75.png</file>
-        <file>Resources/fonts/arialN/76.png</file>
-        <file>Resources/fonts/arialN/77.png</file>
-        <file>Resources/fonts/arialN/78.png</file>
-        <file>Resources/fonts/arialN/79.png</file>
-        <file>Resources/fonts/arialN/80.png</file>
-        <file>Resources/fonts/arialN/81.png</file>
-        <file>Resources/fonts/arialN/82.png</file>
-        <file>Resources/fonts/arialN/83.png</file>
-        <file>Resources/fonts/arialN/84.png</file>
-        <file>Resources/fonts/arialN/85.png</file>
-        <file>Resources/fonts/arialN/86.png</file>
-        <file>Resources/fonts/arialN/87.png</file>
-        <file>Resources/fonts/arialN/88.png</file>
-        <file>Resources/fonts/arialN/89.png</file>
-        <file>Resources/fonts/arialN/90.png</file>
-        <file>Resources/fonts/arialN/91.png</file>
-        <file>Resources/fonts/arialN/92.png</file>
-        <file>Resources/fonts/arialN/93.png</file>
-        <file>Resources/fonts/arialN/94.png</file>
-        <file>Resources/fonts/arialN/95.png</file>
-        <file>Resources/fonts/arialN/96.png</file>
-        <file>Resources/fonts/arialN/97.png</file>
-        <file>Resources/fonts/arialN/98.png</file>
-        <file>Resources/fonts/arialN/99.png</file>
-        <file>Resources/fonts/arialN/100.png</file>
-        <file>Resources/fonts/arialN/101.png</file>
-        <file>Resources/fonts/arialN/102.png</file>
-        <file>Resources/fonts/arialN/103.png</file>
-        <file>Resources/fonts/arialN/104.png</file>
-        <file>Resources/fonts/arialN/105.png</file>
-        <file>Resources/fonts/arialN/106.png</file>
-        <file>Resources/fonts/arialN/107.png</file>
-        <file>Resources/fonts/arialN/108.png</file>
-        <file>Resources/fonts/arialN/109.png</file>
-        <file>Resources/fonts/arialN/110.png</file>
-        <file>Resources/fonts/arialN/111.png</file>
-        <file>Resources/fonts/arialN/112.png</file>
-        <file>Resources/fonts/arialN/113.png</file>
-        <file>Resources/fonts/arialN/114.png</file>
-        <file>Resources/fonts/arialN/115.png</file>
-        <file>Resources/fonts/arialN/116.png</file>
-        <file>Resources/fonts/arialN/117.png</file>
-        <file>Resources/fonts/arialN/118.png</file>
-        <file>Resources/fonts/arialN/119.png</file>
-        <file>Resources/fonts/arialN/120.png</file>
-        <file>Resources/fonts/arialN/121.png</file>
-        <file>Resources/fonts/arialN/122.png</file>
-        <file>Resources/fonts/arialN/123.png</file>
-        <file>Resources/fonts/arialN/124.png</file>
-        <file>Resources/fonts/arialN/125.png</file>
-        <file>Resources/fonts/arialN/126.png</file>
-        <file>Resources/fonts/arialN/127.png</file>
-        <file>Resources/fonts/arialN/169.png</file>
-        <file>Resources/fonts/arialN/171.png</file>
-        <file>Resources/fonts/arialN/174.png</file>
-        <file>Resources/fonts/arialN/187.png</file>
-        <file>Resources/fonts/arialN/1025.png</file>
-        <file>Resources/fonts/arialN/1040.png</file>
-        <file>Resources/fonts/arialN/1041.png</file>
-        <file>Resources/fonts/arialN/1042.png</file>
-        <file>Resources/fonts/arialN/1043.png</file>
-        <file>Resources/fonts/arialN/1044.png</file>
-        <file>Resources/fonts/arialN/1045.png</file>
-        <file>Resources/fonts/arialN/1046.png</file>
-        <file>Resources/fonts/arialN/1047.png</file>
-        <file>Resources/fonts/arialN/1048.png</file>
-        <file>Resources/fonts/arialN/1049.png</file>
-        <file>Resources/fonts/arialN/1050.png</file>
-        <file>Resources/fonts/arialN/1051.png</file>
-        <file>Resources/fonts/arialN/1052.png</file>
-        <file>Resources/fonts/arialN/1053.png</file>
-        <file>Resources/fonts/arialN/1054.png</file>
-        <file>Resources/fonts/arialN/1055.png</file>
-        <file>Resources/fonts/arialN/1056.png</file>
-        <file>Resources/fonts/arialN/1057.png</file>
-        <file>Resources/fonts/arialN/1058.png</file>
-        <file>Resources/fonts/arialN/1059.png</file>
-        <file>Resources/fonts/arialN/1060.png</file>
-        <file>Resources/fonts/arialN/1061.png</file>
-        <file>Resources/fonts/arialN/1062.png</file>
-        <file>Resources/fonts/arialN/1063.png</file>
-        <file>Resources/fonts/arialN/1064.png</file>
-        <file>Resources/fonts/arialN/1065.png</file>
-        <file>Resources/fonts/arialN/1066.png</file>
-        <file>Resources/fonts/arialN/1067.png</file>
-        <file>Resources/fonts/arialN/1068.png</file>
-        <file>Resources/fonts/arialN/1069.png</file>
-        <file>Resources/fonts/arialN/1070.png</file>
-        <file>Resources/fonts/arialN/1071.png</file>
-        <file>Resources/fonts/arialN/1072.png</file>
-        <file>Resources/fonts/arialN/1073.png</file>
-        <file>Resources/fonts/arialN/1074.png</file>
-        <file>Resources/fonts/arialN/1075.png</file>
-        <file>Resources/fonts/arialN/1076.png</file>
-        <file>Resources/fonts/arialN/1077.png</file>
-        <file>Resources/fonts/arialN/1078.png</file>
-        <file>Resources/fonts/arialN/1079.png</file>
-        <file>Resources/fonts/arialN/1080.png</file>
-        <file>Resources/fonts/arialN/1081.png</file>
-        <file>Resources/fonts/arialN/1082.png</file>
-        <file>Resources/fonts/arialN/1083.png</file>
-        <file>Resources/fonts/arialN/1084.png</file>
-        <file>Resources/fonts/arialN/1085.png</file>
-        <file>Resources/fonts/arialN/1086.png</file>
-        <file>Resources/fonts/arialN/1087.png</file>
-        <file>Resources/fonts/arialN/1088.png</file>
-        <file>Resources/fonts/arialN/1089.png</file>
-        <file>Resources/fonts/arialN/1090.png</file>
-        <file>Resources/fonts/arialN/1091.png</file>
-        <file>Resources/fonts/arialN/1092.png</file>
-        <file>Resources/fonts/arialN/1093.png</file>
-        <file>Resources/fonts/arialN/1094.png</file>
-        <file>Resources/fonts/arialN/1095.png</file>
-        <file>Resources/fonts/arialN/1096.png</file>
-        <file>Resources/fonts/arialN/1097.png</file>
-        <file>Resources/fonts/arialN/1098.png</file>
-        <file>Resources/fonts/arialN/1099.png</file>
-        <file>Resources/fonts/arialN/1100.png</file>
-        <file>Resources/fonts/arialN/1101.png</file>
-        <file>Resources/fonts/arialN/1102.png</file>
-        <file>Resources/fonts/arialN/1103.png</file>
-        <file>Resources/fonts/arialN/1104.png</file>
-        <file>Resources/fonts/arialN/1105.png</file>
-        <file>Resources/fonts/arialN/8211.png</file>
-        <file>Resources/fonts/arialN/8212.png</file>
-        <file>Resources/fonts/arialN/8220.png</file>
-        <file>Resources/fonts/arialN/8221.png</file>
     </qresource>
 </RCC>

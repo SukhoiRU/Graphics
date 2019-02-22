@@ -649,7 +649,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.5f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
+			glUniform1f(u_data_antialias, 0.0/m_scale);
+		}
+		if(m_DataType == Bool)
+		{
+			glUniform1f(u_data_linewidth, 6.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
 		}
 	}
 	else				
@@ -659,7 +664,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.0f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
+		}
+		if(m_DataType == Bool)
+		{
+			glUniform1f(u_data_linewidth, 3.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
 		}
 	}
 

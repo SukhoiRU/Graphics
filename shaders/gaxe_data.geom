@@ -19,6 +19,7 @@ out GS_OUT
 	vec2 coord;			//Координаты углов в мм относительно линии
 	flat vec4 	gColor;
 	flat float	L;		//Длина отрезка
+	flat float	bValue;
 	// flat float	tg1;
 	// flat float	tg2;
 	// flat vec3	c;		//Коэффициенты полинома
@@ -52,7 +53,7 @@ void main()
 			
 			gs_out.coord	= vec2(-dL, -dL);
 			vec4	pos		= worldToCamera * gl_in[1].gl_Position;
-			pos.y       = int(pos.y) + 0.5;
+//			pos.y       = int(pos.y) + 0.5;
 			pos	= inverse(worldToCamera)*pos;
 			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1+d2, 0., 0.));;
 			EmitVertex();
@@ -62,7 +63,7 @@ void main()
 			EmitVertex();
 
 			pos	= worldToCamera * vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.);
-			pos.y       = int(pos.y) + 0.5;
+//			pos.y       = int(pos.y) + 0.5;
 			pos	= inverse(worldToCamera)*pos;
 			gs_out.coord	= vec2(len+dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (pos  + vec4(-d1-d2, 0., 0.)); 
@@ -83,7 +84,7 @@ void main()
 			gs_out.L		= len;
 			
 			pos		= worldToCamera * vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.);
-			pos.x	= int(pos.x) + 0.5;
+//			pos.x	= int(pos.x) + 0.5;
 			pos		= inverse(worldToCamera) * pos;
 			gs_out.coord	= vec2(-dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1+d2, 0., 0.)); 
@@ -94,7 +95,7 @@ void main()
 			EmitVertex();
 
 			pos		= worldToCamera * gl_in[2].gl_Position;
-			pos.x	= int(pos.x) + 0.5;
+//			pos.x	= int(pos.x) + 0.5;
 			pos		= inverse(worldToCamera) * pos;
 			gs_out.coord	= vec2(len+dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1-d2, 0., 0.)); 
@@ -132,7 +133,31 @@ void main()
 		{
 			///////////////////////////////////////////////////////////////////////////////
 			//Отрисовка сигналов bool
+			float	len		= gl_in[2].gl_Position.x - gl_in[1].gl_Position.x;
+			float	dL		= 0.5*linewidth + 1.5*antialias;			
+			vec2	d1		= vec2(0., -dL);
+			vec2	d2		= vec2(-dL, 0.);
 
+			gs_out.bValue	= gl_in[1].gl_Position.z;
+			gs_out.L		= len;
+			
+			gs_out.coord	= vec2(-dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(-dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 
+			EmitVertex();
+			EndPrimitive();
+/*
 			//Средняя линия
 			gl_Position 	= vec4(gl_in[0].gl_Position.xy, 0.0, 1.0); 
 			EmitVertex();
@@ -158,7 +183,7 @@ void main()
 				gl_Position 	= vec4(gl_in[1].gl_Position.xy, 0.0, 1.0) - dy; 
 				EmitVertex();
 				EndPrimitive();
-			}
+			}*/
 		}break;
 
 	default:

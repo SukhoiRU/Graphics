@@ -14,11 +14,17 @@ uniform float linewidth, antialias;
 
 flat in vec4 vColor[];
 
-out vec2 coord;			//Координаты углов в мм относительно линии
-flat out vec4 gColor;
-flat out float	L;		//Длина отрезка
-flat out float	tg1;
-flat out float	tg2;
+out GS_OUT
+{
+	vec2 coord;			//Координаты углов в мм относительно линии
+	flat vec4 	gColor;
+	flat float	L;		//Длина отрезка
+	flat float	tg1;
+	flat float	tg2;
+	flat vec3	c;		//Коэффициенты полинома
+	// flat vec2	sin_cos_1;
+	// flat vec2	sin_cos_2;
+}gs_out;
 
 float	cross(vec2 v1, vec2 v2)
 {
@@ -27,7 +33,7 @@ float	cross(vec2 v1, vec2 v2)
 
 void main() 
 { 
-	gColor = vColor[0];
+	gs_out.gColor = vColor[0];
 
 	switch(lineType)
 	{
@@ -118,41 +124,47 @@ void main()
 
 			float	cos0	= v1.x;//dot(v1, v0);
 			float	sin0	= v1.y;//cross(vec3(v1, 0.), vec3(v0,0.)).z;
-			float	dL		= 0.5*linewidth + 1.5*antialias;
+			float	dL		= (0.5*linewidth + 1.5*antialias);
 			vec2	d1		= dL*vec2(sin0, -cos0);
 			vec2	d2		= -v1*dL;
 
 			float	cos1	= dot(v1, v0);
 			float	sin1	= cross(v1, v0);
-			tg1	= sin1/(1.0+cos1);
+			gs_out.tg1	= sin1/(1.0+cos1);
+			// if(gs_out.tg1 > 0)
+			// 	gs_out.sin_cos_1	= vec2(sqrt(0.5*(1.-cos1)), sqrt(0.5*(1.+cos1)));
+			// else
+			// 	gs_out.sin_cos_1	= vec2(-sqrt(0.5*(1.-cos1)), sqrt(0.5*(1.+cos1)));
 
-			float	cos2	= dot(v2, v1);
-			float	sin2	= cross(v2, v1);
-			tg2	= sin2/(1.0+cos2);
 
-			L		= len;
-			coord	= vec2(-dL, -dL);
+			float	cos2	= dot(v1, v2);
+			float	sin2	= cross(v1, v2);
+			gs_out.tg2	= sin2/(1.0+cos2);
+			// if(gs_out.tg2 > 0)
+			// 	gs_out.sin_cos_1	= vec2(sqrt(0.5*(1.-cos2)), sqrt(0.5*(1.+cos2)));
+			// else
+			// 	gs_out.sin_cos_1	= vec2(-sqrt(0.5*(1.-cos2)), sqrt(0.5*(1.+cos2)));
+
+			//Расчет коэффициентов полинома
+			gs_out.c.z		= gs_out.tg1;
+			gs_out.c.y		= (-gs_out.tg2 - 2.*gs_out.tg1)/len;
+			gs_out.c.x		= (gs_out.tg2 + gs_out.tg1)/len/len;
+
+			gs_out.L		= len;
+			
+			gs_out.coord	= vec2(-dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
 			EmitVertex();
 
-			tg1	= sin1/(1.0+cos1);
-			tg2	= sin2/(1.0+cos2);
-			L		= len;
-			coord	= vec2(-dL, dL);
+			gs_out.coord	= vec2(-dL, dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
 			EmitVertex();
 
-			tg1	= sin1/(1.0+cos1);
-			tg2	= sin2/(1.0+cos2);
-			L		= len;
-			coord	= vec2(len+dL, -dL);
+			gs_out.coord	= vec2(len+dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
 			EmitVertex();
 
-			tg1	= sin1/(1.0+cos1);
-			tg2	= sin2/(1.0+cos2);
-			L		= len;
-			coord	= vec2(len+dL, dL);
+			gs_out.coord	= vec2(len+dL, dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();

@@ -644,12 +644,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Выставляем толщину линии
 	if(m_IsSelected)	
 	{
-		glUniform1f(u_data_linewidth, 5.0f);
+		glUniform1f(u_data_linewidth, 1.5f/m_scale);
 		glUniform1f(u_data_antialias, 1.0f/m_scale);
 	}
 	else				
 	{
-		glUniform1f(u_data_linewidth, 2.5f);
+		glUniform1f(u_data_linewidth, 1.0f/m_scale);
 		glUniform1f(u_data_antialias, 1.0f/m_scale);
 	}
 	if(m_IsSelected && 0)

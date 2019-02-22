@@ -51,19 +51,25 @@ void main()
 			gs_out.L		= len;
 			
 			gs_out.coord	= vec2(-dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
+			vec4	pos		= worldToCamera * gl_in[1].gl_Position;
+			pos.y       = int(pos.y) + 0.5;
+			pos	= inverse(worldToCamera)*pos;
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1+d2, 0., 0.));;
 			EmitVertex();
 
 			gs_out.coord	= vec2(-dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(d1+d2, 0., 0.)); 
 			EmitVertex();
 
+			pos	= worldToCamera * vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.);
+			pos.y       = int(pos.y) + 0.5;
+			pos	= inverse(worldToCamera)*pos;
 			gs_out.coord	= vec2(len+dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.)  + vec4(-d1-d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos  + vec4(-d1-d2, 0., 0.)); 
 			EmitVertex();
 
 			gs_out.coord	= vec2(len+dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(d1-d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();
 
@@ -76,20 +82,26 @@ void main()
 
 			gs_out.L		= len;
 			
+			pos		= worldToCamera * vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.);
+			pos.x	= int(pos.x) + 0.5;
+			pos		= inverse(worldToCamera) * pos;
 			gs_out.coord	= vec2(-dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(-d1+d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1+d2, 0., 0.)); 
 			EmitVertex();
 
 			gs_out.coord	= vec2(-dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(d1+d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(d1+d2, 0., 0.)); 
 			EmitVertex();
 
+			pos		= worldToCamera * gl_in[2].gl_Position;
+			pos.x	= int(pos.x) + 0.5;
+			pos		= inverse(worldToCamera) * pos;
 			gs_out.coord	= vec2(len+dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(-d1-d2, 0., 0.)); 
 			EmitVertex();
 
 			gs_out.coord	= vec2(len+dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 
+			gl_Position = cameraToView *  worldToCamera * (pos + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();
 		}break;

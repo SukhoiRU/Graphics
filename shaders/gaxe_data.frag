@@ -65,8 +65,8 @@ void main()
   // if(gs_in.coord.x < gs_in.coord.y*gs_in.tg1)  distance = 10.;
   // if(gs_in.coord.x > gs_in.L - gs_in.coord.y*gs_in.tg2)  distance = 10.;
  
-  fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
-  //fColor  = gs_in.gColor;
+  //fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
+  fColor  = gs_in.gColor;
   //if(fColor.a > 0.5)   fColor.a = 0.5;
 //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }

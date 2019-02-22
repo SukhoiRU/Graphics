@@ -644,40 +644,31 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Выставляем толщину линии
 	if(m_IsSelected)	
 	{
-		glUniform1f(u_data_linewidth, 5.f);
+		glUniform1f(u_data_linewidth, 1.5f/m_scale);
 		glUniform1f(u_data_antialias, 1.0f/m_scale);
+		if(!m_bInterpol)
+		{
+			glUniform1f(u_data_linewidth, 1.5f/m_scale);
+			glUniform1f(u_data_antialias, 0.);
+		}
 	}
 	else				
 	{
 		glUniform1f(u_data_linewidth, 1.0f/m_scale);
 		glUniform1f(u_data_antialias, 1.0f/m_scale);
-	}
-	if(m_IsSelected && 0)
-	{
-		//Рисуем график со смещением
-		//vec3	color2	= 1.0f*m_Color + 0.0f*vec3(1.);
-		//glUniform3fv(u_data_color, 1, &color2.r);
-		//mat4	data2	= mat4(1.0f);
-		//data2	= translate(data2, vec3(area.x()+1.0f/m_scale, m_BottomRight.y-1.0f/m_scale, 0.f));
-		//data2	= scale(data2, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
-		//data2	= translate(data2, vec3(-t0, -m_Min, 0.f));
-		//glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &data2[0][0]);
-
-	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-		glUniform1f(u_data_linewidth, 10.0f/m_scale);
-		glUniform1f(u_data_antialias, 10.0f/m_scale);
-		glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
-		glUniform1f(u_data_linewidth, 1.0f/m_scale);
-		glUniform1f(u_data_antialias, 1.0f/m_scale);
+		if(!m_bInterpol)
+		{
+			glUniform1f(u_data_linewidth, 1.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.);
+		}
 	}
 
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();
 
@@ -710,6 +701,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		m_marker_program->release();
 	}
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

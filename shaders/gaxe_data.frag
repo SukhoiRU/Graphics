@@ -5,9 +5,9 @@ in GS_OUT
 	vec2 coord;			//Координаты углов в мм относительно линии
 	flat vec4 	gColor;
 	flat float	L;		//Длина отрезка
-	flat float	tg1;
-	flat float	tg2;
-	flat vec3	  c;		//Коэффициенты полинома
+	// flat float	tg1;
+	// flat float	tg2;
+	// flat vec3	  c;		//Коэффициенты полинома
 	// flat vec2	  sin_cos_1;
 	// flat vec2	  sin_cos_2;
 }gs_in;
@@ -38,9 +38,9 @@ void main()
   float distance = gs_in.coord.y;
 
   //Расстояние до полинома
-  float x   = gs_in.coord.x;
-  float y   = gs_in.c.x*x*x*x + gs_in.c.y*x*x + gs_in.c.z*x;
-  float dy  = 3.*gs_in.c.x*x*x + 2.*gs_in.c.y*x + gs_in.c.z;
+  // float x   = gs_in.coord.x;
+  // float y   = gs_in.c.x*x*x*x + gs_in.c.y*x*x + gs_in.c.z*x;
+  // float dy  = 3.*gs_in.c.x*x*x + 2.*gs_in.c.y*x + gs_in.c.z;
   //distance  = y*cos(atan(dy));
   //distance  = (y - gs_in.coord.y);//*sin(atan(dy));
 
@@ -66,6 +66,7 @@ void main()
   // if(gs_in.coord.x > gs_in.L - gs_in.coord.y*gs_in.tg2)  distance = 10.;
  
   fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
+  //fColor  = gs_in.gColor;
   //if(fColor.a > 0.5)   fColor.a = 0.5;
 //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }

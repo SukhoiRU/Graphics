@@ -19,9 +19,9 @@ out GS_OUT
 	vec2 coord;			//Координаты углов в мм относительно линии
 	flat vec4 	gColor;
 	flat float	L;		//Длина отрезка
-	flat float	tg1;
-	flat float	tg2;
-	flat vec3	c;		//Коэффициенты полинома
+	// flat float	tg1;
+	// flat float	tg2;
+	// flat vec3	c;		//Коэффициенты полинома
 	// flat vec2	sin_cos_1;
 	// flat vec2	sin_cos_2;
 }gs_out;
@@ -40,17 +40,56 @@ void main()
 		case 1:
 		{
 			//Ступеньки
-			gl_Position = gl_in[0].gl_Position; 
+			float	len		= gl_in[2].gl_Position.x - gl_in[1].gl_Position.x;
+
+			float	dL		= 0.5*linewidth + 1.5*antialias;
+			
+			//Горизонтальный штрих
+			vec2	d1		= vec2(0., -dL);
+			vec2	d2		= vec2(-dL, 0.);
+
+			gs_out.L		= len;
+			
+			gs_out.coord	= vec2(-dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
 			EmitVertex();
-			gl_Position.x = gl_in[1].gl_Position.x; 
-			gl_Position.y = gl_in[0].gl_Position.y; 
+
+			gs_out.coord	= vec2(-dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.)  + vec4(-d1-d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();
 
-			gl_Position.x = gl_in[1].gl_Position.x; 
-			gl_Position.y = gl_in[0].gl_Position.y; 
+			//Вертикальный штрих
+			len		= abs(gl_in[2].gl_Position.y - gl_in[1].gl_Position.y);
+			d1		= vec2(-dL, 0.);
+			
+			if(gl_in[2].gl_Position.y > gl_in[1].gl_Position.y)	d2		= vec2(0., -dL);
+			else												d2		= vec2(0., dL);
+
+			gs_out.L		= len;
+			
+			gs_out.coord	= vec2(-dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(-d1+d2, 0., 0.)); 
 			EmitVertex();
-			gl_Position = gl_in[1].gl_Position; 
+
+			gs_out.coord	= vec2(-dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (vec4(gl_in[2].gl_Position.x, gl_in[1].gl_Position.y, 0., 1.) + vec4(d1+d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, -dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(len+dL, dL);
+			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();
 		}break;
@@ -124,10 +163,10 @@ void main()
 
 			float	cos0	= v1.x;//dot(v1, v0);
 			float	sin0	= v1.y;//cross(vec3(v1, 0.), vec3(v0,0.)).z;
-			float	dL		= (0.5*linewidth + 1.5*antialias);
+			float	dL		=(0.5*linewidth + 1.5*antialias);
 			vec2	d1		= dL*vec2(sin0, -cos0);
 			vec2	d2		= -v1*dL;
-
+/*
 			float	cos1	= dot(v1, v0);
 			float	sin1	= cross(v1, v0);
 			gs_out.tg1	= sin1/(1.0+cos1);
@@ -149,7 +188,7 @@ void main()
 			gs_out.c.z		= gs_out.tg1;
 			gs_out.c.y		= (-gs_out.tg2 - 2.*gs_out.tg1)/len;
 			gs_out.c.x		= (gs_out.tg2 + gs_out.tg1)/len/len;
-
+*/
 			gs_out.L		= len;
 			
 			gs_out.coord	= vec2(-dL, -dL);

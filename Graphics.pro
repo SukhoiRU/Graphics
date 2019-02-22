@@ -4,17 +4,50 @@
 
 TEMPLATE = app
 TARGET = Graphics
-CONFIG(release, debug|release): DESTDIR = ../../../bin/qtcreator
-else:CONFIG(debug, debug|release): DESTDIR = ../../../bin/qtcreator/debug
+
+unix{
+    CONFIG(release, debug|release)
+    {
+        DESTDIR = ../bin/qtcreator
+        OBJECTS_DIR = ../garbage
+        LIBS += -ldl
+    }
+
+    CONFIG(debug, debug|release)
+    {
+        DESTDIR = ../bin/qtcreator/debug
+        OBJECTS_DIR = ../garbage/debug
+        LIBS += -ldl
+    }
+}
+
+win32{
+    CONFIG(release, debug|release)
+    {
+        DESTDIR = ../../bin/qtcreator
+        OBJECTS_DIR = ../../garbage
+        LIBS += -lopengl32 -lglu32
+    }
+
+    CONFIG(debug, debug|release)
+    {
+        DESTDIR = ../../bin/qtcreator
+        OBJECTS_DIR = ../../garbage/debug
+        LIBS += -lopengl32 -lglu32
+    }
+}
+
 QT += core xml opengl gui widgets printsupport svg
 CONFIG += debug
+
 #DEFINES += WIN64 QT_OPENGL_LIB QT_PRINTSUPPORT_LIB QT_WIDGETS_LIB QT_XML_LIB
 DEFINES += QT_DEPRECATED_WARNINGS
 INCLUDEPATH += ./GeneratedFiles \
     . \
     ./GeneratedFiles/$(ConfigurationName)\
-    ../../include/glad/include
-LIBS += -ldl
+    ../../include/glad/include\
+    ../../include/glm
+
 #LIBS += -lopengl32
 #    -lglu32
 #DEPENDPATH += .

@@ -263,7 +263,7 @@ void	GTextLabel::prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void	GTextLabel::renderText(vec3 color, float alpha)
+void	GTextLabel::renderText(vec3 color, float /*alpha*/)
 {
 	textShader->bind();
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);

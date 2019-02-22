@@ -911,8 +911,8 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 
 void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
-	Qt::MouseButtons		buttons		= event->buttons();
-	Qt::KeyboardModifiers	modifiers	= event->modifiers();
+//	Qt::MouseButtons		buttons		= event->buttons();
+//	Qt::KeyboardModifiers	modifiers	= event->modifiers();
 
 	//Если есть выделенные объекты, закончим перемещение
 	if(m_SelectedObjects.size())
@@ -1007,7 +1007,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	}
 }
 
-void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* axes)
+void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 {
 	m_pPanel	= nullptr;
 }

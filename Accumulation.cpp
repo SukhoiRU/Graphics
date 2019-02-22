@@ -123,7 +123,7 @@ void	Accumulation::Load(QFile& in)
 	in.read((char*)m_pData, m_nRecordSize*m_nRecCount);
 }
 
-void	Accumulation::LoadTRF(QFile& trf)
+void	Accumulation::LoadTRF(QFile& /*trf*/)
 {/*
 #pragma pack(push, 1)
 			struct TrfHead
@@ -781,7 +781,7 @@ void	Accumulation::LoadExcell(QFile& in)
 }
 
 */
-void	Accumulation::LoadExcell(QFile& in)
+void	Accumulation::LoadExcell(QFile& /*in*/)
 { // ВАРИАНТ ДЛЯ ПРОБЕЛОВ
 /*	//Для начала все стираем
 	if(m_pData){delete[] m_pData; m_pData = 0;}
@@ -861,7 +861,7 @@ void	Accumulation::LoadExcell(QFile& in)
 	fclose(pFile);*/
 }
 
-void	Accumulation::LoadKARP(QFile& in)
+void	Accumulation::LoadKARP(QFile& /*in*/)
 {
 /*	//Для начала все стираем
 	if(m_pData){delete[] m_pData; m_pData = 0;}
@@ -1336,7 +1336,7 @@ void	Accumulation::SaveHeader_TRF(QFile& file, int nRecBegin, int nRecEnd) const
 	}
 }
 
-void	Accumulation::SaveHeader_CCS(QFile& file, int nRecBegin, int nRecEnd, BYTE* pData, TempFileHolder& holder) const
+void	Accumulation::SaveHeader_CCS(QFile& /*file*/, int /*nRecBegin*/, int /*nRecEnd*/, BYTE* /*pData*/, TempFileHolder& /*holder*/) const
 {
 /*	if(m_sCCS_Head.IsEmpty())
 	{
@@ -1618,7 +1618,7 @@ void	Accumulation::SetStartTime(double Time0) const
 }
 
 
-void	Accumulation::Print(LPCSTR FileName, bool bHead/* = true*/)
+void	Accumulation::Print(LPCSTR /*FileName*/, bool /*bHead*//* = true*/)
 {/*
 	QFile	out;
 	if(FAILED(out.Create(FileName, GENERIC_WRITE, FILE_SHARE_WRITE, CREATE_ALWAYS)))
@@ -1685,7 +1685,7 @@ void	Accumulation::Print(LPCSTR FileName, bool bHead/* = true*/)
 	out.write((char*)file, file.GetLength());*/
 }
 
-void	Accumulation::LoadMIG(QFile& trf)
+void	Accumulation::LoadMIG(QFile& /*trf*/)
 {/*
 #pragma pack(push, 1)
 	struct MiGHead

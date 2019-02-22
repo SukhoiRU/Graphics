@@ -57,7 +57,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float /*alpha*/)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
@@ -158,7 +158,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		//Пересоздаем буфер
 		if(gridVBO)
 		{
-			int old	= gridVBO;
+                        GLuint old	= gridVBO;
 			glDeleteBuffers(1, &gridVBO);
 			glGenBuffers(1, &gridVBO);
 			if(old != gridVBO)
@@ -188,7 +188,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		//Буфер для оси
 		if(axeVBO) 
 		{
-			int old	= axeVBO;
+                        GLuint old	= axeVBO;
 			glDeleteBuffers(1, &axeVBO);
 			glGenBuffers(1, &axeVBO);
 			if(old != axeVBO)

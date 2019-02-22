@@ -40,10 +40,10 @@ SOURCES += \
     $$PWD/graphicsview.cpp \
     $$PWD/main.cpp \
     $$PWD/stdafx.cpp
-FORMS += ./Dialogs/graphselect.ui \
-    ./Dialogs/panelselect.ui \
-    ./graphicsdoc.ui \
-    ./Dialogs/PageSetup.ui
+FORMS += $$PWD/Dialogs/graphselect.ui \
+    $$PWD/Dialogs/panelselect.ui \
+    $$PWD/graphicsdoc.ui \
+    $$PWD/Dialogs/PageSetup.ui
 RESOURCES += graphics.qrc
 PRECOMPILED_HEADER = stdafx.h
 

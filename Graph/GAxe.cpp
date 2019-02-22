@@ -280,7 +280,7 @@ void	GAxe::setAxeLength(int len)
 	//Буфер для оси
 	if(axeVBO)
 	{ 
-		int old	= axeVBO;
+                GLuint old	= axeVBO;
 		glDeleteBuffers(1, &axeVBO);
 		glGenBuffers(1, &axeVBO);
 		if(old != axeVBO)
@@ -320,7 +320,7 @@ void	GAxe::setAxeLength(int len)
 	textLabel->prepare();
 }
 
-void	GAxe::Save(QDomElement* node)
+void	GAxe::Save(QDomElement* /*node*/)
 {/*
 	IXMLDOMNamedNodeMap*	map		= 0;
 	pXml->GetNodeMap(node, &map);
@@ -806,7 +806,7 @@ void	GAxe::OnStopMoving()
 	m_FrameBR	= m_BottomRight;
 }
 
-bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf)
+bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
 {
 	//Переместим рамку
 	m_FrameBR		+= delta;
@@ -965,7 +965,7 @@ GRect	GAxe::GetFrameRect()
 	return rc;
 }
 */
-void	GAxe::GetLimits(double* pMin, double* pMax)
+void	GAxe::GetLimits(double* /*pMin*/, double* /*pMax*/)
 {/*
 	UpdateRecord(false);
 	if(m_Record == -1)
@@ -1063,7 +1063,7 @@ void	GAxe::GetLimits(double* pMin, double* pMax)
 	}*/
 }
 
-void	GAxe::GetLimits(double t0, double t1, double* pMin, double* pMax)
+void	GAxe::GetLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*pMax*/)
 {/*
 	UpdateRecord(false);
 	if(m_Record == -1)
@@ -1174,7 +1174,7 @@ void	GAxe::GetLimits(double t0, double t1, double* pMin, double* pMax)
 	}*/
 }
 
-void	GAxe::FitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
+void	GAxe::FitToScale(double /*t0*/ /* = 0 */, double /*t1*/ /* = 0 */)
 {/*
 	//Если буфер пустой...
 	if(m_nAcc == -1)	return;
@@ -1228,7 +1228,7 @@ void	GAxe::FitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 {
 	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
-	if(m_nAcc == -1 || m_nAcc >= pData->size())
+        if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
 	{
 		m_Record	= -1;
 		return;
@@ -1311,7 +1311,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 
 				if(dataVBO)
 				{
-					int old	= dataVBO;
+                                        GLuint old	= dataVBO;
 					glDeleteBuffers(1, &dataVBO);
 					glGenBuffers(1, &dataVBO);
 					if(old != dataVBO)
@@ -1346,7 +1346,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 }
 
 //Отрисовка маркера в заданных координатах
-void	GAxe::DrawMarker(int x, int y)
+void	GAxe::DrawMarker(int /*x*/, int /*y*/)
 {/*
 	if(m_DataType == Bool)	return;
 
@@ -1871,7 +1871,7 @@ void	GAxe::UpdateFiltering()
 //	m_pDoc->UpdateAllViews(0);*/
 }
 
-void	GAxe::Zoom(bool bUp)
+void	GAxe::Zoom(bool /*bUp*/)
 {/*
 	//Растяжение/сжатие масштаба
 	if(m_DataType == Bool)	return;

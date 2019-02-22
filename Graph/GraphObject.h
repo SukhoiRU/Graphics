@@ -47,12 +47,12 @@ public:
     virtual void	clearGL(){}
 
 	//Рисование
-    virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha){}					//Полное рисование
+    virtual void	Draw(const double /*t0*/, const double /*TimeScale*/, const QSizeF& /*grid*/, const QRectF& /*area*/, const float /*alpha*/){}					//Полное рисование
     virtual void	DrawFrame(){}				//Отрисовка только рамки
 
 	//Мышиные дела
-    virtual bool	HitTest(const vec2& pt){return false;}		//Проверка на попадание курсора
-    virtual bool	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf){return false;}	//Перемещение на заданное расстояние
+    virtual bool	HitTest(const vec2& /*pt*/){return false;}		//Проверка на попадание курсора
+    virtual bool	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/){return false;}	//Перемещение на заданное расстояние
     virtual void	OnDoubleClick(){}				//Реакция на щелчок мышью
     virtual void	OnStartMoving(){}				//Реакция на начало перетаскивания
     virtual void	OnStopMoving(){}				//Реакция на конец перетаскивания

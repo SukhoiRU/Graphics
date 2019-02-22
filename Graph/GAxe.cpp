@@ -666,9 +666,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
-glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
-glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();
 

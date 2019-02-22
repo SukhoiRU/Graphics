@@ -14,9 +14,11 @@ uniform float linewidth, antialias;
 
 flat in vec4 vColor[];
 
-flat out vec4 gColor;
 out vec2 coord;			//Координаты углов в мм относительно линии
+flat out vec4 gColor;
 flat out float	L;		//Длина отрезка
+flat out float	tg1;
+flat out float	tg2;
 
 float	cross(vec2 v1, vec2 v2)
 {
@@ -104,50 +106,6 @@ void main()
 
 	default:
 		{
-			if(gl_PrimitiveIDIn == 0)
-			{
-				//Вычисляем угол с предыдущей линией
-				vec2	v0	= (gl_in[1].gl_Position.xy- gl_in[0].gl_Position.xy);
-				vec2	v1	= (gl_in[2].gl_Position.xy- gl_in[1].gl_Position.xy);
-				vec2	v2	= (gl_in[3].gl_Position.xy- gl_in[2].gl_Position.xy);
-				
-				float len	= length(v1);
-				v0	= normalize(v0);
-				v1	= normalize(v1);
-				v2	= normalize(v2);
-
-				float	cos1	= v1.x;//dot(v1, v0);
-				float	sin1	= v1.y;//cross(vec3(v1, 0.), vec3(v0,0.)).z;
-				float	dL		= 0.5*linewidth + 1.5*antialias;
-				vec2	d1		= dL*vec2(sin1, -cos1);
-				vec2	d2		= -v1*dL;
-
-				v0	= v1;
-				v1	= v2;
-				v2	= v2 + vec2(1.0, 0.0);
-
-				L		= len;
-				coord	= vec2(-dL, -dL);
-				gl_Position = cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(-d1+d2, 0., 0.)); 
-				EmitVertex();
-
-				L		= len;
-				coord	= vec2(-dL, dL);
-				gl_Position = cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(d1+d2, 0., 0.)); 
-				EmitVertex();
-
-				L		= len;
-				coord	= vec2(len+dL, -dL);
-				gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1-d2, 0., 0.)); 
-				EmitVertex();
-
-				L		= len;
-				coord	= vec2(len+dL, dL);
-				gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1-d2, 0., 0.)); 
-				EmitVertex();
-				EndPrimitive();
-			}
-
 			//Вычисляем угол с предыдущей линией
 			vec2	v0	= (gl_in[1].gl_Position.xy- gl_in[0].gl_Position.xy);
 			vec2	v1	= (gl_in[2].gl_Position.xy- gl_in[1].gl_Position.xy);
@@ -158,27 +116,41 @@ void main()
 			v1	= normalize(v1);
 			v2	= normalize(v2);
 
-			float	cos1	= v1.x;//dot(v1, v0);
-			float	sin1	= v1.y;//cross(vec3(v1, 0.), vec3(v0,0.)).z;
+			float	cos0	= v1.x;//dot(v1, v0);
+			float	sin0	= v1.y;//cross(vec3(v1, 0.), vec3(v0,0.)).z;
 			float	dL		= 0.5*linewidth + 1.5*antialias;
-			vec2	d1		= dL*vec2(sin1, -cos1);
+			vec2	d1		= dL*vec2(sin0, -cos0);
 			vec2	d2		= -v1*dL;
-	
+
+			float	cos1	= dot(v1, v0);
+			float	sin1	= cross(v1, v0);
+			tg1	= sin1/(1.0+cos1);
+
+			float	cos2	= dot(v2, v1);
+			float	sin2	= cross(v2, v1);
+			tg2	= sin2/(1.0+cos2);
+
 			L		= len;
 			coord	= vec2(-dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
 			EmitVertex();
 
+			tg1	= sin1/(1.0+cos1);
+			tg2	= sin2/(1.0+cos2);
 			L		= len;
 			coord	= vec2(-dL, dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
 			EmitVertex();
 
+			tg1	= sin1/(1.0+cos1);
+			tg2	= sin2/(1.0+cos2);
 			L		= len;
 			coord	= vec2(len+dL, -dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
 			EmitVertex();
 
+			tg1	= sin1/(1.0+cos1);
+			tg2	= sin2/(1.0+cos2);
 			L		= len;
 			coord	= vec2(len+dL, dL);
 			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 

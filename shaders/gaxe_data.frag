@@ -1,8 +1,11 @@
 #version 330 core
 
-flat in vec4 gColor;
 in vec2	coord;	   //Координаты углов в мм относительно линии
+flat in vec4 gColor;
 flat in float	L;		//Длина отрезка
+flat in float	tg1;
+flat in float	tg2;
+
 out vec4 fColor;
 
 uniform float linewidth, antialias;
@@ -25,14 +28,24 @@ vec4 stroke(float distance,  // Signed distance to line
 
 void main()
 {
-  	vec2  P = gl_PointCoord.xy - vec2(0.5, 0.5);
-	float distance = coord.y;
-   if(coord.x < 0.)
-      distance = length(coord);
-   else if(coord.x > L)
-      distance = length(coord - vec2(L, 0.));
-	fColor = stroke(distance, linewidth, antialias, gColor);
-//   if(fColor.a > 0.5)   fColor.a = 0.5;
+  float distance = coord.y;
+
+  //Обрезаем ближний конец
+  if(tg1 > 0 && (coord.y > coord.x*tg1))  discard;
+  if(tg1 < 0 && (coord.y < coord.x*tg1))  discard;
+
+  //Обрезаем дальний конец
+ // if(tg2 < 0 && (coord.y > (coord.x-L)*tg2))  discard;
+ // if(tg2 > 0 && (coord.y < (coord.x-L)*tg2))  discard;
+
+  //Полукруги возле концов
+  if(coord.x < 0.)
+    distance = length(coord);
+  else if(coord.x > L)
+    distance = length(coord - vec2(L, 0.));
+  
+  fColor = stroke(distance, linewidth, antialias, gColor);
+  if(fColor.a > 0.5)   fColor.a = 0.5;
 //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }
   

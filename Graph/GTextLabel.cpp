@@ -199,12 +199,11 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	for(int i = 0; i < str.length(); i++)
 	{
 		//Получаем информацию о символе
-		int code	= str.at(i).unicode();
-		auto	it	= font->charMap.find(code);
-		if(it == font->charMap.end())
-			code	= 126;
+		CharInfo	info;
+		map<int, CharInfo>::iterator	it	= font->charMap.find(str.at(i).unicode());
+		if(it == font->charMap.end())	info	= font->charMap.at(126);
+		else							info	= it->second;
 
-		CharInfo	info	= font->charMap.at(code);
 		float		texSize	= (std::max(info.size.x, info.size.y)*fontSize)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
 		vec2		center	= vec2(x, y) + fontSize*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 

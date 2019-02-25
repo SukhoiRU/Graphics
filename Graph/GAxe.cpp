@@ -649,7 +649,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.5f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
+			glUniform1f(u_data_antialias, 0.0/m_scale);
+		}
+		if(m_DataType == Bool)
+		{
+			glUniform1f(u_data_linewidth, 6.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
 		}
 	}
 	else				
@@ -659,7 +664,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.0f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
+		}
+		if(m_DataType == Bool)
+		{
+			glUniform1f(u_data_linewidth, 3.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.0f/m_scale);
 		}
 	}
 
@@ -667,7 +677,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
 //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
 //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();

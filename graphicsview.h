@@ -83,7 +83,7 @@ private:
 	QRectF		pageBorders;
 	GLfloat		bdWidth;	//Толщина линии рамки
 	QRectF		graphBorders;
-	QSizeF		gridStep;
+	vec2		gridStep;
 	vec2		m_mousePos;	//Текущее положение курсора
 	vec2		m_clickPos;	//Точка щелчка мышью
 	bool		m_bOnMouse;

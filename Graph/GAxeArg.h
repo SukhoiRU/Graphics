@@ -31,8 +31,9 @@ private:
 
 	double	oldTime;
 	double	oldTimeScale;
-	QSizeF	oldGrid;
-	QRectF	oldArea;
+	vec2	oldGrid;
+	vec2	oldAreaBL;
+	vec2	oldAreaSize;
 	float	oldScale;
 	GTextLabel*		textLabel;
 
@@ -49,7 +50,7 @@ public:
 
 	//Рисование
 	virtual	void	initializeGL();
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
 
 	//Мышиные дела
         virtual bool	HitTest(const vec2& /*pt*/){return false;}//Проверка на попадание курсора

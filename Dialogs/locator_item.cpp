@@ -111,3 +111,9 @@ void	LocatorItem::sortAxes()
 		return (pAxe1->GetTopPosition() > pAxe2->GetTopPosition());
 	});
 }
+
+void	LocatorItem::setHeaderData(QString first, QString second)
+{
+	m_Data.name		= first;
+	m_Data.value	= second;
+}

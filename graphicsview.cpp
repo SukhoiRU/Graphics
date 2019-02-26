@@ -44,8 +44,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	graphBorders.setRight(10);
 	graphBorders.setBottom(12);
 
-	gridStep.setHeight(5);
-	gridStep.setWidth(5);
+	gridStep	= vec2(5.);
 
     m_scale = 4.0f;
 
@@ -53,7 +52,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	pageSize	= settings.value("GraphicsView/pageSize", pageSize).toSize();
 	pageBorders	= settings.value("GraphicsView/pageBorders", pageBorders).toRectF();
 	graphBorders	= settings.value("GraphicsView/graphBorders", graphBorders).toRectF();
-	gridStep	= settings.value("GraphicsView/gridStep", gridStep).toSize();
+	QSizeF	gS	= settings.value("GraphicsView/gridStep", QSizeF(5.,5.)).toSize();
+	gridStep	= vec2(gS.width(), gS.height());
 	m_scale		= settings.value("GraphicsView/m_scale", m_scale).toFloat();
 
 	bdWidth	= 0.1f;
@@ -86,7 +86,7 @@ GraphicsView::~GraphicsView()
 	settings.setValue("GraphicsView/pageSize", pageSize);
 	settings.setValue("GraphicsView/pageBorders", pageBorders);
 	settings.setValue("GraphicsView/graphBorders", graphBorders);
-	settings.setValue("GraphicsView/gridStep", gridStep);
+	settings.setValue("GraphicsView/gridStep", QSizeF(gridStep.x, gridStep.y));
 	settings.setValue("GraphicsView/m_scale", m_scale);
 	settings.sync();
 
@@ -337,7 +337,7 @@ void GraphicsView::paintGL()
 
 	{
 		mat4 dataModel	= mat4(1.f);
-		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 4.*gridStep.height(), 0.f));
+		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 4.*gridStep.y, 0.f));
 		//m_pLabel->addString("A", , );
 
 		m_pLabel->setMatrix(dataModel);
@@ -462,6 +462,8 @@ void GraphicsView::drawScene()
 		glDrawArrays(GL_LINE_LOOP, 8, 4);
 	
 		//Рисуем список графических объектов
+		vec2	areaBL(area.x(), area.y());
+		vec2	areaSize(area.width(), area.height());
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
@@ -471,16 +473,16 @@ void GraphicsView::drawScene()
 				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 					if(m_SelectedObjects.at(j) == pGraph)
 						continue;
-				pGraph->Draw(Time0, TimeScale, gridStep, area, 0.3f);
+				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
 			}
 			else
-				pGraph->Draw(Time0, TimeScale, gridStep, area, 1.0f);
+				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		//Дорисовываем выделенные
 		for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 		{
-			m_SelectedObjects.at(j)->Draw(Time0, TimeScale, gridStep, area, 1.0f);
+			m_SelectedObjects.at(j)->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -628,7 +630,7 @@ void	GraphicsView::openPageSetup()
 		pPageSetup->pageSize		= pageSize;
 		pPageSetup->pageBorders		= pageBorders;
 		pPageSetup->graphBorders	= graphBorders;
-		pPageSetup->gridStep		= gridStep;
+		pPageSetup->gridStep		= QSizeF(gridStep.x, gridStep.y);
         pPageSetup->zoom            = m_scale;
 		pPageSetup->load_data();
 		connect(pPageSetup, &PageSetup::onApply, this, &GraphicsView::updatePage);
@@ -645,7 +647,7 @@ void	GraphicsView::updatePage()
 		pageSize		= pPageSetup->pageSize;
 		pageBorders		= pPageSetup->pageBorders;
 		graphBorders	= pPageSetup->graphBorders;
-		gridStep		= pPageSetup->gridStep;
+		gridStep		= vec2(pPageSetup->gridStep.width(), pPageSetup->gridStep.height());
 
 		updatePageBuffer();
 	}
@@ -670,9 +672,9 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		//Добавляем объект в список выделенных
 		pGraph->m_IsSelected	= true;
 		m_SelectedObjects.push_back(pGraph);
-		pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
-							 .arg(((Graph::GAxe*)pGraph)->dataVBO)
-							.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
+		//pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
+		//					 .arg(((Graph::GAxe*)pGraph)->dataVBO)
+		//					.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
 	}
 	else
 	{
@@ -733,7 +735,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	//Получаем мышь в поле графиков
 	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
 	glm::vec4	graph	= glm::inverse(graphM)*world;
-	double time	= Time0	+ graph.x/gridStep.width()*TimeScale;
+	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	if(time != curTime && m_bOnMouse)
 	{
 		curTime = time;
@@ -792,7 +794,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 			{
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
-				Time0	-=	delta.x/gridStep.width()*TimeScale;
+				Time0	-=	delta.x/gridStep.x*TimeScale;
 #ifdef USE_FBO
 				drawScene();
 #endif // USE_FBO

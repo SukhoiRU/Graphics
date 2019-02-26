@@ -37,6 +37,7 @@ public:
 	void				update(double time);
 	void				clear();
 	void				sortAxes();
+	void				setHeaderData(QString first, QString second);
 
 private:
 	LocatorItem*			m_pParent;

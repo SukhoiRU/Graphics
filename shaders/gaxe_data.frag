@@ -5,6 +5,7 @@ in GS_OUT
 	vec2 coord;			//Координаты углов в мм относительно линии
 	flat vec4 	gColor;
 	flat float	L;		//Длина отрезка
+	flat float	bValue;
 }gs_in;
 
 out vec4 fColor;
@@ -37,17 +38,21 @@ void main()
   //Полукруги возле концов
   if(gs_in.coord.x < 0.)
   {
-	distance = length(gs_in.coord);
-	Kalpha  = 0.5;
+	  distance = length(gs_in.coord);
+	  Kalpha  = 0.5;
   } 
   else if(gs_in.coord.x > gs_in.L)
+  {
     distance = length(gs_in.coord - vec2(gs_in.L, 0.));
+    Kalpha  = 0.5;
+  }
 
   // if(gs_in.coord.x < gs_in.coord.y*gs_in.tg1)  distance = 10.;
   // if(gs_in.coord.x > gs_in.L - gs_in.coord.y*gs_in.tg2)  distance = 10.;
  
-  //fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
-  fColor  = gs_in.gColor;
+  fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
+  fColor.a  *= Kalpha;
+  //fColor  = gs_in.gColor;
   //if(fColor.a > 0.5)   fColor.a = 0.5;
 //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }

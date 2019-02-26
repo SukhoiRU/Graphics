@@ -89,6 +89,9 @@ GAxe::GAxe()
 	dataVBO		= 0;
 	axeVBO		= 0;
 	oldGrid		= QSizeF(5.0f, 5.0f);
+	oldTime0	= 0;
+	oldTimeStep	= 20;
+	m_markersCount	= 0;
 }
 
 GAxe::~GAxe()
@@ -218,7 +221,7 @@ void	GAxe::setAxeLength(int len)
 
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(3.8f);
+	textLabel->setFont(3.5f);
 
 	//Заливка данных в видеопамять
 	vector<vec2>	data;
@@ -408,22 +411,9 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
+void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
 {
-	//Контроль деления на ноль
-	if(!TimeScale)	return;
-	if(!grid.height())	return;
-	if(oldGrid != grid)
-	{
-		oldGrid	= grid;
-		setAxeLength(m_AxeLength);
-	}
-	if(oldScale != m_scale)
-	{
-		oldScale	= m_scale;
-		setAxeLength(m_AxeLength);
-	}
-	oldArea	= area;
+	if(!m_data.size())	return;
 
 	//Определяем диапазон индексов
 	int	nMin	= 0;
@@ -435,7 +425,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		else						nMax	= n;
 	}
 
-	int	nStartIndex	= max(0, nMin-1);
+	GLuint	nStartIndex	= max(0, nMin-1);
 
 	nMin	= 0;
 	nMax	= m_data.size()-1;
@@ -445,7 +435,74 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(m_data.at(n).x <= t0 + TimeScale*(area.width()/grid.width()))	nMin	= n;
 		else																nMax	= n;
 	}
-	int	nStopIndex	= min(int(m_data.size()-1), nMax+1);
+	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
+
+	//При необходимости пересчитываем индексы
+	if(t0 != oldTime0 || TimeScale != oldTimeStep)
+	{
+		oldTime0	= t0;
+		oldTimeStep	= TimeScale;
+
+		//Определяем размер пикселя в физических масштабах
+		vec2	pix;
+		pix.x	= TimeScale/(grid.width()*m_scale);
+		pix.y	= m_AxeScale/(grid.height()*m_scale);
+
+		//Добавляем первую точку
+		vec2	oldPoint	= m_data.at(nStartIndex);
+		m_indices.clear();
+		m_indices.push_back(nStartIndex);
+
+		//Ищем следующую за пределами пикселя
+		for(size_t i = nStartIndex; i <= nStopIndex; i++)
+		{
+			vec2	pt	= m_data.at(i);
+			if(pt.x - oldPoint.x > pix.x || abs(pt.y - oldPoint.y) > pix.y)
+			{
+				m_indices.push_back((GLuint)i);
+				oldPoint	= pt;
+			}
+		}
+
+		//Заливаем их в буфер
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size()*sizeof(GLuint), m_indices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		//Создаем буфер индексов для маркеров
+		vector<GLuint>	markers;
+		int dN	= (nStopIndex-nStartIndex)/5;	//Шаг между маркерами
+		int	first	= (nStartIndex/dN)*(dN+1);
+		for(int i = 0; i < 5; i++)
+		{
+			markers.push_back(first + (i+1)*dN);
+		}
+		m_markersCount	= 5;
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, markers.size()*sizeof(GLuint), markers.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+}
+
+void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
+{
+	//Контроль деления на ноль
+	if(!TimeScale)	return;
+	if(!grid.height())	return;
+	if(oldGrid != grid)
+	{
+		oldGrid	= grid;
+		setAxeLength(m_AxeLength);
+		updateIndices(t0, TimeScale, grid, area);
+	}
+	if(oldScale != m_scale)
+	{
+		oldScale	= m_scale;
+		setAxeLength(m_AxeLength);
+		updateIndices(t0, TimeScale, grid, area);
+	}
+	oldArea	= area;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -581,6 +638,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;
 	if(!m_data.size())	return;
+	updateIndices(t0, TimeScale, grid, area);
 
 	m_data_program->bind();
 	glUniform3fv(u_data_color, 1, &color.r);
@@ -644,7 +702,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//Выставляем толщину линии
 	if(m_IsSelected)	
 	{
-		glUniform1f(u_data_linewidth, 1.5f/m_scale);
+		glUniform1f(u_data_linewidth, 2.0/m_scale);
 		glUniform1f(u_data_antialias, 1.0f/m_scale);
 		if(!m_bInterpol)
 		{
@@ -660,7 +718,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	else				
 	{
 		glUniform1f(u_data_linewidth, 1.0f/m_scale);
-		glUniform1f(u_data_antialias, 1.0f/m_scale);
+		glUniform1f(u_data_antialias, 0.5f/m_scale);
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.0f/m_scale);
@@ -677,7 +735,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
 //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_LINE_STRIP_ADJACENCY, nStartIndex, nStopIndex - nStartIndex + 1);
+	//glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
+	glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();
@@ -702,12 +764,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		vec4	bg_color	= vec4(color, 1.0f);
 		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
 
-		//Рисуем нулевую точку из буфера оси
-		int	dN	= (nStopIndex - nStartIndex)/5;
-		for(int i = 0; i < 5; i++)
-		{
-			glDrawArrays(GL_POINTS, nStartIndex + i*dN + m_Record, 1);
-		}
+		//Отрисовка набора маркеров
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+		glDrawElements(GL_POINTS, m_markersCount, GL_UNSIGNED_INT, nullptr);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		m_marker_program->release();
 	}
@@ -1313,16 +1373,17 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 
 				if(dataVBO)
 				{
-                                        GLuint old	= dataVBO;
 					glDeleteBuffers(1, &dataVBO);
 					glGenBuffers(1, &dataVBO);
-					if(old != dataVBO)
-					{
-						qDebug() << "dataVBO";
-					}
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+					glDeleteBuffers(1, &dataIBO);
+					glGenBuffers(1, &dataIBO);
+
+					glDeleteBuffers(1, &markerIBO);
+					glGenBuffers(1, &markerIBO);
 				}
 				else
 				{
@@ -1330,6 +1391,9 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
+					
+					glGenBuffers(1, &dataIBO);
+					glGenBuffers(1, &markerIBO);
 				}
 
 				//Обновляем VAO оси
@@ -1427,7 +1491,9 @@ void	GAxe::DrawMarker(int /*x*/, int /*y*/)
 double	GAxe::GetValueAtTime(const double Time) const
 {
 	//Получаем значение на заданный момент времени
-	if(m_data.size() == 0)	return 0;
+	if(m_data.size() == 0)			return 0;
+	if(Time <= m_data.front().x)	return m_data.front().y;
+	if(Time >= m_data.back().x)		return m_data.back().y;
 
 	//Ищем индекс в данных
 	size_t	nMin	= 0;

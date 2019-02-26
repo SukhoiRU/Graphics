@@ -670,9 +670,9 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		//Добавляем объект в список выделенных
 		pGraph->m_IsSelected	= true;
 		m_SelectedObjects.push_back(pGraph);
-		pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
-							 .arg(((Graph::GAxe*)pGraph)->dataVBO)
-							.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
+		//pStatus->showMessage(QString("dataVBO = %1, axeVBO = %2")
+		//					 .arg(((Graph::GAxe*)pGraph)->dataVBO)
+		//					.arg(((Graph::GAxe*)pGraph)->axeVBO), 10000);
 	}
 	else
 	{

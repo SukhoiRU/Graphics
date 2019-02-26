@@ -19,6 +19,7 @@ out GS_OUT
 	vec2 coord;			//Координаты углов в мм относительно линии
 	flat vec4 	gColor;
 	flat float	L;		//Длина отрезка
+	flat float	bValue;
 }gs_out;
 
 float	cross(vec2 v1, vec2 v2)
@@ -126,7 +127,7 @@ void main()
 		{
 			///////////////////////////////////////////////////////////////////////////////
 			//Отрисовка сигналов bool
-			float	len		= gl_in[2].gl_Position.x - gl_in[1].gl_Position.x;
+/*			float	len		= gl_in[2].gl_Position.x - gl_in[1].gl_Position.x;
 			float	dL		= 0.5*linewidth + 1.5*antialias;			
 			vec2	d1		= vec2(0., -dL);
 			vec2	d2		= vec2(-dL, 0.);

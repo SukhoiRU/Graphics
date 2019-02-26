@@ -159,6 +159,9 @@ void	LocatorModel::updateModel(double time)
 {
 	if(m_rootItem)
 	{
+		m_rootItem->setHeaderData("Параметр", QString("t = %1").arg(time));
+		emit headerDataChanged(Qt::Horizontal, 0, 1);
+
 		m_rootItem->update(time);
 		emit dataChanged(i_Start, i_Stop);
 	}

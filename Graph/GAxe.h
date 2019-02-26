@@ -21,7 +21,6 @@ class GAxe : public GraphObject  //Класс оси графика
 //		Данные
 //////////////////////////////////////////////////////////////////////////////////
 private:
-public:
 	vec2			m_BottomRight;	//Положение нижнего правого угла, мм
 	vec2			m_FrameBR;		//Положение нижнего правого угла рамки, мм
 
@@ -42,12 +41,18 @@ public:
 
 	//Данные для OpenGL
 	vector<vec2>	m_data;
+	vector<GLuint>	m_indices;
+	GLuint			m_markersCount;
 	GLuint	dataVBO;
+	GLuint	dataIBO;
+	GLuint	markerIBO;
 	GLuint	axeVBO;
 	GTextLabel*		textLabel;
 	QSizeF	oldGrid;
 	QRectF	oldArea;
 	float	oldScale;
+	double	oldTime0;
+	double	oldTimeStep;
 
 	//Shader Information
 	static QOpenGLShaderProgram*	m_program;
@@ -157,6 +162,7 @@ public:
 
 	//Служебные функции
 private:
+	void	updateIndices(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);						//Обновление массива отрисовываемых индексов
 	void	DrawMarker(int x, int y);				//Отрисовка маркера в заданных координатах
 	void	Draw_DEC_S();							//Отрисовка для вторички
 

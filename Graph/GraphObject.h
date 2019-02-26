@@ -47,7 +47,7 @@ public:
     virtual void	clearGL(){}
 
 	//Рисование
-    virtual void	Draw(const double /*t0*/, const double /*TimeScale*/, const QSizeF& /*grid*/, const QRectF& /*area*/, const float /*alpha*/){}					//Полное рисование
+    virtual void	Draw(const double /*t0*/, const double /*TimeScale*/, const vec2& /*grid*/, const vec2& /*areaBL*/, const vec2& /*areaSize*/, const float /*alpha*/){}					//Полное рисование
     virtual void	DrawFrame(){}				//Отрисовка только рамки
 
 	//Мышиные дела

@@ -9,8 +9,9 @@ GAxeArg::GAxeArg()
 	m_Type		= AXEARG;
 	oldTime		= 0;
 	oldTimeScale	= 0;
-	oldGrid		= QSize();
-	oldArea		= QRect();
+	oldGrid		= vec2(0.);
+	oldAreaBL	= vec2(0.);
+	oldAreaSize	= vec2(0.);
 	nCountGrid	= 0;
 	nCountAxe	= 0;
 
@@ -57,7 +58,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float /*alpha*/)
+void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float /*alpha*/)
 {
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
@@ -70,13 +71,16 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		(TimeScale != oldTimeScale) ||
 	   (oldScale != m_scale) || 
 		(grid != oldGrid) ||
-	   (area != oldArea))
+	   (areaBL != oldAreaBL) ||
+	   (areaSize != oldAreaSize)
+	   )
 	{
 		//Запоминаем предыдущие значения
 		oldTime			= t0;
 		oldTimeScale	= TimeScale;
 		oldGrid			= grid;
-		oldArea			= area;
+		oldAreaBL		= areaBL;
+		oldAreaSize		= areaSize;
 		oldScale		= m_scale;
 		textLabel->clearGL();
 		textLabel->initializeGL();
@@ -95,7 +99,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Вертикальные штрихи
 		int n	= 0;
-		for(int x0 = - 5*grid.width(); x0 <= area.width() + 5*grid.width(); x0 += 1)
+		for(int x0 = - 5*grid.x; x0 <= areaSize.x + 5*grid.x; x0 += 1)
 		{
 			//Штрихи для оси
 			dataAxe.push_back(Vertex(vec2(x0, 0.f), vec3(0.f)));
@@ -106,12 +110,12 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 				//Каждый пятый штрих оси рисуем вертикальную линию сетки
 				vec3	color	= 0.85f*vec3(1.f);
 				dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
-				dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
+				dataGrid.push_back(Vertex(vec2(x0, areaSize.y), color));
 			}
 
 			//Метка времени
-			float	t	= t0 + x0/grid.width()*TimeScale - dt;
-			if(!(n%25) && t >= t0 && x0 <= area.width()+grid.width())
+			float	t	= t0 + x0/grid.x*TimeScale - dt;
+			if(!(n%25) && t >= t0 && x0 <= areaSize.x+grid.x)
 			{
 				QString	timeStr	= QString("%1").arg(t);
 				vec2	strSize	= textLabel->textSize(timeStr);
@@ -122,49 +126,44 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		}
 
 		//Горизонтальная линия оси
-		dataAxe.push_back(Vertex(vec2(-5*grid.width(), 0.f), vec3(0.f)));
-		dataAxe.push_back(Vertex(vec2(area.width()+5*grid.width(), 0.f), vec3(0.f)));
+		dataAxe.push_back(Vertex(vec2(-5*grid.x, 0.f), vec3(0.f)));
+		dataAxe.push_back(Vertex(vec2(areaSize.x+5*grid.x, 0.f), vec3(0.f)));
 		nCountAxe	= dataAxe.size();
 
 		//Горизонтальные линии сетки
-		for(float y0 = 0; y0 <= area.height() + grid.height(); y0 += grid.height())
+		for(float y0 = 0; y0 <= areaSize.y + grid.y; y0 += grid.y)
 		{
 			vec3	color	= 0.85f*vec3(1.f);
-			dataGrid.push_back(Vertex(vec2(-5*grid.width(), y0),	color));
-			dataGrid.push_back(Vertex(vec2(area.width()+5*grid.width(), y0),	color));
+			dataGrid.push_back(Vertex(vec2(-5*grid.x, y0),	color));
+			dataGrid.push_back(Vertex(vec2(areaSize.x+5*grid.x, y0),	color));
 		}
 
 		//Жирные линии сетки
 		color	= 0.7f*vec3(1.f);
-		for(int x0 = 0; x0 <= area.width() + grid.width(); x0 += 25)
+		for(int x0 = 0; x0 <= areaSize.x + grid.x; x0 += 25)
 		{
 			dataGrid.push_back(Vertex(vec2(x0, 0.f), color));
-			dataGrid.push_back(Vertex(vec2(x0, area.height()), color));
+			dataGrid.push_back(Vertex(vec2(x0, areaSize.y), color));
 		}
-		for(float y0 = 0; y0 <= area.height() + grid.height(); y0 += 5.0f*grid.height())
+		for(float y0 = 0; y0 <= areaSize.y + grid.y; y0 += 5.0f*grid.y)
 		{
-			dataGrid.push_back(Vertex(vec2(-5*grid.width(), y0), color));
-			dataGrid.push_back(Vertex(vec2(area.width()+5*grid.width(), y0), color));
+			dataGrid.push_back(Vertex(vec2(-5*grid.x, y0), color));
+			dataGrid.push_back(Vertex(vec2(areaSize.x+5*grid.x, y0), color));
 		}
 
 		//Рамка зоны графиков
 		nCountGrid	= dataGrid.size();
 		color	= 0.85f*vec3(1.f);
 		dataGrid.push_back(Vertex(vec2(0, 0.f), color));
-		dataGrid.push_back(Vertex(vec2(0, area.height()), color));
-		dataGrid.push_back(Vertex(vec2(area.width(), area.height()), color));
-		dataGrid.push_back(Vertex(vec2(area.width(), 0), color));
+		dataGrid.push_back(Vertex(vec2(0, areaSize.y), color));
+		dataGrid.push_back(Vertex(vec2(areaSize), color));
+		dataGrid.push_back(Vertex(vec2(areaSize.x, 0), color));
 
 		//Пересоздаем буфер
 		if(gridVBO)
 		{
-                        GLuint old	= gridVBO;
 			glDeleteBuffers(1, &gridVBO);
 			glGenBuffers(1, &gridVBO);
-			if(old != gridVBO)
-			{
-				qDebug() << "gridVBO";
-			}
 			glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
 			glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
 			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
@@ -188,13 +187,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 		//Буфер для оси
 		if(axeVBO) 
 		{
-                        GLuint old	= axeVBO;
 			glDeleteBuffers(1, &axeVBO);
 			glGenBuffers(1, &axeVBO);
-			if(old != axeVBO)
-			{
-				qDebug() << "axeArgVBO";
-			}
 			glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 			glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
 			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
@@ -220,8 +214,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	//Заливаем матрицы
 	mat4	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
-	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
+	dataModel	= translate(dataModel, vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y,0.0f));
+	dataModel	= scale(dataModel, vec3(grid.x/5.0f, 1.0f, 0.f));
 
 	m_program->bind();
 	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
@@ -243,8 +237,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Растягиваем прямоугольник на всю область
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
-		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		areaMat	= translate(areaMat, vec3(areaBL, 0.));
+		areaMat	= scale(areaMat, vec3(areaSize, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -261,8 +255,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 	//Рамка поля графиков
 	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(area.x(), area.y(), 0.0f));
-	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
+	dataModel	= translate(dataModel, vec3(areaBL, 0.0f));
+	dataModel	= scale(dataModel, vec3(grid.x/5.0f, 1.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glDrawArrays(GL_LINE_LOOP, nCountGrid, 4);
 	
@@ -277,8 +271,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 
 		//Растягиваем прямоугольник область оси
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(area.x(), area.y()+0.5f, 0));
-		areaMat	= scale(areaMat, vec3(area.width(), -2.5f, 1.0f));
+		areaMat	= translate(areaMat, vec3(areaBL.x, areaBL.y+0.5f, 0));
+		areaMat	= scale(areaMat, vec3(areaSize.x, -2.5f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -296,8 +290,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glEnableVertexAttribArray(1);
 
 	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(area.x() - dt/TimeScale*grid.width(), area.y(),0.0f));
-	dataModel	= scale(dataModel, vec3(grid.width()/5.0f, 1.0f, 0.f));
+	dataModel	= translate(dataModel, vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y,0.0f));
+	dataModel	= scale(dataModel, vec3(grid.x/5.0f, 1.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
@@ -305,7 +299,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const QSizeF& grid, 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_program->release();
 
-	dataModel	= translate(mat4(1.f), vec3(area.x() - dt/TimeScale*grid.width(), area.y(), 0.f));
+	dataModel	= translate(mat4(1.f), vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y, 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(vec3(0.f), 1);
 }

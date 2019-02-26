@@ -88,7 +88,8 @@ GAxe::GAxe()
 	m_program	= 0;
 	dataVBO		= 0;
 	axeVBO		= 0;
-	oldGrid		= QSizeF(5.0f, 5.0f);
+	oldGrid		= vec2(5.0f);
+	oldAreaBL	= vec2(65., 20.);
 	oldTime0	= 0;
 	oldTimeStep	= 20;
 	m_markersCount	= 0;
@@ -261,12 +262,12 @@ void	GAxe::setAxeLength(int len)
 		}
 		else
 		{
-			float	dx	= 0.25*oldGrid.width();
-			float	dy	= 0.15*oldGrid.height();
+			float	dx	= 0.25*oldGrid.x;
+			float	dy	= 0.15*oldGrid.y;
 
 			data.push_back(vec2(-dx, -dy));
-			data.push_back(vec2(-dx, dy + oldGrid.height()*m_AxeLength));
-			data.push_back(vec2(0.5*dx, dy + oldGrid.height()*m_AxeLength));
+			data.push_back(vec2(-dx, dy + oldGrid.y*m_AxeLength));
+			data.push_back(vec2(0.5*dx, dy + oldGrid.y*m_AxeLength));
 			data.push_back(vec2(0.5*dx, -dy));
 		}
 	}
@@ -303,7 +304,7 @@ void	GAxe::setAxeLength(int len)
 	}
 
 	//Текстовые метки
-	QSizeF grid	= oldGrid;
+	vec2 grid	= oldGrid;
 
 	if(m_DataType == Bool)
 	{
@@ -311,12 +312,12 @@ void	GAxe::setAxeLength(int len)
 	}
 	else
 	{
-		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.height() + 2.0f);
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.y + 2.0f);
 		for(int i = 0; i <= m_AxeLength; i++)
 		{
 			QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
 			vec2	size	= textLabel->textSize(txt);
-			textLabel->addString(txt, -size.x - 2., i*grid.height() - textLabel->midLine());
+			textLabel->addString(txt, -size.x - 2., i*grid.y - textLabel->midLine());
 		}
 	}
 
@@ -411,7 +412,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area)
+void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize)
 {
 	if(!m_data.size())	return;
 
@@ -432,8 +433,8 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& 
 	while(nMax - nMin > 1)
 	{
 		int n	= (nMin+nMax)/2;
-		if(m_data.at(n).x <= t0 + TimeScale*(area.width()/grid.width()))	nMin	= n;
-		else																nMax	= n;
+		if(m_data.at(n).x <= t0 + TimeScale*(areaSize.x/grid.y))	nMin	= n;
+		else														nMax	= n;
 	}
 	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
 
@@ -445,8 +446,8 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& 
 
 		//Определяем размер пикселя в физических масштабах
 		vec2	pix;
-		pix.x	= TimeScale/(grid.width()*m_scale);
-		pix.y	= m_AxeScale/(grid.height()*m_scale);
+		pix.x	= TimeScale/(grid.x*m_scale);
+		pix.y	= m_AxeScale/(grid.y*m_scale);
 
 		//Добавляем первую точку
 		vec2	oldPoint	= m_data.at(nStartIndex);
@@ -472,7 +473,8 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& 
 		//Создаем буфер индексов для маркеров
 		vector<GLuint>	markers;
 		int dN	= (nStopIndex-nStartIndex)/5;	//Шаг между маркерами
-		int	first	= (nStartIndex/dN)*(dN+1);
+		int	first	= 0;
+		if(dN)	first	= (nStartIndex/dN)*(dN+1);
 		for(int i = 0; i < 5; i++)
 		{
 			markers.push_back(first + (i+1)*dN);
@@ -485,24 +487,25 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const QSizeF& 
 	}
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha)
+void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
-	if(!grid.height())	return;
+	if(!grid.y)		return;
 	if(oldGrid != grid)
 	{
 		oldGrid	= grid;
 		setAxeLength(m_AxeLength);
-		updateIndices(t0, TimeScale, grid, area);
+		updateIndices(t0, TimeScale, grid, areaSize);
 	}
 	if(oldScale != m_scale)
 	{
 		oldScale	= m_scale;
 		setAxeLength(m_AxeLength);
-		updateIndices(t0, TimeScale, grid, area);
+		updateIndices(t0, TimeScale, grid, areaSize);
 	}
-	oldArea	= area;
+	oldAreaSize	= areaSize;
+	oldAreaBL	= areaBL;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -523,7 +526,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	mat4 dataModel	= mat4(1.0f);
 	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
-	dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
 	if(m_DataType != Bool)
@@ -539,7 +542,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		//Для Bool рамка должна быть размером надписи
 		if(m_DataType != Bool)
-			dataModel		= scale(dataModel, vec3(1.5f, grid.height()/5.0f, 0.f));
+			dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
@@ -557,8 +560,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		if(m_DataType == Bool)
 			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.5*textLabel->midLine(), 0.f));
 		else
-			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.height(), 0.f));
-		cross	= scale(cross, vec3(0.6f*grid.width(), 0.6f*grid.width(), 1.0f));
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.y, 0.f));
+		cross	= scale(cross, vec3(0.6f*grid.x, 0.6f*grid.x, 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -587,11 +590,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 		//Матрица проекции
 		mat4	data(1.0f);
-		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.width(), m_BottomRight.y + m_AxeLength*grid.height() + 0.5*grid.height(), 0.f));
+		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, m_BottomRight.y + m_AxeLength*grid.y + 0.5*grid.y, 0.f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 0.5*grid.width()*m_scale);
+		glUniform1f(u_marker_size, 0.5*grid.x*m_scale);
 		glUniform1f(u_marker_orientation, 0.f);
 		glUniform1f(u_marker_linewidth, 1.0f+0*0.25f*m_scale);
 		glUniform1f(u_marker_antialias, 0.5f);
@@ -617,8 +620,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(area.x(), area.y(), 0));
-		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		areaMat	= translate(areaMat, vec3(areaBL, 0));
+		areaMat	= scale(areaMat, vec3(areaSize, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
 		glStencilMask(0xFF);
@@ -638,7 +641,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;
 	if(!m_data.size())	return;
-	updateIndices(t0, TimeScale, grid, area);
+	updateIndices(t0, TimeScale, grid, areaSize);
 
 	m_data_program->bind();
 	glUniform3fv(u_data_color, 1, &color.r);
@@ -679,8 +682,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const QSizeF& grid, con
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(area.x(), m_BottomRight.y, 0.f));
-	dataModel	= scale(dataModel, vec3(grid.width()/TimeScale, grid.height()/m_AxeScale, 0.f));
+	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
+	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
 
 	//Определяем базовую линию для вертикальных палок
@@ -815,7 +818,7 @@ bool	GAxe::HitTest(const vec2& pt)
 		//Определяем попадание в ось
 		if(pt.x < m_BottomRight.x+1 &&
 		   pt.x > m_BottomRight.x-3 &&
-		   pt.y < m_BottomRight.y+oldGrid.height()*m_AxeLength+1 &&
+		   pt.y < m_BottomRight.y+oldGrid.y*m_AxeLength+1 &&
 		   pt.y > m_BottomRight.y-1)
 			return true;
 		else
@@ -875,10 +878,10 @@ bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	m_BottomRight.x	= m_FrameBR.x;
 
 	//Положение оси по высоте округлим до сетки
-	float	step	= oldGrid.height();
+	float	step	= oldGrid.y;
 	if(m_DataType == Bool)	step	= 0.5f*step;
 	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
-	else						m_BottomRight.y	= int((m_FrameBR.y - oldArea.bottom())/step - 0.5f)*step + oldArea.bottom();
+	else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
 
 	bool Res = false;
 /*
@@ -1398,6 +1401,9 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 
 				//Обновляем VAO оси
 				setAxeLength(m_AxeLength);
+
+				//Обновляем индексы
+				oldTimeStep	= 0;
 			}
 
 			UpdateFiltering();
@@ -1662,7 +1668,7 @@ double	GAxe::GetValueAtTime(const double Time) const
 
 double GAxe::GetTopPosition() const
 {
-	return m_BottomRight.y + m_AxeLength*oldGrid.height();
+	return m_BottomRight.y + m_AxeLength*oldGrid.y;
 }
 
 bool	GAxe::IsBoolean() const

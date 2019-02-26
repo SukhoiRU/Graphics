@@ -48,8 +48,9 @@ private:
 	GLuint	markerIBO;
 	GLuint	axeVBO;
 	GTextLabel*		textLabel;
-	QSizeF	oldGrid;
-	QRectF	oldArea;
+	vec2	oldGrid;
+	vec2	oldAreaBL;
+	vec2	oldAreaSize;
 	float	oldScale;
 	double	oldTime0;
 	double	oldTimeStep;
@@ -141,7 +142,7 @@ public:
 	virtual void	initializeGL();
 	virtual void	clearGL();
 	static  void	finalDelete();
-	virtual void	Draw(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area, const float alpha);					//Полное рисование
+	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
 //	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела
@@ -162,7 +163,7 @@ public:
 
 	//Служебные функции
 private:
-	void	updateIndices(const double t0, const double TimeScale, const QSizeF& grid, const QRectF& area);						//Обновление массива отрисовываемых индексов
+	void	updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize);						//Обновление массива отрисовываемых индексов
 	void	DrawMarker(int x, int y);				//Отрисовка маркера в заданных координатах
 	void	Draw_DEC_S();							//Отрисовка для вторички
 

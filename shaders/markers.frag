@@ -5,6 +5,7 @@ const float M_SQRT_2 = 1.4142135623730951;
 
 uniform float size, linewidth, antialias;
 uniform vec4 fg_color, bg_color;
+uniform	int	type;
 
 flat in vec2 rotation;
 flat in float v_size;
@@ -78,7 +79,7 @@ vec4 outline(float distance,  // Signed distance to line
 
 float disc(vec2 P, float size) 
 {
-	return length(P) - size / 2; 
+	return length(P) - size / 2 / M_SQRT_2; 
 }
 
 float square(vec2 P, float size) 
@@ -208,7 +209,120 @@ void main()
 	vec2 P = gl_PointCoord.xy - vec2(0.5, 0.5);
 	P = vec2(rotation.x * P.x - rotation.y * P.y,
 			rotation.y * P.x + rotation.x * P.y);
-	float distance = square(P * v_size, size);
-	fColor = stroke(distance, linewidth, antialias, bg_color);//, bg_color);
-//	fColor = outline(distance, linewidth, antialias, fg_color, bg_color);
+	
+	//Выбор типа маркера
+	switch(type)
+	{
+		case 0:
+		{
+			//Пустой квадрат
+			float distance = square(P * v_size, size);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 1:
+		{
+			//Сплошной квадрат
+			float distance = square(P * v_size, size);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 2:
+		{
+			// квадрат
+			float distance = square(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		case 3:
+		{
+			//Пустой кружок
+			float distance = disc(P * v_size, size);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 4:
+		{
+			//Сплошной кружок
+			float distance = disc(P * v_size, size);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 5:
+		{
+			// кружок
+			float distance = disc(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		case 6:
+		{
+			//Пустой треугольник
+			float distance = triangle(P * v_size, size);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 7:
+		{
+			//Сплошной треугольник
+			float distance = triangle(P * v_size, size);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 8:
+		{
+			// треугольник
+			float distance = triangle(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		case 9:
+		{
+			//Пустой крест
+			float distance = cross(P * v_size, size);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 10:
+		{
+			//Сплошной крест
+			float distance = cross(P * v_size, size);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 11:
+		{
+			// крест
+			float distance = cross(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		case 12:
+		{
+			//Пустая звездочка
+			float distance = asterisk(P * v_size, size);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 13:
+		{
+			//Сплошная звездочка
+			float distance = asterisk(P * v_size, size);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 14:
+		{
+			// звездочка
+			float distance = asterisk(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		default:
+		{
+			//По умолчанию сердечко
+			float distance = heart(P * v_size, size);
+			fColor = outline(distance, linewidth, antialias, fg_color, bg_color);
+		}
+	}
 }

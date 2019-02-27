@@ -44,6 +44,7 @@ int		GAxe::u_marker_linewidth	= 0;
 int		GAxe::u_marker_antialias	= 0;
 int		GAxe::u_marker_fg_color		= 0;
 int		GAxe::u_marker_bg_color		= 0;
+int		GAxe::u_marker_type			= 0;
 
 QOpenGLShaderProgram*	GAxe::m_cross_program	= nullptr;
 int		GAxe::u_cross_modelToWorld	= 0;
@@ -169,6 +170,7 @@ void	GAxe::initializeGL()
 		u_marker_antialias		= m_marker_program->uniformLocation("antialias");
 		u_marker_fg_color		= m_marker_program->uniformLocation("fg_color");
 		u_marker_bg_color		= m_marker_program->uniformLocation("bg_color");
+		u_marker_type			= m_marker_program->uniformLocation("type");
 		m_marker_program->release();
 
 		//Программа для креста на оси
@@ -415,32 +417,31 @@ void	GAxe::SetPosition(vec2 pt)
 void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize)
 {
 	if(!m_data.size())	return;
-
-	//Определяем диапазон индексов
-	int	nMin	= 0;
-	int	nMax	= m_data.size()-1;
-	while(nMax - nMin > 1)
-	{
-		int n	= (nMin+nMax)/2;
-		if(m_data.at(n).x <= t0)	nMin	= n;
-		else						nMax	= n;
-	}
-
-	GLuint	nStartIndex	= max(0, nMin-1);
-
-	nMin	= 0;
-	nMax	= m_data.size()-1;
-	while(nMax - nMin > 1)
-	{
-		int n	= (nMin+nMax)/2;
-		if(m_data.at(n).x <= t0 + TimeScale*(areaSize.x/grid.y))	nMin	= n;
-		else														nMax	= n;
-	}
-	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
-
 	//При необходимости пересчитываем индексы
 	if(t0 != oldTime0 || TimeScale != oldTimeStep)
 	{
+		//Определяем диапазон индексов
+		int	nMin	= 0;
+		int	nMax	= m_data.size()-1;
+		while(nMax - nMin > 1)
+		{
+			int n	= (nMin+nMax)/2;
+			if(m_data.at(n).x <= t0)	nMin	= n;
+			else						nMax	= n;
+		}
+
+		GLuint	nStartIndex	= max(0, nMin-1);
+
+		nMin	= 0;
+		nMax	= m_data.size()-1;
+		while(nMax - nMin > 1)
+		{
+			int n	= (nMin+nMax)/2;
+			if(m_data.at(n).x <= t0 + TimeScale*(areaSize.x/grid.y))	nMin	= n;
+			else														nMax	= n;
+		}
+		GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
+
 		oldTime0	= t0;
 		oldTimeStep	= TimeScale;
 
@@ -467,22 +468,29 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& gr
 
 		//Заливаем их в буфер
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size()*sizeof(GLuint), m_indices.data(), GL_STATIC_DRAW);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_indices.size()*sizeof(GLuint), m_indices.data());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		//Создаем буфер индексов для маркеров
 		vector<GLuint>	markers;
-		int dN	= (nStopIndex-nStartIndex)/5;	//Шаг между маркерами
+		float	freq	= (m_data.back().x - m_data.front().x)/m_data.size();	//Средняя частота записи
+		int dN	= 25.0*TimeScale/freq;	//Шаг между маркерами
 		int	first	= 0;
-		if(dN)	first	= (nStartIndex/dN)*(dN+1);
-		for(int i = 0; i < 5; i++)
-		{
-			markers.push_back(first + (i+1)*dN);
-		}
+		if(dN)	first	= (nStartIndex/dN)*dN + ((m_BottomRight.x-60.)/60.)*dN;
 		m_markersCount	= 5;
+		for(int i = 0; i < m_markersCount; i++)
+		{
+			int	index	= first + (i+1)*dN;
+			if(index > m_data.size())
+			{
+				m_markersCount	= i+1;
+				break;
+			}
+			markers.push_back(index);
+		}
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, markers.size()*sizeof(GLuint), markers.data(), GL_STATIC_DRAW);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, markers.size()*sizeof(GLuint), markers.data());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 }
@@ -602,6 +610,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
 		vec4	bg_color	= vec4(color, 1.0f);
 		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
+		glUniform1i(u_marker_type, m_nMarker);
 
 		//Рисуем нулевую точку из буфера оси
 		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
@@ -727,13 +736,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
 	glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();
 
@@ -746,16 +752,17 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		mat4	mpv	= m_proj*m_view*dataModel;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 2.5f*m_scale);
+		glUniform1f(u_marker_size, 1.5f*m_scale);
 		static float angle = 0;
 		angle += 2./60./50.;
 		glUniform1f(u_marker_orientation, angle);
 		glUniform1f(u_marker_linewidth, 1.f);
 		glUniform1f(u_marker_antialias, 0.5f);
-		vec4	fg_color	= vec4(0.999f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);
+		vec4	fg_color	= vec4(0.8f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);//vec4(0.999f*vec3(1.), 1.0f);
 		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
 		vec4	bg_color	= vec4(color, 1.0f);
 		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
+		glUniform1i(u_marker_type, m_nMarker);
 
 		//Отрисовка набора маркеров
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
@@ -1374,9 +1381,15 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 
 					glDeleteBuffers(1, &dataIBO);
 					glGenBuffers(1, &dataIBO);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_data.size()*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 					glDeleteBuffers(1, &markerIBO);
 					glGenBuffers(1, &markerIBO);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 				}
 				else
 				{
@@ -1386,7 +1399,14 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 					
 					glGenBuffers(1, &dataIBO);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_data.size()*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 					glGenBuffers(1, &markerIBO);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 				}
 
 				//Обновляем VAO оси

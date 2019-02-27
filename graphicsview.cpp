@@ -52,7 +52,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	pageSize	= settings.value("GraphicsView/pageSize", pageSize).toSize();
 	pageBorders	= settings.value("GraphicsView/pageBorders", pageBorders).toRectF();
 	graphBorders	= settings.value("GraphicsView/graphBorders", graphBorders).toRectF();
-	QSizeF	gS	= settings.value("GraphicsView/gridStep", QSizeF(5.,5.)).toSize();
+	QSizeF	gS	= settings.value("GraphicsView/gridStep", QSizeF(5.,5.)).toSizeF();
 	gridStep	= vec2(gS.width(), gS.height());
 	m_scale		= settings.value("GraphicsView/m_scale", m_scale).toFloat();
 
@@ -318,13 +318,13 @@ void GraphicsView::paintGL()
 	//Очистка вида
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 	glEnable(GL_PROGRAM_POINT_SIZE);
+
 	glBindVertexArray(pageVAO);
 
 #ifdef USE_FBO
@@ -341,7 +341,7 @@ void GraphicsView::paintGL()
 		//m_pLabel->addString("A", , );
 
 		m_pLabel->setMatrix(dataModel);
-		m_pLabel->renderText(vec3(1., 0., 0.0f), 1.0f);
+		//m_pLabel->renderText(vec3(1., 0., 0.0f), 1.0f);
 	}
 
 	//Отрисовка мыши

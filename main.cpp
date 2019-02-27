@@ -5,8 +5,8 @@
 
 int main(int argc, char *argv[])
 {
-	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
-	qputenv("QT_ANGLE_PLATFORM", "d3d11");
+//	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
+//	qputenv("QT_ANGLE_PLATFORM", "d3d11");
 	QApplication a(argc, argv);
 //	a.setAttribute(Qt::AA_UseDesktopOpenGL, true);
 

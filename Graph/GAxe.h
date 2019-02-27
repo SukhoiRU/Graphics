@@ -86,6 +86,7 @@ private:
 	static int		u_marker_antialias;
 	static int		u_marker_fg_color;
 	static int		u_marker_bg_color;
+	static int		u_marker_type;
 
 	static QOpenGLShaderProgram*	m_cross_program;
 	static	int		u_cross_modelToWorld;

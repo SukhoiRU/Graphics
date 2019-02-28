@@ -744,19 +744,37 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 	vec2	mousePos(world.x, world.y);
 
-	//Переключаем курсор
-	if(world.x > pageBorders.left()+graphBorders.left() &&
-	   world.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
-	   world.y > pageBorders.bottom()+graphBorders.bottom() &&
-	   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+	//Определим объект, на который попала мышь
+	bool	bFound	= false;
+	for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
 	{
-		setCursor(Qt::BlankCursor);
-		m_bOnMouse	= true;
+		Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+		if(pGraph->HitTest(mousePos))
+		{
+			Qt::CursorShape	shape;
+			if(pGraph->getCursor(mousePos, shape))
+				setCursor(shape);
+			bFound	= true;
+			break;
+		}
 	}
-	else
+
+	if(!bFound)
 	{
-        setCursor(Qt::ArrowCursor);
-		m_bOnMouse	= false;
+		//Раз ни в один объект не попали, действия по окну
+		if(world.x > pageBorders.left()+graphBorders.left() &&
+		   world.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
+		   world.y > pageBorders.bottom()+graphBorders.bottom() &&
+		   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+		{
+			setCursor(Qt::BlankCursor);
+			m_bOnMouse	= true;
+		}
+		else
+		{
+			setCursor(Qt::ArrowCursor);
+			m_bOnMouse	= false;
+		}
 	}
 
 	if(buttons & Qt::LeftButton)

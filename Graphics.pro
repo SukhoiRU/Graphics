@@ -8,15 +8,15 @@ TARGET = Graphics
 unix{
     CONFIG(release, debug|release)
     {
-        DESTDIR = ../bin/qtcreator
-        OBJECTS_DIR = ../garbage
+        DESTDIR = $$PWD/../bin/qtcreator
+        OBJECTS_DIR = $$PWD/../garbage
         LIBS += -ldl
     }
 
     CONFIG(debug, debug|release)
     {
-        DESTDIR = ../bin/qtcreator/debug
-        OBJECTS_DIR = ../garbage/debug
+        DESTDIR = $$PWD/../bin/qtcreator/debug
+        OBJECTS_DIR = $$PWD/../garbage/debug
         LIBS += -ldl
     }
 }
@@ -24,15 +24,15 @@ unix{
 win32{
     CONFIG(release, debug|release)
     {
-        DESTDIR = ../../bin/qtcreator
-        OBJECTS_DIR = ../../garbage
+        DESTDIR = $$PWD/../../bin/qtcreator
+        OBJECTS_DIR = $$PWD/../../garbage
         LIBS += -lopengl32 -lglu32
     }
 
     CONFIG(debug, debug|release)
     {
-        DESTDIR = ../../bin/qtcreator
-        OBJECTS_DIR = ../../garbage/debug
+        DESTDIR = $$PWD/../../bin/qtcreator/debug
+        OBJECTS_DIR = $$PWD/../../garbage/debug
         LIBS += -lopengl32 -lglu32
     }
 }
@@ -52,7 +52,7 @@ INCLUDEPATH += ./GeneratedFiles \
 #    -lglu32
 #DEPENDPATH += .
 #MOC_DIR += ./GeneratedFiles/$(ConfigurationName)
-OBJECTS_DIR += debug
+#OBJECTS_DIR += debug
 #UI_DIR += ./GeneratedFiles
 #RCC_DIR += ./GeneratedFiles
 include(Graphics.pri)

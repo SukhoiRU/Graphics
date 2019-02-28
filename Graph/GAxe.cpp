@@ -881,55 +881,25 @@ bool	GAxe::HitTest(const vec2& pt)
 	else
 	{
 		//Определяем попадание в ось
-		if(pt.x < m_BottomRight.x+1 &&
-		   pt.x > m_BottomRight.x-3 &&
-		   pt.y < m_BottomRight.y+oldGrid.y*m_AxeLength+1 &&
-		   pt.y > m_BottomRight.y-1)
+		if(pt.x < m_FrameBR.x+1 &&
+		   pt.x > m_FrameBR.x-3 &&
+		   pt.y < m_FrameBR.y+oldGrid.y*m_AxeLength+1 &&
+		   pt.y > m_FrameBR.y-1)
 			return true;
 		else
 			return false;
 	}
 }
-/*
-HCURSOR GAxe::GetCursorHandle(const GPoint& pt, UINT nFlags)
+
+bool	GAxe::getCursor(const vec2& pt, Qt::CursorShape& shape)
 {
-	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
-	GRect	rc	= GetFrameRect();
+	vec2	mouse	= pt - m_FrameBR;
+	if(mouse.y > oldGrid.y*(float(m_AxeLength)-0.5)-1.)	{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = TOP;}
+	else if(mouse.y < 0.5*oldGrid.y)					{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = BOTTOM;}
+	else												{shape	= Qt::CursorShape::SizeAllCursor; m_Direction = ALL;}
 
-	int x = pt.x;
-	int y = pt.y;
-	
-	if	((x >= rc.left)	&& (x <= rc.right))
-		//Попадание по Х
-		if((y >= rc.bottom)&& (y <= rc.bottom + 0.5*GridStep.x*m_Zoom))
-		{
-			//Попадание в нижнюю часть
-			m_Direction = BOTTOM;
-			if(m_DataType == Bool){	m_Direction	= ALL; return m_hCurALL;}
-			return m_hCurBOTTOM;
-		}
-		else if((y >= rc.top - 0.5*GridStep.y*m_Zoom)&& (y <= rc.top))
-		{
-			//Попадание в верхнюю часть
-			m_Direction = TOP;
-			if(m_DataType == Bool){	m_Direction	= ALL; return m_hCurALL;}
-			return m_hCurTOP;
-		}
-		else if((y >= rc.bottom)&& (y <= rc.top))
-		{
-			//Попадание в середину
-			m_Direction = ALL;
-			return m_hCurALL;
-		}
-		else
-
-			return NULL;
-		
-	else
-		//Не попали
-		return NULL;
+	return	true;
 }
-*/
 
 void	GAxe::OnStopMoving()
 {
@@ -942,11 +912,54 @@ bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	m_FrameBR		+= delta;
 	m_BottomRight.x	= m_FrameBR.x;
 
-	//Положение оси по высоте округлим до сетки
-	float	step	= oldGrid.y;
-	if(m_DataType == Bool)	step	= 0.5f*step;
-	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
-	else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
+	//Дальше в зависимости от типа перетаскивания
+	switch(m_Direction)
+	{
+		case Graph::GAxe::TOP:
+		{
+			//Растягиваем верх
+			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
+			{
+				m_AxeLength++;
+				setAxeLength(m_AxeLength);
+			}
+			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
+			{
+				m_AxeLength--;
+				setAxeLength(m_AxeLength);
+			}
+		}break;
+
+		case Graph::GAxe::BOTTOM:
+			//Растягиваем низ
+			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
+			{
+				m_AxeLength--;
+				m_Min += m_AxeScale;
+				m_BottomRight.y	+= oldGrid.y;
+				setAxeLength(m_AxeLength);
+			}
+			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
+			{
+				m_AxeLength++;
+				m_Min -= m_AxeScale;
+				m_BottomRight.y	-= oldGrid.y;
+				setAxeLength(m_AxeLength);
+			}
+			break;
+
+		case Graph::GAxe::ALL:
+		{
+			//Положение оси по высоте округлим до сетки
+			float	step	= oldGrid.y;
+			if(m_DataType == Bool)		step	= 0.5f*step;
+			if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
+			else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
+		}break;
+
+		default:
+			break;
+	}
 
 	bool Res = false;
 /*

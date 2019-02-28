@@ -777,7 +777,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(m_IsSelected)	
 	{
 		glUniform1f(u_data_linewidth, 2.0/m_scale);
-		glUniform1f(u_data_antialias, 1.0f/m_scale);
+		glUniform1f(u_data_antialias, 0.5f/m_scale);
 		if(!m_bInterpol)
 		{
 			glUniform1f(u_data_linewidth, 1.5f/m_scale);
@@ -820,7 +820,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		mat4	mpv	= m_proj*m_view*dataModel;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
-		glUniform1f(u_marker_size, 1.5f*m_scale);
+		glUniform1f(u_marker_size, (1.5f + 1.5f*m_IsSelected)*m_scale);
 		static float angle = 0;
 		angle += 2./60./50.;
 		glUniform1f(u_marker_orientation, angle);

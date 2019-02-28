@@ -52,6 +52,16 @@ int		GAxe::u_cross_worldToCamera	= 0;
 int		GAxe::u_cross_cameraToView	= 0;
 GLuint	GAxe::cross_texture;
 
+QOpenGLShaderProgram*	GAxe::m_select_program;
+int		GAxe::u_select_modelToWorld	= 0;
+int		GAxe::u_select_worldToCamera	= 0;
+int		GAxe::u_select_cameraToView	= 0;
+int		GAxe::u_select_tick			= 0;
+int		GAxe::u_select_toc			= 0;
+int		GAxe::u_select_dL			= 0;
+int		GAxe::u_select_color		= 0;
+int		GAxe::u_select_round		= 0;
+
 GAxe::GAxe()
 {
 	m_Type		= AXE;
@@ -107,12 +117,12 @@ GAxe::~GAxe()
 void	GAxe::finalDelete()
 {
 	//Удаляем статические переменные
-	if(cross_texture)
-		glDeleteTextures(1, &cross_texture);
-	if(m_program)		delete m_program;
-	if(m_data_program)	delete m_data_program;
-	if(m_marker_program)delete m_marker_program;
-	if(m_cross_program)	delete m_cross_program;
+	if(cross_texture)		glDeleteTextures(1, &cross_texture);
+	if(m_program)			delete m_program;
+	if(m_data_program)		delete m_data_program;
+	if(m_marker_program)	delete m_marker_program;
+	if(m_cross_program)		delete m_cross_program;
+	if(m_select_program)	delete m_select_program;
 }
 
 void	GAxe::initializeGL()
@@ -185,6 +195,23 @@ void	GAxe::initializeGL()
 		u_cross_cameraToView	= m_cross_program->uniformLocation("cameraToView");
 		m_cross_program->release();
 
+		//Программа для выделения
+		m_select_program	= new QOpenGLShaderProgram;
+		m_select_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_selection.vert");
+		m_select_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_selection.frag");
+		m_select_program->link();
+		  
+		m_select_program->bind();
+		u_select_modelToWorld	= m_select_program->uniformLocation("modelToWorld");
+		u_select_worldToCamera	= m_select_program->uniformLocation("worldToCamera");
+		u_select_cameraToView	= m_select_program->uniformLocation("cameraToView");
+		u_select_tick			= m_select_program->uniformLocation("tick");
+		u_select_toc			= m_select_program->uniformLocation("toc");
+		u_select_dL				= m_select_program->uniformLocation("dL");
+		u_select_color			= m_select_program->uniformLocation("color");
+		u_select_round			= m_select_program->uniformLocation("round");
+		m_select_program->release();
+
 		// Prepare texture
 		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/images/delete.png"));
 		cross_texture	= gl_texture->textureId();
@@ -252,28 +279,6 @@ void	GAxe::setAxeLength(int len)
 	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
 	m_Axe_nCount	= data.size();
 
-	//Черточки для обрамления
-	{
-		if(m_DataType == Bool)
-		{
-			vec2	textSize	= textLabel->textSize(m_Name);
-			data.push_back(vec2(-0.5f*textSize.x-1.f, textLabel->bottomLine()-textLabel->midLine()));
-			data.push_back(vec2(-0.5f*textSize.x-1.f, textLabel->topLine()-textLabel->midLine()));
-			data.push_back(vec2(0.5f*textSize.x+1.f, textLabel->topLine()-textLabel->midLine()));
-			data.push_back(vec2(0.5f*textSize.x+1.f, textLabel->bottomLine()-textLabel->midLine()));
-		}
-		else
-		{
-			float	dx	= 0.25*oldGrid.x;
-			float	dy	= 0.15*oldGrid.y;
-
-			data.push_back(vec2(-dx, -dy));
-			data.push_back(vec2(-dx, dy + oldGrid.y*m_AxeLength));
-			data.push_back(vec2(0.5*dx, dy + oldGrid.y*m_AxeLength));
-			data.push_back(vec2(0.5*dx, -dy));
-		}
-	}
-
 	//Данные для креста
 	{
 		//Координаты и текстурные координаты
@@ -283,27 +288,73 @@ void	GAxe::setAxeLength(int len)
 		data.push_back(vec2(-1.f, 1.f));	data.push_back(vec2(0.f, 0.f));
 	}
 
+	//Черточки для обрамления
+	{
+		if(m_DataType == Bool)
+		{
+			//Координаты плюс длина по кругу
+			vec2	textSize	= textLabel->textSize(m_Name);
+			float	b	= textLabel->bottomLine();
+			float	t	= textLabel->topLine();
+			float	m	= textLabel->midLine();
+
+			float	len	= 0;
+			vec2	line	= vec2(-0.5f*textSize.x-1.f, b-m);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			line	= vec2(-0.5f*textSize.x-1.f, t-m);
+			len		= len + (t-b);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			line	= vec2(0.5f*textSize.x+1.f, t-m);
+			len		= len + (textSize.x + 2.f);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			line	= vec2(0.5f*textSize.x+1.f, b-m);
+			len		= len + (t-b);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			line	= vec2(-0.5f*textSize.x-1.f, b-m);
+			len		= len + (textSize.x + 2.f);
+			data.push_back(line);	data.push_back(vec2(len));
+		}
+		else
+		{
+			float	dx	= 0.25*oldGrid.x;
+			float	dy	= 0.15*oldGrid.y;
+
+			//Координаты плюс длина по кругу
+			float	len	= 0;
+			vec2	line	= vec2(-1.5f*dx, -dy);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			len		= len + 2.f*dy + oldGrid.y*m_AxeLength;
+			line	= vec2(-1.5f*dx, dy + oldGrid.y*m_AxeLength);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			len		= len + (2.f*dx);
+			line	= vec2(0.5*dx, dy + oldGrid.y*m_AxeLength);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			len		= len + 2.f*dy + oldGrid.y*m_AxeLength;
+			line	= vec2(0.5*dx, -dy);
+			data.push_back(line);	data.push_back(vec2(len));
+
+			len		= len + (2.f*dx);
+			line	= vec2(-1.5f*dx, -dy);
+			data.push_back(line);	data.push_back(vec2(len));
+		}
+	}
+
 	//Буфер для оси
 	if(axeVBO)
 	{ 
-                GLuint old	= axeVBO;
 		glDeleteBuffers(1, &axeVBO);
-		glGenBuffers(1, &axeVBO);
-		if(old != axeVBO)
-		{
-			qDebug() << "axeVBO";
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	else
-	{
-		glGenBuffers(1, &axeVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
+	glGenBuffers(1, &axeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec2), data.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Текстовые метки
 	vec2 grid	= oldGrid;
@@ -543,18 +594,35 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
 	{
-		vec3 color2(0.7f);
-		glUniform3fv(u_color, 1, &color2.r);
-		mat4 dataModel	= mat4(1.0f);
-		dataModel		= translate(dataModel, vec3(m_FrameBR, 0.f));
+		m_select_program->bind();
+		mat4 dataModel	= translate(mat4(1.0f), vec3(m_FrameBR, 0.f));
+		glUniformMatrix4fv(u_select_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+		glUniformMatrix4fv(u_select_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_select_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
-		//Для Bool рамка должна быть размером надписи
-		if(m_DataType != Bool)
-			dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
+		vec3 color2(0.3f);
+		glUniform3fv(u_select_color, 1, &color2.r);
+		glUniform1f(u_select_tick, 1.0f);
+		glUniform1f(u_select_toc, 1.0f);
+		glUniform1i(u_select_round, 1);
 
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-		glDrawArrays(GL_LINE_LOOP, m_Axe_nCount, 4);
-		glUniform3fv(u_color, 1, &color.r);
+		static float dL = 0;
+		dL -= 100./60./50.;
+		glUniform1f(u_select_dL, dL);
+
+		//Меняем описание данных на два последовательных vec2
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glDrawArrays(GL_LINE_STRIP, (m_Axe_nCount+8)/2, 5);
+
+		//Возвращаем настройки буфера
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+
+		m_select_program->release();
 	}
 
 	//Крест на оси без данных
@@ -580,7 +648,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(1);
-		glDrawArrays(GL_TRIANGLE_STRIP, (m_Axe_nCount+4)/2, 4);
+		glDrawArrays(GL_TRIANGLE_STRIP, m_Axe_nCount/2, 4);
 
 		//Возвращаем настройки буфера
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
@@ -683,12 +751,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		}break;
 	}
 
-	//Подключаем буфер графика
-	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
-
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
@@ -736,6 +798,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	//Рисуем основной график
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
+
+	//Подключаем буфер графика
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
 	glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);

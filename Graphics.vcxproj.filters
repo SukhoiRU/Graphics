@@ -299,5 +299,11 @@
     <None Include="shaders\markers.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="shaders\gaxe_selection.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\gaxe_selection.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

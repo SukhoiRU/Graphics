@@ -51,5 +51,7 @@
         <file>shaders/fbo.vert</file>
         <file>shaders/markers.frag</file>
         <file>shaders/markers.vert</file>
+        <file>shaders/gaxe_selection.frag</file>
+        <file>shaders/gaxe_selection.vert</file>
     </qresource>
 </RCC>

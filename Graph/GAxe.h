@@ -94,6 +94,16 @@ private:
 	static	int		u_cross_cameraToView;
 	static	GLuint	cross_texture;
 
+	static QOpenGLShaderProgram*	m_select_program;
+	static	int		u_select_modelToWorld;
+	static	int		u_select_worldToCamera;
+	static	int		u_select_cameraToView;
+	static	int		u_select_tick;
+	static	int		u_select_toc;
+	static	int		u_select_dL;
+	static	int		u_select_color;
+	static	int		u_select_round;
+
 public:
 	QString			m_Name;			//Название оси
 	QString			m_Path;			//Путь к элементу в накоплении

@@ -53,7 +53,7 @@ public:
 	//Мышиные дела
     virtual bool	HitTest(const vec2& /*pt*/){return false;}		//Проверка на попадание курсора
 	virtual bool	getCursor(const vec2& /*pt*/, Qt::CursorShape& /*shape*/)	{return false;}
-    virtual bool	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/){return false;}	//Перемещение на заданное расстояние
+    virtual void	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/){}	//Перемещение на заданное расстояние
     virtual void	OnDoubleClick(){}				//Реакция на щелчок мышью
     virtual void	OnStartMoving(){}				//Реакция на начало перетаскивания
     virtual void	OnStopMoving(){}				//Реакция на конец перетаскивания

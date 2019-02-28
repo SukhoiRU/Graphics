@@ -906,7 +906,7 @@ void	GAxe::OnStopMoving()
 	m_FrameBR	= m_BottomRight;
 }
 
-bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
+void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
 {
 	//Переместим рамку
 	m_FrameBR		+= delta;
@@ -960,109 +960,6 @@ bool	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 		default:
 			break;
 	}
-
-	bool Res = false;
-/*
-	//Переместим рамку
-	m_FrameBR.x	+= pt.x;
-	m_FrameBR.y	+= pt.y;
-
-	m_BottomRight.x	= m_FrameBR.x;
-	
-	//Дальше в зависимости от типа перетаскивания
-	switch(m_Direction)
-	{
-	case ALL:
-		{
-			//Перемещение без изменения размеров			
-			if(m_DataType == Bool)
-			{
-				double N;	//Количество целых шагов сетки
-				double rem	= modf((m_FrameBR.y - m_pDoc->m_pField->m_Rect.top)/
-					m_pDoc->m_pField->m_GridStep.y*2.,&N);
-
-				//Запомним старое положение оси по высоте
-				double yOld	= m_BottomRight.y;
-
-				if(rem > 0.5) N++;
-				m_BottomRight.y = m_pDoc->m_pField->m_Rect.top + N*0.5*m_pDoc->m_pField->m_GridStep.y;
-				if(nFlags & MK_CONTROL)
-				{
-					m_BottomRight.y = m_FrameBR.y;
-				}
-
-
-				Res = (m_BottomRight.y != yOld);
-			}
-			else
-			{
-				double N;	//Количество целых шагов сетки
-				double rem	= modf((m_FrameBR.y - m_pDoc->m_pField->m_Rect.top)/
-					m_pDoc->m_pField->m_GridStep.y,&N);
-
-				//Запомним старое положение оси по высоте
-				double yOld	= m_BottomRight.y;
-
-				if(rem > 0.5) N++;
-				m_BottomRight.y = m_pDoc->m_pField->m_Rect.top + N*m_pDoc->m_pField->m_GridStep.y;
-				if (nFlags & MK_CONTROL)
-				{
-					m_BottomRight.y = m_FrameBR.y;
-				}
-
-
-				Res = (m_BottomRight.y != yOld);
-			}
-		}break;
-	
-	case TOP:
-		{	
-			//Растяжение вверх
-			if((m_FrameBR.y - m_BottomRight.y) > m_pDoc->m_pField->m_GridStep.y)
-			{
-				//Передвинули вверх более чем на шаг				
-				m_Length++;
-				m_FrameBR.y -= m_pDoc->m_pField->m_GridStep.y;
-			}
-			else if((m_FrameBR.y - m_BottomRight.y) < -m_pDoc->m_pField->m_GridStep.y)
-			{
-				//Передвинули вниз более чем на шаг
-				if(m_Length > 1)
-				{
-					m_Length--;
-					m_FrameBR.y += m_pDoc->m_pField->m_GridStep.y;
-				}
-			}
-			Res = false;
-		}break;
-
-	case BOTTOM:
-		{			
-			//Растяжение вниз
-			if((m_FrameBR.y - m_BottomRight.y) > m_pDoc->m_pField->m_GridStep.y)
-			{
-				//Передвинули вверх более чем на шаг
-				if(m_Length > 1)
-				{
-					m_Length--;
-					m_Min += m_Scale;
-					m_BottomRight.y += m_pDoc->m_pField->m_GridStep.y;
-				}
-			}
-			else if((m_FrameBR.y - m_BottomRight.y) < -m_pDoc->m_pField->m_GridStep.y)
-			{
-				//Передвинули вниз более чем на шаг
-				m_Length++;
-				m_Min -= m_Scale;
-				m_BottomRight.y -= m_pDoc->m_pField->m_GridStep.y;
-			}
-
-			Res = false;
-		}break;	
-	}
-
-	m_pDoc->SetModifiedFlag();*/
-	return Res;
 }
 /*
 GRect	GAxe::GetFrameRect()

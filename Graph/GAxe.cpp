@@ -496,32 +496,6 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& gr
 		oldTime0	= t0;
 		oldTimeStep	= TimeScale;
 
-		//Определяем размер пикселя в физических масштабах
-		vec2	pix;
-		pix.x	= TimeScale/(grid.x*m_scale);
-		pix.y	= m_AxeScale/(grid.y*m_scale);
-
-		//Добавляем первую точку
-		vec2	oldPoint	= m_data.at(nStartIndex);
-		m_indices.clear();
-		m_indices.push_back(nStartIndex);
-
-		//Ищем следующую за пределами пикселя
-		for(size_t i = nStartIndex; i <= nStopIndex; i++)
-		{
-			vec2	pt	= m_data.at(i);
-			if(pt.x - oldPoint.x > pix.x || abs(pt.y - oldPoint.y) > pix.y)
-			{
-				m_indices.push_back((GLuint)i);
-				oldPoint	= pt;
-			}
-		}
-
-		//Заливаем их в буфер
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_indices.size()*sizeof(GLuint), m_indices.data());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 		//Создаем буфер индексов для маркеров
 		vector<GLuint>	markers;
 		float	freq	= (m_data.back().x - m_data.front().x)/m_data.size();	//Средняя частота записи
@@ -803,11 +777,40 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-	glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//Определяем диапазон индексов
+	int	nMin	= 0;
+	int	nMax	= m_data.size()-1;
+	while(nMax - nMin > 1)
+	{
+		int n	= (nMin+nMax)/2;
+		if(m_data.at(n).x <= t0)	nMin	= n;
+		else						nMax	= n;
+	}
+
+	GLuint	nStartIndex	= max(0, nMin-1);
+
+	nMin	= 0;
+	nMax	= m_data.size()-1;
+	while(nMax - nMin > 1)
+	{
+		int n	= (nMin+nMax)/2;
+		if(m_data.at(n).x <= t0 + TimeScale*(areaSize.x/grid.y))	nMin	= n;
+		else														nMax	= n;
+	}
+	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
+
+	glStencilMask(0xFF);
+	glStencilFunc(GL_GEQUAL, 1, 0xFF);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilMask(0x00);
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
+	//glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	m_data_program->release();
 

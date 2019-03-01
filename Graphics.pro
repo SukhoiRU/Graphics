@@ -6,15 +6,13 @@ TEMPLATE = app
 TARGET = Graphics
 
 unix{
-    CONFIG(release, debug|release)
-    {
+    CONFIG(release, debug|release) {
         DESTDIR = $$PWD/../bin/qtcreator
         OBJECTS_DIR = $$PWD/../garbage
         LIBS += -ldl
     }
 
-    CONFIG(debug, debug|release)
-    {
+    CONFIG(debug, debug|release) {
         DESTDIR = $$PWD/../bin/qtcreator/debug
         OBJECTS_DIR = $$PWD/../garbage/debug
         LIBS += -ldl
@@ -22,15 +20,13 @@ unix{
 }
 
 win32{
-    CONFIG(release, debug|release)
-    {
+    CONFIG(release, debug|release) {
         DESTDIR = $$PWD/../../bin/qtcreator
         OBJECTS_DIR = $$PWD/../../garbage
         LIBS += -lopengl32 -lglu32
     }
 
-    CONFIG(debug, debug|release)
-    {
+    CONFIG(debug, debug|release) {
         DESTDIR = $$PWD/../../bin/qtcreator/debug
         OBJECTS_DIR = $$PWD/../../garbage/debug
         LIBS += -lopengl32 -lglu32
@@ -56,3 +52,12 @@ INCLUDEPATH += ./GeneratedFiles \
 #UI_DIR += ./GeneratedFiles
 #RCC_DIR += ./GeneratedFiles
 include(Graphics.pri)
+
+FORMS += \
+    Dialogs/gaxe_dialog.ui
+
+HEADERS += \
+    Dialogs/gaxe_dialog.h
+
+SOURCES += \
+    Dialogs/gaxe_dialog.cpp

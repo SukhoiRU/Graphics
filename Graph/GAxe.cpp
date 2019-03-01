@@ -896,6 +896,13 @@ bool	GAxe::HitTest(const vec2& pt)
 
 bool	GAxe::getCursor(const vec2& pt, Qt::CursorShape& shape)
 {
+	if(m_DataType == Bool)	
+	{
+		shape	= Qt::CursorShape::SizeAllCursor; 
+		m_Direction = ALL;
+		return true;
+	}
+
 	vec2	mouse	= pt - m_FrameBR;
 	if(mouse.y > oldGrid.y*(float(m_AxeLength)-0.5)-1.)	{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = TOP;}
 	else if(mouse.y < 0.5*oldGrid.y)					{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = BOTTOM;}

@@ -43,7 +43,8 @@ SOURCES += \
 FORMS += $$PWD/Dialogs/graphselect.ui \
     $$PWD/Dialogs/panelselect.ui \
     $$PWD/graphicsdoc.ui \
-    $$PWD/Dialogs/PageSetup.ui
+    $$PWD/Dialogs/PageSetup.ui \
+    $$PWD/Dialogs/gaxe_dialog.ui
 RESOURCES += graphics.qrc
 PRECOMPILED_HEADER = stdafx.h
 

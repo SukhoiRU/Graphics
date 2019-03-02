@@ -687,7 +687,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		glStencilFunc(GL_EQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 	}
 

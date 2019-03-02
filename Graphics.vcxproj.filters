@@ -323,5 +323,6 @@
     <None Include="shaders\gaxe_selection.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

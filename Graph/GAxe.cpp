@@ -565,6 +565,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(m_DataType != Bool)
 		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
+	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	textLabel->setMatrix(dataModel);
+	textLabel->renderText(color, alpha);
+
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
 	{
@@ -683,11 +687,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilMask(0x00);
 	}
-
-	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel);
-	textLabel->renderText(color, alpha);
 
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;
@@ -773,11 +775,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glUniform3fv(u_data_color, 1, &color.r);
 
-	//Подключаем буфер графика
-	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
 	//Определяем диапазон индексов
 	int	nMin	= 0;
 	int	nMax	= m_data.size()-1;
@@ -800,17 +797,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
 
-	glStencilMask(0xFF);
-	glStencilFunc(GL_GEQUAL, 1, 0xFF);
-	//glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	glStencilMask(0x00);
+	//Подключаем буфер графика
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-	//glDrawElements(GL_LINE_STRIP, m_indices.size(), GL_UNSIGNED_INT, nullptr);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 
 	m_data_program->release();
 

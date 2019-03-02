@@ -379,11 +379,10 @@ void GraphicsView::paintGL()
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 		glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-		//glFinish();
+		glFinish();
 
 		//Получаем мышь
 		QPointF	pLocal	= mapFromGlobal(QCursor::pos());

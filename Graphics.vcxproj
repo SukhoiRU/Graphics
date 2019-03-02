@@ -598,6 +598,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
     </CustomBuild>
+    <None Include="ClassDiagram.cd" />
     <None Include="shaders\fbo.frag" />
     <None Include="shaders\fbo.vert" />
     <None Include="shaders\gaxe.vert" />

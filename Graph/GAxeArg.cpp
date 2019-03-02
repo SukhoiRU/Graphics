@@ -244,9 +244,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		glStencilMask(0x00);
 	}
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -278,7 +277,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}

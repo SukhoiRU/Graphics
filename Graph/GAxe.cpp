@@ -565,10 +565,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(m_DataType != Bool)
 		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
-	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel);
-	textLabel->renderText(color, alpha);
-
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
 	{
@@ -596,9 +592,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glDrawArrays(GL_LINE_STRIP, (m_Axe_nCount+8)/2, 5);
 
 		//Возвращаем настройки буфера
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 
 		m_select_program->release();
 	}
@@ -659,11 +655,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1i(u_marker_type, m_nMarker);
 
 		//Рисуем нулевую точку из буфера оси
-		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_POINTS, 1, 1);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		m_marker_program->release();
 	}
@@ -689,6 +683,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 		glStencilMask(0x00);
 	}
+
+	//Надписи у оси
+	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	textLabel->setMatrix(dataModel);
+	textLabel->renderText(color, alpha);
 
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;

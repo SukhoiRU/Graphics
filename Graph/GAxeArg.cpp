@@ -163,51 +163,21 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 		if(gridVBO)
 		{
 			glDeleteBuffers(1, &gridVBO);
-			glGenBuffers(1, &gridVBO);
-			glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-			glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-		else
-		{
-			glGenBuffers(1, &gridVBO);
-			glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
-			glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
+		glGenBuffers(1, &gridVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+		glBufferData(GL_ARRAY_BUFFER, dataGrid.size()*sizeof(Vertex), dataGrid.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		//Буфер для оси
 		if(axeVBO) 
 		{
 			glDeleteBuffers(1, &axeVBO);
-			glGenBuffers(1, &axeVBO);
-			glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-			glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-		else
-		{
-			glGenBuffers(1, &axeVBO);
-			glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-			glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
+		glGenBuffers(1, &axeVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+		glBufferData(GL_ARRAY_BUFFER, dataAxe.size()*sizeof(Vertex), dataAxe.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		textLabel->prepare();
 	}

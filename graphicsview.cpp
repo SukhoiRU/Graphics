@@ -10,6 +10,7 @@
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
 #include "Graph/GAxeArg.h"
+#include "Dialogs/gaxe_dialog.h"
 
 #include <vector>
 using std::max;
@@ -956,7 +957,29 @@ void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 
 void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	return QOpenGLWidget::mouseDoubleClickEvent(event);
+	if(m_SelectedObjects.size())
+	{
+		//При наличии списка объектов собираем только оси
+		vector<GAxe*>	axes;
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			GraphObject*	pAxe	= m_SelectedObjects.at(i);
+			if(pAxe->m_Type == AXE)
+				axes.push_back((GAxe*)pAxe);
+		}
+
+		if(axes.size())
+		{
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
+			if(dlg->exec())
+			{
+				delete	dlg;
+				emit axesRenamed();
+			}
+		}
+	}
+	else
+		return QOpenGLWidget::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::keyPressEvent(QKeyEvent *event)

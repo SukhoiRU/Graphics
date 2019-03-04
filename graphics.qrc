@@ -53,5 +53,6 @@
         <file>shaders/markers.vert</file>
         <file>shaders/gaxe_selection.frag</file>
         <file>shaders/gaxe_selection.vert</file>
+        <file>Resources/tranlations/qtbase_ru.qm</file>
     </qresource>
 </RCC>

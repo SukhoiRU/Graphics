@@ -368,7 +368,7 @@ void	GAxe::setAxeLength(int len)
 		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.y + 2.0f);
 		for(int i = 0; i <= m_AxeLength; i++)
 		{
-			QString	txt		= QString("%1").arg(m_Min + i*m_AxeScale);
+			QString	txt		= QString("%1").arg(m_AxeMin + i*m_AxeScale);
 			vec2	size	= textLabel->textSize(txt);
 			textLabel->addString(txt, -size.x - 2., i*grid.y - textLabel->midLine());
 		}
@@ -433,7 +433,7 @@ void	GAxe::Load(QDomElement* node)
 		}
 	}
 	if(node->hasAttribute("Маркер"))		m_nMarker		= node->attribute("Маркер").toInt();
-	if(node->hasAttribute("Минимум"))		m_Min			= node->attribute("Минимум").toDouble();
+	if(node->hasAttribute("Минимум"))		m_AxeMin		= node->attribute("Минимум").toDouble();
 	if(node->hasAttribute("Шаг"))			m_AxeScale		= node->attribute("Шаг").toDouble();
 	if(node->hasAttribute("Длина"))			setAxeLength(node->attribute("Длина").toInt());
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
@@ -729,11 +729,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
-	dataModel	= translate(dataModel, vec3(-t0, -m_Min, 0.f));
+	dataModel	= translate(dataModel, vec3(-t0, -m_AxeMin, 0.f));
 
 	//Определяем базовую линию для вертикальных палок
-	float	baseLine	= m_Min;
-	if(m_Min < 0 && m_Min + m_AxeScale*m_AxeLength > 0)
+	float	baseLine	= m_AxeMin;
+	if(m_AxeMin < 0 && m_AxeMin + m_AxeScale*m_AxeLength > 0)
 	{
 		//В оси присутствует 0
 		baseLine	= 0;
@@ -936,14 +936,14 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
 			{
 				m_AxeLength--;
-				m_Min += m_AxeScale;
+				m_AxeMin += m_AxeScale;
 				m_BottomRight.y	+= oldGrid.y;
 				setAxeLength(m_AxeLength);
 			}
 			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
 			{
 				m_AxeLength++;
-				m_Min -= m_AxeScale;
+				m_AxeMin -= m_AxeScale;
 				m_BottomRight.y	-= oldGrid.y;
 				setAxeLength(m_AxeLength);
 			}
@@ -1006,102 +1006,23 @@ GRect	GAxe::GetFrameRect()
 	return rc;
 }
 */
-void	GAxe::GetLimits(double* /*pMin*/, double* /*pMax*/)
-{/*
-	UpdateRecord(false);
-	if(m_Record == -1)
+void	GAxe::GetLimits(double* pMin, double* pMax)
+{
+	if(m_Record == -1 || m_data.size() == 0)
 	{
 		*pMax = 0;
 		*pMin = 0;
 		return;
 	}
 
-	if(m_pDoc->GetBufArray().empty())	return;
-
-	const Accumulation*				pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-	const BYTE*						pData		= pBuffer->GetData();
-	const int						RecCount	= pBuffer->GetRecCount();
-	const int						RecSize		= pBuffer->GetRecSize();
-
-	//Определяем смещение в векторе данных
-	const int						Offset		= m_Offset;
-	switch(pBuffer->GetType())
+	*pMin	= *pMax	= m_data.front().y;
+	for(size_t i = 0; i < m_data.size(); i++)
 	{
-	case Acc_KARP:
-		{
-			//Найдем минимум и максимум для КАРП
-			float*	ptr	= (float*)(pData+m_Offset);
-			float	Min	= *(ptr+1);
-			double	Max = Min;
-			for(int i = 0; i < m_KARP_Len; i++)
-			{
-				//Берем запись
-				float	f	= *(ptr+2*i+1);
-				if(f < Min) Min = f;
-				if(f > Max)	Max = f;
-			}
+		double	f	= m_data.at(i).y;
+		if(f < *pMin)	*pMin	= f;
+		if(f > *pMax)	*pMax	= f;
+	}
 
-			*pMax = Max;
-			*pMin = Min;
-		}break;
-
-	case Acc_Orion:
-		{
-			//Найдем минимум и максимум для Ориона
-			if(m_pOrionData)
-			{
-				double	f	= 0;
-				switch(m_DataType)
-				{
-				case Bool:		f	= *(bool*)(m_pOrionData + 0*sizeof(bool));	break;
-				case Int:		f	= *(int*)(m_pOrionData + 0*sizeof(int));	break;
-				case Double:	f	= *(double*)(m_pOrionData + 0*sizeof(double));	break;
-				};
-
-				double	Min	= f;
-				double	Max = Min;
-				for(int i = 0; i < m_KARP_Len; i++)
-				{
-					//Берем запись
-					double	f	= 0;
-					switch(m_DataType)
-					{
-					case Bool:		f	= *(bool*)(m_pOrionData + i*sizeof(bool));	break;
-					case Int:		f	= *(int*)(m_pOrionData + i*sizeof(int));	break;
-					case Double:	f	= *(double*)(m_pOrionData + i*sizeof(double));	break;
-					};
-
-					if(f < Min) Min = f;
-					if(f > Max)	Max = f;
-				}
-
-				*pMax = Max;
-				*pMin = Min;
-			}
-		}break;
-
-	default:
-		{
-			if(RecCount)
-			{
-				//Найдем минимум и максимум
-				double	Min	= GetValue(pData);
-				double	Max = Min;
-
-				for(int i = 0; i < RecCount; i++)
-				{
-					//Берем запись
-					double	f		= GetValue(pData + i*RecSize);
-
-					if(f < Min) Min = f;
-					if(f > Max)	Max = f;
-				}
-
-				*pMax = Max;
-				*pMin = Min;
-			}
-		}
-	}*/
 }
 
 void	GAxe::GetLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*pMax*/)
@@ -1325,7 +1246,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 			if(m_DataType == Bool)
 			{
 				setAxeLength(1);
-				m_Min		= 0;
+				m_AxeMin	= 0;
 				m_AxeScale	= 1;
 			}
 		

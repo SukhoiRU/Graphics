@@ -117,3 +117,19 @@ void	LocatorItem::setHeaderData(QString first, QString second)
 	m_Data.name		= first;
 	m_Data.value	= second;
 }
+
+void	LocatorItem::updateNames()
+{
+	//Обновляем себя
+	if(m_Data.pAxe)
+	{
+		m_Data.name	= m_Data.pAxe->m_Name;
+	}
+
+	//Обновляем детей
+	for(size_t i = 0; i < m_ChildItems.size(); i++)
+	{
+		m_ChildItems.at(i)->updateNames();
+	}
+
+}

@@ -2,9 +2,15 @@
 #define GAXE_DIALOG_H
 
 #include <QDialog>
+#include <vector>
+using std::vector;
 
 namespace Ui {
 class GAxe_dialog;
+}
+
+namespace Graph{
+	class GAxe;
 }
 
 class GAxe_dialog : public QDialog
@@ -12,14 +18,15 @@ class GAxe_dialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GAxe_dialog(QWidget *parent = 0);
+    explicit GAxe_dialog(vector<Graph::GAxe*>* pAxes, QWidget *parent = 0);
     ~GAxe_dialog();
 
 private slots:
-    void on_pushButton_clicked();
+    void on_accept();
 
 private:
     Ui::GAxe_dialog *ui;
+	vector<Graph::GAxe*>	axes;
 };
 
 #endif // GAXE_DIALOG_H

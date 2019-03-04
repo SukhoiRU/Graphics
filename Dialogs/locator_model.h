@@ -38,6 +38,7 @@ public:
 	void	updateModel(double time);
 	void	setSelected(bool bSelected);
 	void	resortAxes();
+	void	updateNames();
 
 protected:
 	LocatorItem*	m_rootItem;

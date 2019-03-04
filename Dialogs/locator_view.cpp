@@ -171,3 +171,9 @@ void	LocatorView::on_axesMoved()
 	if(m_model)
 		m_model->resortAxes();
 }
+
+void	LocatorView::on_axesRenamed()
+{
+	if(m_model)
+		m_model->updateNames();
+}

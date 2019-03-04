@@ -8,6 +8,9 @@ int main(int argc, char *argv[])
 //	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
 //	qputenv("QT_ANGLE_PLATFORM", "d3d11");
 	QApplication a(argc, argv);
+	QTranslator*	tr	= new QTranslator;
+	tr->load(":/Resources/tranlations/qtbase_ru.qm");
+	a.installTranslator(tr);
 //	a.setAttribute(Qt::AA_UseDesktopOpenGL, true);
 
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);

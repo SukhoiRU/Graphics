@@ -58,16 +58,19 @@ public:
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
         GraphicsDoc->resize(449, 649);
+        QIcon icon;
+        icon.addFile(QStringLiteral(":/Resources/tree/plot-opengl.png"), QSize(), QIcon::Normal, QIcon::Off);
+        GraphicsDoc->setWindowIcon(icon);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/Resources/images/open.png"), QSize(), QIcon::Normal, QIcon::Off);
-        actionOpen->setIcon(icon);
+        QIcon icon1;
+        icon1.addFile(QStringLiteral(":/Resources/images/open.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionOpen->setIcon(icon1);
         actionSave = new QAction(GraphicsDoc);
         actionSave->setObjectName(QStringLiteral("actionSave"));
-        QIcon icon1;
-        icon1.addFile(QStringLiteral(":/Resources/images/save.png"), QSize(), QIcon::Normal, QIcon::Off);
-        actionSave->setIcon(icon1);
+        QIcon icon2;
+        icon2.addFile(QStringLiteral(":/Resources/images/save.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionSave->setIcon(icon2);
         action_2 = new QAction(GraphicsDoc);
         action_2->setObjectName(QStringLiteral("action_2"));
         action_LoadOrion = new QAction(GraphicsDoc);

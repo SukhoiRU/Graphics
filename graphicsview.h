@@ -60,6 +60,7 @@ signals:
 	void	timeChanged(double time);
 	void	hasSelectedAxes(bool bSelected);
 	void	axesMoved();
+	void	axesRenamed();
 
 protected:
 	//Обработка мыши и клавиатуры

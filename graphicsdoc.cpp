@@ -36,6 +36,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
 	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
+	connect(ui->oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
 
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
@@ -359,7 +360,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
 		pAxe->m_nMarker		= 0;//GetNextMarker();
 		pAxe->setAxeLength(4);
-		pAxe->m_Min			= -10;
+		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
 		pAxe->SetPosition(20, 200);
 //		pAxe->UpdateRecord();

@@ -43,17 +43,17 @@ private:
 	vector<vec2>	m_data;
 	vector<GLuint>	m_indices;
 	GLuint			m_markersCount;
-	GLuint	dataVBO;
-	GLuint	dataIBO;
-	GLuint	markerIBO;
-	GLuint	axeVBO;
+	GLuint			dataVBO;
+	GLuint			dataIBO;
+	GLuint			markerIBO;
+	GLuint			axeVBO;
 	GTextLabel*		textLabel;
-	vec2	oldGrid;
-	vec2	oldAreaBL;
-	vec2	oldAreaSize;
-	float	oldScale;
-	double	oldTime0;
-	double	oldTimeStep;
+	vec2			oldGrid;
+	vec2			oldAreaBL;
+	vec2			oldAreaSize;
+	float			oldScale;
+	double			oldTime0;
+	double			oldTimeStep;
 
 	//Shader Information
 	static QOpenGLShaderProgram*	m_program;
@@ -112,7 +112,7 @@ public:
 	int				m_nAcc;			//Номер накопления
 	QString			m_AccName;		//Имя накопления
 
-	double			m_Min;			//Минимальное значение на оси
+	double			m_AxeMin;		//Минимальное значение на оси
 	double			m_AxeScale;		//Цена деления, физическая величина клетки
 	int				m_nSubTicks;	//Количество мелких штрихов	
 

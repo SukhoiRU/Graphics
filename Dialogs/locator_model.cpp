@@ -181,3 +181,12 @@ void	LocatorModel::setSelected(bool bSelected)
 	m_bHasSelected	= bSelected;
 	emit dataChanged(i_Start, i_Stop);
 }
+
+void	LocatorModel::updateNames()
+{
+	if(m_rootItem)
+	{
+		m_rootItem->updateNames();
+		emit dataChanged(index(0,0), i_Stop);
+	}
+}

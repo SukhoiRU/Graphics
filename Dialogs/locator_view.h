@@ -35,6 +35,7 @@ public slots:
 	void	on_timeChanged(double time);
 	void	on_axeSelected(bool bSelect);
 	void	on_axesMoved();
+	void	on_axesRenamed();
 };
 
 #endif // QLOCATOR_H

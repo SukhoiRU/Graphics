@@ -173,6 +173,15 @@
     <ClCompile Include="Dialogs\gaxe_dialog.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_colorbutton.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_colorbutton.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\colorbutton.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -267,6 +276,9 @@
     <CustomBuild Include="Dialogs\gaxe_dialog.h">
       <Filter>Header Files\Dialogs</Filter>
     </CustomBuild>
+    <CustomBuild Include="Dialogs\colorbutton.h">
+      <Filter>Header Files\Dialogs</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\gaxe.vert">
@@ -323,6 +335,5 @@
     <None Include="shaders\gaxe_selection.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

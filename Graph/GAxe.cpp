@@ -599,6 +599,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		m_select_program->release();
 	}
 
+	//Надписи у оси
+	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	textLabel->setMatrix(dataModel);
+	textLabel->renderText(color, alpha);
+	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+
 	//Крест на оси без данных
 	if(m_Record == -1)
 	{
@@ -683,11 +689,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 		glStencilMask(0x00);
 	}
-
-	//Надписи у оси
-	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
-	textLabel->setMatrix(dataModel);
-	textLabel->renderText(color, alpha);
 
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;

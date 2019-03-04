@@ -311,9 +311,9 @@ vec2	GTextLabel::textSize(const QString& str1)
 	{
 		//Получаем информацию о символе
 		int code	= str.at(i).unicode();
-		auto	it	= font->charMap.find(code);
+		map<int, CharInfo>::iterator	it	= font->charMap.find(code);
 		if(it == font->charMap.end())
-			code	= 127;
+			code	= 126;
 
 		const CharInfo&	info	= font->charMap.at(code);
 		x += info.advance;

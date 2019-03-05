@@ -59,7 +59,7 @@ public:
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
         GraphicsDoc->resize(449, 649);
         QIcon icon;
-        icon.addFile(QStringLiteral(":/Resources/tree/plot-opengl.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon.addFile(QStringLiteral(":/Resources/images/open_gl.png"), QSize(), QIcon::Normal, QIcon::Off);
         GraphicsDoc->setWindowIcon(icon);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));

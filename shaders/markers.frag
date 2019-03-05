@@ -87,13 +87,19 @@ float square(vec2 P, float size)
 	return max(abs(P.x), abs(P.y)) - size / (2.0 * M_SQRT_2);
 }
 
+// float triangle(vec2 P, float size)
+// {
+// 	float x = M_SQRT_2/2.0 * (P.x - P.y);
+// 	float y = M_SQRT_2/2.0 * (P.x + P.y);
+// 	float r1 = max(abs(x), abs(y)) - size/(2*M_SQRT_2);
+// 	float r2 = P.y;
+// 	return max(r1,r2);
+// }
 float triangle(vec2 P, float size)
 {
-	float x = M_SQRT_2/2.0 * (P.x - P.y);
-	float y = M_SQRT_2/2.0 * (P.x + P.y);
-	float r1 = max(abs(x), abs(y)) - size/(2*M_SQRT_2);
-	float r2 = P.y;
-	return max(r1,r2);
+	float d1	= 0.5*(-P.y - (0.5*size - 1.732050807*abs(P.x)));
+	float	d2	= -0.5*0.5*size + P.y;
+	return max(d1,d2);
 }
 
 float diamond(vec2 P, float size)

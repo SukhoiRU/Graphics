@@ -9,8 +9,8 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, QWidget *parent) :
     ui(new Ui::GAxe_dialog)
 {
     ui->setupUi(this);
-	connect(this, &QDialog::accepted, this, &GAxe_dialog::on_accept);
-
+//	connect(this, &QDialog::accepted, this, &GAxe_dialog::on_accept);
+	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
 	axes	= *pAxes;
 
 	//Заполняем поля
@@ -94,6 +94,23 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, QWidget *parent) :
 		}
 	}
 
+	//Маркер
+	int	markerType	= axes.front()->m_nMarker/3;
+	int	markerStyle	= axes.front()->m_nMarker%3;
+	int	marker		= axes.front()->m_nMarker;
+	ui->comboType->setCurrentIndex(markerType);
+	ui->comboStyle->setCurrentIndex(markerStyle);
+	for(size_t i = 0; i < axes.size(); i++)
+	{
+		GAxe*	pAxe	= axes.at(i);
+		if(pAxe->m_nMarker != marker)
+		{
+			ui->comboType->setCurrentIndex(-1);
+			ui->comboStyle->setCurrentIndex(-1);
+			break;
+		}
+	}
+
 	//Отключаем кнопку замены для списков
 	if(axes.size() > 1)
 		ui->pushButton_Replace->setDisabled(true);
@@ -107,38 +124,47 @@ GAxe_dialog::~GAxe_dialog()
     delete ui;
 }
 
-void GAxe_dialog::on_accept()
+void GAxe_dialog::on_accept(QAbstractButton* pButton)
 {
-	//Разгребаем поля
+	if(ui->buttonBox->buttonRole(pButton) == QDialogButtonBox::AcceptRole ||
+		ui->buttonBox->buttonRole(pButton) == QDialogButtonBox::ApplyRole)
+	{
+		//Разгребаем поля
 
-	//Имя
-	QString	name	= ui->lineEdit_Name->text();
-	if(name != "<diff options>")
-		for(size_t i = 0; i < axes.size(); i++)
-			axes.at(i)->m_Name = name;
+		//Имя
+		QString	name	= ui->lineEdit_Name->text();
+		if(name != "<diff options>")
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_Name = name;
 
-	//Начало
-	double	Min	= ui->lineEdit_Min->text().toDouble();
-	if(ui->lineEdit_Min->text() != "<diff options>")
-		for(size_t i = 0; i < axes.size(); i++)
-			axes.at(i)->m_AxeMin = Min;
+		//Начало
+		double	Min	= ui->lineEdit_Min->text().toDouble();
+		if(ui->lineEdit_Min->text() != "<diff options>")
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_AxeMin = Min;
 
-	//Масштаб
-	double	Scale	= ui->lineEdit_Scale->text().toDouble();
-	if(ui->lineEdit_Scale->text() != "<diff options>")
-		for(size_t i = 0; i < axes.size(); i++)
-			axes.at(i)->m_AxeScale = Scale;
+		//Масштаб
+		double	Scale	= ui->lineEdit_Scale->text().toDouble();
+		if(ui->lineEdit_Scale->text() != "<diff options>")
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_AxeScale = Scale;
 
-	//Длина
-	int	Len	= ui->lineEdit_Length->text().toInt();
-	if(ui->lineEdit_Length->text() != "<diff options>")
-		for(size_t i = 0; i < axes.size(); i++)
-			axes.at(i)->setAxeLength(Len);
+		//Длина
+		int	Len	= ui->lineEdit_Length->text().toInt();
+		if(ui->lineEdit_Length->text() != "<diff options>")
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->setAxeLength(Len);
 
-	//Цвет
-	QColor	color;
-	if(ui->pushButton_Color->getColor(color))
-		for(size_t i = 0; i < axes.size(); i++)
-			axes.at(i)->m_Color = vec3(color.red()/255., color.green()/255., color.blue()/255.);
+		//Цвет
+		QColor	color;
+		if(ui->pushButton_Color->getColor(color))
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_Color = vec3(color.red()/255., color.green()/255., color.blue()/255.);
+
+		//Маркер
+		if(ui->comboType->currentIndex() != -1 && ui->comboStyle->currentIndex() != -1)
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_nMarker = ui->comboType->currentIndex()*3 + ui->comboStyle->currentIndex();
+	}
 }
 

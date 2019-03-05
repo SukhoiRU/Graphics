@@ -54,5 +54,6 @@
         <file>shaders/gaxe_selection.frag</file>
         <file>shaders/gaxe_selection.vert</file>
         <file>Resources/tranlations/qtbase_ru.qm</file>
+        <file>Resources/images/open_gl.png</file>
     </qresource>
 </RCC>

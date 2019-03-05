@@ -22,7 +22,7 @@ public:
     ~GAxe_dialog();
 
 private slots:
-    void on_accept();
+    void on_accept(QAbstractButton* pButton);
 
 private:
     Ui::GAxe_dialog *ui;

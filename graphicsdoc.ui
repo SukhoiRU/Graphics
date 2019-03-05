@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="graphics.qrc">
-    <normaloff>:/Resources/tree/plot-opengl.png</normaloff>:/Resources/tree/plot-opengl.png</iconset>
+    <normaloff>:/Resources/images/open_gl.png</normaloff>:/Resources/images/open_gl.png</iconset>
   </property>
   <widget class="QSplitter" name="splitter">
    <property name="orientation">

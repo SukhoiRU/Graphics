@@ -5,13 +5,10 @@
 
 int main(int argc, char *argv[])
 {
-//	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES, false);
-//	qputenv("QT_ANGLE_PLATFORM", "d3d11");
 	QApplication a(argc, argv);
 	QTranslator*	tr	= new QTranslator;
 	tr->load(":/Resources/tranlations/qtbase_ru.qm");
 	a.installTranslator(tr);
-//	a.setAttribute(Qt::AA_UseDesktopOpenGL, true);
 
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
@@ -27,7 +24,11 @@ int main(int argc, char *argv[])
 	parser.addOption(grfOption);
 	parser.process(a);
 
-//	QMessageBox::information(0, "safr", parser.helpText());
+	//QColorDialog::setStandardColor(0, Qt::black);
+	//QColorDialog::setStandardColor(1, Qt::red);
+	//QColorDialog::setStandardColor(2, Qt::green);
+	//QColorDialog::setStandardColor(3, Qt::blue);
+	//QColorDialog::setStandardColor(4, Qt::darkBlue);
 
 	GraphicsDoc w;
 //    if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));

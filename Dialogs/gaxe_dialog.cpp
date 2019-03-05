@@ -2,16 +2,19 @@
 #include "gaxe_dialog.h"
 #include "ui_gaxe_dialog.h"
 #include "../Graph/GAxe.h"
+#include "graphselect.h"
+#include "Accumulation.h"
 using namespace Graph;
 
-GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, QWidget *parent) :
+GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBuffer, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GAxe_dialog)
 {
     ui->setupUi(this);
-//	connect(this, &QDialog::accepted, this, &GAxe_dialog::on_accept);
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
-	axes	= *pAxes;
+	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);
+	axes		= *pAxes;
+	m_pBuffer	= pBuffer;
 
 	//Заполняем поля
 	{
@@ -168,3 +171,32 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 	}
 }
 
+void	GAxe_dialog::on_replace()
+{
+	GraphSelect	dlg(this);
+	dlg.SetAccumulation(m_pBuffer);
+	QString	path	= axes.front()->m_Path;
+	int	nAcc		= axes.front()->m_nAcc;
+	dlg.SetPath(path, nAcc);
+	if(dlg.exec() == QDialog::Accepted)
+	{
+		//Меняем ось
+		int nAcc	= dlg.m_nBufIndex;
+		int AccIndex = dlg.m_nAccIndex;
+
+		const Accumulation*	pAcc = m_pBuffer->at(nAcc);
+
+		GAxe*	pAxe	= axes.front();
+		pAxe->m_Name	= pAcc->GetName(AccIndex);
+		pAxe->m_Path	= pAcc->GetPath(AccIndex);
+		pAxe->m_nAcc	= nAcc;
+		pAxe->UpdateRecord(m_pBuffer);
+
+		//Меняем диалог
+		ui->lineEdit_Name->setText(pAxe->m_Name);
+		double	Min, Max;
+		pAxe->GetLimits(&Min, &Max);
+		ui->label_Min->setText(QString("[%1]").arg(Min));
+		ui->label_Max->setText(QString("[%1]").arg(Max));
+	}
+}

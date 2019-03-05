@@ -18,6 +18,7 @@ public:
     explicit GraphSelect(QWidget *parent = nullptr);
     ~GraphSelect();
 	void	SetAccumulation(const vector<Accumulation*>*	pBuffer);
+	void	SetPath(QString path, int nAcc);
 
     int m_nBufIndex;
     int m_nAccIndex;

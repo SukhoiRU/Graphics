@@ -79,22 +79,14 @@ vec4 outline(float distance,  // Signed distance to line
 
 float disc(vec2 P, float size) 
 {
-	return length(P) - size / 2 / M_SQRT_2; 
+	return length(P) - 0.5*size; 
 }
 
 float square(vec2 P, float size) 
 {
-	return max(abs(P.x), abs(P.y)) - size / (2.0 * M_SQRT_2);
+	return max(abs(P.x), abs(P.y)) - 0.5*size;
 }
 
-// float triangle(vec2 P, float size)
-// {
-// 	float x = M_SQRT_2/2.0 * (P.x - P.y);
-// 	float y = M_SQRT_2/2.0 * (P.x + P.y);
-// 	float r1 = max(abs(x), abs(y)) - size/(2*M_SQRT_2);
-// 	float r2 = P.y;
-// 	return max(r1,r2);
-// }
 float triangle(vec2 P, float size)
 {
 	float d1	= 0.5*(-P.y - (0.5*size - 1.732050807*abs(P.x)));
@@ -264,42 +256,42 @@ void main()
 		case 6:
 		{
 			//Пустой треугольник
-			float distance = triangle(P * v_size, size);
+			float distance = triangle(P * v_size, size*M_SQRT_2);
 			fColor = stroke(distance, linewidth, antialias, bg_color);
 		}break;
 
 		case 7:
 		{
 			//Сплошной треугольник
-			float distance = triangle(P * v_size, size);
+			float distance = triangle(P * v_size, size*M_SQRT_2);
 			fColor = filled(distance, linewidth, antialias, bg_color);
 		}break;
 
 		case 8:
 		{
 			// треугольник
-			float distance = triangle(P * v_size, size);
+			float distance = triangle(P * v_size, size*M_SQRT_2);
 			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
 		}break;
 
 		case 9:
 		{
 			//Пустой крест
-			float distance = cross(P * v_size, size);
+			float distance = cross(P * v_size, size*M_SQRT_2);
 			fColor = stroke(distance, linewidth, antialias, bg_color);
 		}break;
 
 		case 10:
 		{
 			//Сплошной крест
-			float distance = cross(P * v_size, size);
+			float distance = cross(P * v_size, size*M_SQRT_2);
 			fColor = filled(distance, linewidth, antialias, bg_color);
 		}break;
 
 		case 11:
 		{
 			// крест
-			float distance = cross(P * v_size, size);
+			float distance = cross(P * v_size, size*M_SQRT_2);
 			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
 		}break;
 
@@ -324,6 +316,48 @@ void main()
 			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
 		}break;
 
+		case 15:
+		{
+			//Пустой шеврон
+			float distance = chevron(P * v_size, size*M_SQRT_2);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 16:
+		{
+			//Сплошной шеврон
+			float distance = chevron(P * v_size, size*M_SQRT_2);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 17:
+		{
+			// шеврон
+			float distance = chevron(P * v_size, size*M_SQRT_2);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
+		case 18:
+		{
+			//Пустой клевер
+			float distance = clover(P * v_size, size*M_SQRT_2);
+			fColor = stroke(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 19:
+		{
+			//Сплошной клевер
+			float distance = clover(P * v_size, size*M_SQRT_2);
+			fColor = filled(distance, linewidth, antialias, bg_color);
+		}break;
+
+		case 20:
+		{
+			// клевер
+			float distance = clover(P * v_size, size*M_SQRT_2);
+			fColor = outline(distance, linewidth, antialias, bg_color, fg_color);
+		}break;
+
 		default:
 		{
 			//По умолчанию сердечко
@@ -331,4 +365,6 @@ void main()
 			fColor = outline(distance, linewidth, antialias, fg_color, bg_color);
 		}
 	}
+
+	if(fColor.a < 0.1)	fColor	= vec4(1.,0.,0.,0.1);
 }

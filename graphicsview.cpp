@@ -79,6 +79,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	qFBO_unsamled	= nullptr;
 
 	m_pLabel	= new Graph::GTextLabel;
+	m_pBuffer	= 0;
 }
 
 GraphicsView::~GraphicsView()
@@ -970,12 +971,10 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 		if(axes.size())
 		{
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
-			if(dlg->exec())
-			{
-				delete	dlg;
-				emit axesRenamed();
-			}
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, m_pBuffer, this);
+			dlg->exec();
+			emit axesRenamed();
+			delete	dlg;
 		}
 	}
 	else
@@ -1020,6 +1019,8 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
 {
+	m_pBuffer	= pBuffer;
+
 	if(m_pPanel)
 	{
 		//Очищаем текущий список осей

@@ -16,6 +16,7 @@ private:
 public:
     explicit QGridTree(QWidget *parent = 0);
 	virtual ~QGridTree();
+	void	expandTo(QString path, int nAcc);
 
 private:
     virtual void	drawRow(QPainter *painter, const QStyleOptionViewItem &options, const QModelIndex &index) const;

@@ -209,3 +209,37 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 	menu->popup(viewport()->mapToGlobal(pos));
 }
 
+void	QGridTree::expandTo(QString path, int nAcc)
+{
+	//Раскрываем с корня номер накопления
+	QModelIndex index	= model()->index(nAcc, 0);
+	TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
+	expand(index);
+
+	//Ищем в дереве
+	QStringList	list	= path.split("\\");
+	for(size_t i = 0; i < list.size()-1; i++)
+	{
+		QString	name	= list.at(i);
+		bool	bFound	= false;
+		for(size_t j = 0; j < item->childCount(); j++)
+		{
+			TreeItem*	subItem	= item->child(j);
+			if(subItem->GetData()->name == name)
+			{
+				//Нашли на этом уровне
+				index	= model()->index(j, 0, index);
+				item	= subItem;
+				expand(index);
+				bFound	= true;
+				break;
+			}
+		}
+
+		//Если не нашли - просто выходим
+		if(!bFound)
+			return;
+	}
+
+	setCurrentIndex(index);
+}

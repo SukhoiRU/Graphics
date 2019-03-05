@@ -311,6 +311,8 @@ public:
          << QApplication::translate("GAxe_dialog", "\320\242\321\200\320\265\321\203\320\263\320\276\320\273\321\214\320\275\320\270\320\272", Q_NULLPTR)
          << QApplication::translate("GAxe_dialog", "\320\232\321\200\320\265\321\201\321\202", Q_NULLPTR)
          << QApplication::translate("GAxe_dialog", "\320\227\320\262\320\265\320\267\320\264\320\276\321\207\320\272\320\260", Q_NULLPTR)
+         << QApplication::translate("GAxe_dialog", "\320\250\320\265\320\262\321\200\320\276\320\275", Q_NULLPTR)
+         << QApplication::translate("GAxe_dialog", "\320\232\320\273\320\265\320\262\320\265\321\200", Q_NULLPTR)
         );
     } // retranslateUi
 

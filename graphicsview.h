@@ -95,6 +95,7 @@ private:
 	vector<Graph::GraphObject*>	m_GraphObjects;
 	vector<Graph::GraphObject*>	m_SelectedObjects;
 	Graph::GTextLabel*			m_pLabel;
+	vector<Accumulation*>*		m_pBuffer;
 
 	//Начальное время и масштаб
 	double		Time0;

@@ -324,6 +324,16 @@
             <string>Звездочка</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Шеврон</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Клевер</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>

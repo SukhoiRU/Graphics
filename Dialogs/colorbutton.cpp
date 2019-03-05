@@ -4,7 +4,6 @@
 ColorButton::ColorButton(QWidget *parent)
 	: QPushButton(parent)
 {
-
 }
 
 ColorButton::~ColorButton()

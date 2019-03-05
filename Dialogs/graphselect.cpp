@@ -53,3 +53,7 @@ void    GraphSelect::onSignalAccepted(int nBufIndex, int nAccIndex)
     accept();
 }
 
+void	GraphSelect::SetPath(QString path, int nAcc)
+{
+	ui->treeView->expandTo(path, nAcc);
+}

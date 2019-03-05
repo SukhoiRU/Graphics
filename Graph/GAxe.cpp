@@ -1191,7 +1191,7 @@ void	GAxe::FitToScale(double /*t0*/ /* = 0 */, double /*t1*/ /* = 0 */)
 void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 {
 	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
-        if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
+	if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
 	{
 		m_Record	= -1;
 		return;

@@ -33,7 +33,7 @@ void	ColorButton::paintEvent(QPaintEvent * event)
 	QPainter	painter(this);
 	if(m_bDiff)
 	{
-		//Ðàçíîöâåòíàÿ êíîïêà
+		//Ð Ð°Ð·Ð½Ð¾Ñ†Ð²ÐµÑ‚Ð½Ð°Ñ ÐºÐ½Ð¾Ð¿ÐºÐ°
 		QRect	rc	= event->rect();
 		QLinearGradient g(rc.topLeft(), rc.bottomRight());
 		g.setColorAt(0, Qt::red);
@@ -49,7 +49,7 @@ void	ColorButton::paintEvent(QPaintEvent * event)
 	event->accept();
 }
 
-void ColorButton::mousePressEvent(QMouseEvent *e)
+void ColorButton::mousePressEvent(QMouseEvent* /*e*/)
 {
 	QColorDialog	dlg(m_color, this);
 	if(dlg.exec())

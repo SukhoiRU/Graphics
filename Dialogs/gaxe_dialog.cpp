@@ -16,7 +16,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 	axes		= *pAxes;
 	m_pBuffer	= pBuffer;
 
-	//Çàïîëíÿåì ïîëÿ
+	//Ð—Ð°Ð¿Ð¾Ð»Ð½ÑÐµÐ¼ Ð¿Ð¾Ð»Ñ
 	{
 		double	Min, Max;
 		axes.front()->GetLimits(&Min, &Max);
@@ -32,7 +32,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		ui->label_Max->setText(QString("[%1]").arg(Max));
 	}
 
-	//Èìÿ
+	//Ð˜Ð¼Ñ
 	QString	name	= axes.front()->m_Name;
 	ui->lineEdit_Name->setText(name);
 	for(size_t i = 0; i < axes.size(); i++)
@@ -45,7 +45,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
-	//Íà÷àëî
+	//ÐÐ°Ñ‡Ð°Ð»Ð¾
 	double	Min	= axes.front()->m_AxeMin;
 	ui->lineEdit_Min->setText(QString("%1").arg(Min));
 	for(size_t i = 0; i < axes.size(); i++)
@@ -58,7 +58,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 	
-	//Ìàñøòàá
+	//ÐœÐ°ÑÑˆÑ‚Ð°Ð±
 	double	Scale	= axes.front()->m_AxeScale;
 	ui->lineEdit_Scale->setText(QString("%1").arg(Scale));
 	for(size_t i = 0; i < axes.size(); i++)
@@ -71,7 +71,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
-	//Äëèíà
+	//Ð”Ð»Ð¸Ð½Ð°
 	int	Len	= axes.front()->getAxeLength();
 	ui->lineEdit_Length->setText(QString("%1").arg(Len));
 	for(size_t i = 0; i < axes.size(); i++)
@@ -84,9 +84,10 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
-	//Öâåò
+	//Ð¦Ð²ÐµÑ‚
 	vec3	color	= axes.front()->m_Color;
-	ui->pushButton_Color->setColor(QColor(color.r*255, color.g*255, color.b*255));
+        QColor  c(color.r*255, color.g*255, color.b*255);
+        ui->pushButton_Color->setColor(c);
 	for(size_t i = 0; i < axes.size(); i++)
 	{
 		GAxe*	pAxe	= axes.at(i);
@@ -97,7 +98,7 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
-	//Ìàðêåð
+	//ÐœÐ°Ñ€ÐºÐµÑ€
 	int	markerType	= axes.front()->m_nMarker/3;
 	int	markerStyle	= axes.front()->m_nMarker%3;
 	int	marker		= axes.front()->m_nMarker;
@@ -114,11 +115,11 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
-	//Îòêëþ÷àåì êíîïêó çàìåíû äëÿ ñïèñêîâ
+	//ÐžÑ‚ÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ ÐºÐ½Ð¾Ð¿ÐºÑƒ Ð·Ð°Ð¼ÐµÐ½Ñ‹ Ð´Ð»Ñ ÑÐ¿Ð¸ÑÐºÐ¾Ð²
 	if(axes.size() > 1)
 		ui->pushButton_Replace->setDisabled(true);
 
-	//Âûäåëÿåì ìèíèìóì äëÿ óäîáñòâà Tab
+	//Ð’Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð¼Ð¸Ð½Ð¸Ð¼ÑƒÐ¼ Ð´Ð»Ñ ÑƒÐ´Ð¾Ð±ÑÑ‚Ð²Ð° Tab
 	ui->lineEdit_Min->setFocus();
 }
 
@@ -132,39 +133,39 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 	if(ui->buttonBox->buttonRole(pButton) == QDialogButtonBox::AcceptRole ||
 		ui->buttonBox->buttonRole(pButton) == QDialogButtonBox::ApplyRole)
 	{
-		//Ðàçãðåáàåì ïîëÿ
+		//Ð Ð°Ð·Ð³Ñ€ÐµÐ±Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ñ
 
-		//Èìÿ
+		//Ð˜Ð¼Ñ
 		QString	name	= ui->lineEdit_Name->text();
 		if(name != "<diff options>")
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_Name = name;
 
-		//Íà÷àëî
+		//ÐÐ°Ñ‡Ð°Ð»Ð¾
 		double	Min	= ui->lineEdit_Min->text().toDouble();
 		if(ui->lineEdit_Min->text() != "<diff options>")
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_AxeMin = Min;
 
-		//Ìàñøòàá
+		//ÐœÐ°ÑÑˆÑ‚Ð°Ð±
 		double	Scale	= ui->lineEdit_Scale->text().toDouble();
 		if(ui->lineEdit_Scale->text() != "<diff options>")
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_AxeScale = Scale;
 
-		//Äëèíà
+		//Ð”Ð»Ð¸Ð½Ð°
 		int	Len	= ui->lineEdit_Length->text().toInt();
 		if(ui->lineEdit_Length->text() != "<diff options>")
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->setAxeLength(Len);
 
-		//Öâåò
+		//Ð¦Ð²ÐµÑ‚
 		QColor	color;
 		if(ui->pushButton_Color->getColor(color))
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_Color = vec3(color.red()/255., color.green()/255., color.blue()/255.);
 
-		//Ìàðêåð
+		//ÐœÐ°Ñ€ÐºÐµÑ€
 		if(ui->comboType->currentIndex() != -1 && ui->comboStyle->currentIndex() != -1)
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_nMarker = ui->comboType->currentIndex()*3 + ui->comboStyle->currentIndex();
@@ -173,6 +174,10 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 
 void	GAxe_dialog::on_replace()
 {
+	if(!m_pBuffer)		return;
+	if(axes.empty())	return;
+	if(axes.size() > 1)	return;
+
 	GraphSelect	dlg(this);
 	dlg.SetAccumulation(m_pBuffer);
 	QString	path	= axes.front()->m_Path;
@@ -180,11 +185,12 @@ void	GAxe_dialog::on_replace()
 	dlg.SetPath(path, nAcc);
 	if(dlg.exec() == QDialog::Accepted)
 	{
-		//Ìåíÿåì îñü
+		//ÐœÐµÐ½ÑÐµÐ¼ Ð¾ÑÑŒ
 		int nAcc	= dlg.m_nBufIndex;
 		int AccIndex = dlg.m_nAccIndex;
 
 		const Accumulation*	pAcc = m_pBuffer->at(nAcc);
+		if(!pAcc)	return;
 
 		GAxe*	pAxe	= axes.front();
 		pAxe->m_Name	= pAcc->GetName(AccIndex);
@@ -192,7 +198,7 @@ void	GAxe_dialog::on_replace()
 		pAxe->m_nAcc	= nAcc;
 		pAxe->UpdateRecord(m_pBuffer);
 
-		//Ìåíÿåì äèàëîã
+		//ÐœÐµÐ½ÑÐµÐ¼ Ð´Ð¸Ð°Ð»Ð¾Ð³
 		ui->lineEdit_Name->setText(pAxe->m_Name);
 		double	Min, Max;
 		pAxe->GetLimits(&Min, &Max);

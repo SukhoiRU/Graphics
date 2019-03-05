@@ -214,15 +214,16 @@ void	QGridTree::expandTo(QString path, int nAcc)
 	//Раскрываем с корня номер накопления
 	QModelIndex index	= model()->index(nAcc, 0);
 	TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
+	if(!item)	return;
 	expand(index);
 
 	//Ищем в дереве
 	QStringList	list	= path.split("\\");
-	for(size_t i = 0; i < list.size()-1; i++)
+	for(int i = 0; i < list.size()-1; i++)
 	{
 		QString	name	= list.at(i);
 		bool	bFound	= false;
-		for(size_t j = 0; j < item->childCount(); j++)
+		for(int j = 0; j < item->childCount(); j++)
 		{
 			TreeItem*	subItem	= item->child(j);
 			if(subItem->GetData()->name == name)

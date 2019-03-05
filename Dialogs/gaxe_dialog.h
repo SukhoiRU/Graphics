@@ -13,6 +13,7 @@ namespace Graph{
 	class GAxe;
 }
 class Accumulation;
+class QAbstractButton;
 
 class GAxe_dialog : public QDialog
 {

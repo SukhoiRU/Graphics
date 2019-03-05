@@ -52,12 +52,3 @@ INCLUDEPATH += ./GeneratedFiles \
 #UI_DIR += ./GeneratedFiles
 #RCC_DIR += ./GeneratedFiles
 include(Graphics.pri)
-
-FORMS += \
-    Dialogs/gaxe_dialog.ui
-
-HEADERS += \
-    Dialogs/gaxe_dialog.h
-
-SOURCES += \
-    Dialogs/gaxe_dialog.cpp

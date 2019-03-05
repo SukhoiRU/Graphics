@@ -8,6 +8,8 @@ HEADERS += \
     $$PWD/Dialogs/locator_item.h \
     $$PWD/Dialogs/locator_model.h \
     $$PWD/Dialogs/locator_view.h \
+    $$PWD/Dialogs/gaxe_dialog.h \
+    $$PWD/Dialogs/colorbutton.h \
     $$PWD/GeneratedFiles/ui_graphicsdoc.h \
     $$PWD/GeneratedFiles/ui_graphselect.h \
     $$PWD/GeneratedFiles/ui_PageSetup.h \
@@ -30,6 +32,8 @@ SOURCES += \
     $$PWD/Dialogs/locator_item.cpp \
     $$PWD/Dialogs/locator_model.cpp \
     $$PWD/Dialogs/locator_view.cpp \
+    $$PWD/Dialogs/gaxe_dialog.cpp \
+    $$PWD/Dialogs/colorbutton.cpp \
     $$PWD/Graph/GAxe.cpp \
     $$PWD/Graph/GAxeArg.cpp \
     $$PWD/Graph/GraphObject.cpp \

@@ -503,9 +503,9 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& gr
 		int	first	= 0;
 		if(dN)	first	= (nStartIndex/dN)*dN + ((m_BottomRight.x-60.)/60.)*dN;
 		m_markersCount	= 5;
-		for(int i = 0; i < m_markersCount; i++)
+                for(GLuint i = 0; i < m_markersCount; i++)
 		{
-			int	index	= first + (i+1)*dN;
+                        size_t	index	= first + (i+1)*dN;
 			if(index > m_data.size())
 			{
 				m_markersCount	= i+1;

@@ -24,7 +24,6 @@ public:
     int m_nAccIndex;
 private:
     Ui::GraphSelect *ui;
-
     void    onSignalAccepted(int nBufIndex, int nAccIndex);
 };
 

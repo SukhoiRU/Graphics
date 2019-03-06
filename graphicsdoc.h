@@ -57,6 +57,8 @@ private:
     bool			m_bAddAcc_Mode;		//Режим добавления накоплений
     int				m_nLastColor;		//Индекс последнего цвета графика
     int				m_nLastMarker;		//Индекс последнего маркера
+	int				m_oldAcc;			//Данные о прошлой добавленной оси
+	QString			m_oldPath;
 
 	void on_PanelListChanged();
 	void on_PanelAdd();

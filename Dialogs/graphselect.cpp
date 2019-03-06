@@ -48,8 +48,10 @@ void	GraphSelect::SetAccumulation(const vector<Accumulation*>* pBuffer)
 
 void    GraphSelect::onSignalAccepted(int nBufIndex, int nAccIndex)
 {
+	//Запоминаем выделенный элемент
     m_nBufIndex = nBufIndex;
     m_nAccIndex = nAccIndex;
+
     accept();
 }
 

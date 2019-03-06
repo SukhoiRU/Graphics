@@ -344,17 +344,20 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 {
     GraphSelect dlg(this);
 	dlg.SetAccumulation(&m_BufArray);
+	if(!m_oldPath.isEmpty())
+		dlg.SetPath(m_oldPath, m_oldAcc);
+
     if(dlg.exec() == QDialog::Accepted)
     {
         //Добавляем ось
-        int nAcc	= dlg.m_nBufIndex;
-        int AccIndex = dlg.m_nAccIndex;
+        int nAcc		= dlg.m_nBufIndex;
+        int AccIndex	= dlg.m_nAccIndex;
 
 		if(!m_pActivePanel)			return;
 		if(m_BufArray.empty())		return;
 
 		//Создаем оси
-		Accumulation*	pAcc					= m_BufArray.at(nAcc);
+		Accumulation*	pAcc	= m_BufArray.at(nAcc);
 
 		Graph::GAxe*	pAxe	= new Graph::GAxe;
 		pAxe->m_Name		= pAcc->GetName(AccIndex);
@@ -379,5 +382,9 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		m_pActivePanel->Axes.push_back(pAxe);
 
 		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+
+		//Запоминаем данные об оси
+		m_oldAcc	= nAcc;
+		m_oldPath	= pAxe->m_Path;
     }
 }

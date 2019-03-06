@@ -56,7 +56,7 @@ private:
 	double			oldTimeStep;
 
 	//Shader Information
-	static QOpenGLShaderProgram*	m_program;
+	static QOpenGLShaderProgram*	m_axe_program;
 	static int		u_modelToWorld;
 	static int		u_worldToCamera;
 	static int		u_cameraToView;

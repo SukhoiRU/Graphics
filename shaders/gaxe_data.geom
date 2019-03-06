@@ -133,59 +133,27 @@ void main()
 			gs_out.L		= len;
 
 			//Получаем масштаб
-			float	pix		= 50.0;//1.0/worldToCamera[0][0];
-
-			gs_out.coord	= vec2(0, -1.0);
-			gl_Position 	= cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(0.,pix, 0., 0.)); 
-			// gl_Position.y	= int(gl_Position.y) + 0.5;
-			// gl_Position 	= cameraToView *  gl_Position; 
-			EmitVertex();
+			float	pix		= 1.0/worldToCamera[0][0];
+			vec4	base	= worldToCamera * gl_in[0].gl_Position;
+			base.y			= int(base.y) + 0.5;
+			base			= inverse(worldToCamera)*base;
 
 			gs_out.coord	= vec2(0, 1.0);
-			gl_Position 	= cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(0.,-pix, 0., 0.)); 
-			// gl_Position.y	= int(gl_Position.y) + 0.5;
-			// gl_Position 	= cameraToView *  gl_Position; 
+			gl_Position 	= cameraToView * worldToCamera * (base + vec4(0.,pix, 0., 0.)); 
+			EmitVertex();
+
+			gs_out.coord	= vec2(0, -1.0);
+			gl_Position 	= cameraToView * worldToCamera * (base + vec4(0.,-pix, 0., 0.)); 
 			EmitVertex();
 
 			gs_out.coord	= vec2(len, 1.0);
-			gl_Position 	= cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(0.,-pix, 0., 0.)); 
-			// gl_Position.y	= int(gl_Position.y) + 0.5;
-			// gl_Position 	= cameraToView *  gl_Position; 
+			gl_Position 	= cameraToView * worldToCamera * vec4(gl_in[1].gl_Position.x, base.y + pix, 0., 1.); 
 			EmitVertex();
 
 			gs_out.coord	= vec2(len, -1.0);
-			gl_Position 	= cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(0.,pix, 0., 0.)); 
-			// gl_Position.y	= int(gl_Position.y) + 0.5;
-			// gl_Position 	= cameraToView *  gl_Position; 
+			gl_Position 	= cameraToView * worldToCamera * vec4(gl_in[1].gl_Position.x, base.y - pix, 0., 1.); 
 			EmitVertex();
 			EndPrimitive();
-/*
-			//Средняя линия
-			gl_Position 	= vec4(gl_in[0].gl_Position.xy, 0.0, 1.0); 
-			EmitVertex();
-			gl_Position 	= vec4(gl_in[1].gl_Position.xy, 0.0, 1.0); 
-			EmitVertex();
-			EndPrimitive();
-
-			if(gl_in[0].gl_Position.z != 0)
-			{
-				//Считаем размер пикселя в NDC
-				vec4 dy	= vec4(0.0, pixelSize.y, 0.0, 0.0);
-
-				//Верхняя линия
-				gl_Position 	= vec4(gl_in[0].gl_Position.xy, 0.0, 1.0) + dy; 
-				EmitVertex();
-				gl_Position 	= vec4(gl_in[1].gl_Position.xy, 0.0, 1.0) + dy; 
-				EmitVertex();
-				EndPrimitive();
-
-				//Нижняя линия
-				gl_Position 	= vec4(gl_in[0].gl_Position.xy, 0.0, 1.0) - dy; 
-				EmitVertex();
-				gl_Position 	= vec4(gl_in[1].gl_Position.xy, 0.0, 1.0) - dy; 
-				EmitVertex();
-				EndPrimitive();
-			}*/
 		}break;
 
 	default:

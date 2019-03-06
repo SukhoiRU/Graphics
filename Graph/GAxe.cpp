@@ -14,7 +14,7 @@ double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
 double	GAxe::m_Width		= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
-QOpenGLShaderProgram*	GAxe::m_program	= nullptr;
+QOpenGLShaderProgram*	GAxe::m_axe_program	= nullptr;
 int		GAxe::u_modelToWorld	= 0;
 int		GAxe::u_worldToCamera	= 0;
 int		GAxe::u_cameraToView	= 0;
@@ -95,7 +95,7 @@ GAxe::GAxe()
 	m_AxeLength		= 0;
 
 	textLabel	= new GTextLabel;
-	m_program	= 0;
+	m_axe_program	= 0;
 	dataVBO		= 0;
 	axeVBO		= 0;
 	oldGrid		= vec2(5.0f);
@@ -117,7 +117,7 @@ void	GAxe::finalDelete()
 {
 	//Удаляем статические переменные
 	if(cross_texture)		glDeleteTextures(1, &cross_texture);
-	if(m_program)			delete m_program;
+	if(m_axe_program)			delete m_axe_program;
 	if(m_data_program)		delete m_data_program;
 	if(m_marker_program)	delete m_marker_program;
 	if(m_cross_program)		delete m_cross_program;
@@ -127,22 +127,22 @@ void	GAxe::finalDelete()
 void	GAxe::initializeGL()
 {
 	m_bOpenGL_inited	= true;
-	if(m_program == 0)
+	if(m_axe_program == 0)
 	{
 		//Программа для шкалы и трафарета
-		m_program	= new QOpenGLShaderProgram;
-		m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
-		m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
-		m_program->link();
+		m_axe_program	= new QOpenGLShaderProgram;
+		m_axe_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe.vert");
+		m_axe_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe.frag");
+		m_axe_program->link();
 
-		m_program->bind();
-		u_modelToWorld	= m_program->uniformLocation("modelToWorld");
-		u_worldToCamera	= m_program->uniformLocation("worldToCamera");
-		u_cameraToView	= m_program->uniformLocation("cameraToView");
-		u_color			= m_program->uniformLocation("color");
-		u_alpha			= m_program->uniformLocation("alpha");
-		u_round			= m_program->uniformLocation("round");
-		m_program->release();
+		m_axe_program->bind();
+		u_modelToWorld	= m_axe_program->uniformLocation("modelToWorld");
+		u_worldToCamera	= m_axe_program->uniformLocation("worldToCamera");
+		u_cameraToView	= m_axe_program->uniformLocation("cameraToView");
+		u_color			= m_axe_program->uniformLocation("color");
+		u_alpha			= m_axe_program->uniformLocation("alpha");
+		u_round			= m_axe_program->uniformLocation("round");
+		m_axe_program->release();
 
 		//Программа для графиков линиями
 		m_data_program	= new QOpenGLShaderProgram;
@@ -542,7 +542,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
 
 	//Заливаем матрицы в шейдер
-	m_program->bind();
+	m_axe_program->bind();
 
 	glUniform3fv(u_color, 1, &color.r);
 	glUniform1f(u_alpha, 1.0f);//alpha);
@@ -602,6 +602,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	//Крест на оси без данных
 	if(m_Record == -1)
@@ -659,8 +661,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1i(u_marker_type, m_nMarker);
 
 		//Рисуем нулевую точку из буфера оси
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_POINTS, 1, 1);
 
 		m_marker_program->release();
@@ -668,7 +668,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 	//Область графиков для трафарета
 	{
-		m_program->bind();
+		m_axe_program->bind();
 		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
@@ -682,6 +682,11 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		if(m_DataType == Bool)
+		{
+			vec2*	pData	= (vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+		}
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -699,12 +704,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 	
-	//Выставляем тип линии и округление до пикселя
+	//Выставляем тип линии
 	switch(m_DataType)
 	{
 		case Graph::GAxe::Bool:
 		{
-			glUniform1i(u_data_lineType, 0);
+			glUniform1i(u_data_lineType, 3);
 		}break;
 
 		case Graph::GAxe::Int:

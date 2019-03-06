@@ -11,17 +11,11 @@ uniform int lineType;
 void main()
 {
 	//Выдаем дальше в миллиметрах документа
+	gl_Position = modelToWorld * vec4(position, 0.0, 1.0);
 	if(lineType == 3)
 	{
-		//Отрисовка bool
-		gl_Position = modelToWorld * vec4(position.x, 0.0, 0.0, 1.0);
-
 		//В сигнале Z передаем значение bool
 		gl_Position.z = position.y;
-	}
-	else
-	{
-		gl_Position = modelToWorld * vec4(position, 0.0, 1.0);
 	}
     vColor = vec4(color, alpha);
 }

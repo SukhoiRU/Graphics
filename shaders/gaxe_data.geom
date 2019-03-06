@@ -127,28 +127,36 @@ void main()
 		{
 			///////////////////////////////////////////////////////////////////////////////
 			//Отрисовка сигналов bool
-/*			float	len		= gl_in[2].gl_Position.x - gl_in[1].gl_Position.x;
-			float	dL		= 0.5*linewidth + 1.5*antialias;			
-			vec2	d1		= vec2(0., -dL);
-			vec2	d2		= vec2(-dL, 0.);
+			float	len		= gl_in[1].gl_Position.x - gl_in[0].gl_Position.x;
 
-			gs_out.bValue	= gl_in[1].gl_Position.z;
+			gs_out.bValue	= gl_in[0].gl_Position.z;
 			gs_out.L		= len;
-			
-			gs_out.coord	= vec2(-dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(-d1+d2, 0., 0.)); 
+
+			//Получаем масштаб
+			float	pix		= 50.0;//1.0/worldToCamera[0][0];
+
+			gs_out.coord	= vec2(0, -1.0);
+			gl_Position 	= cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(0.,pix, 0., 0.)); 
+			// gl_Position.y	= int(gl_Position.y) + 0.5;
+			// gl_Position 	= cameraToView *  gl_Position; 
 			EmitVertex();
 
-			gs_out.coord	= vec2(-dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(d1+d2, 0., 0.)); 
+			gs_out.coord	= vec2(0, 1.0);
+			gl_Position 	= cameraToView *  worldToCamera * (gl_in[0].gl_Position + vec4(0.,-pix, 0., 0.)); 
+			// gl_Position.y	= int(gl_Position.y) + 0.5;
+			// gl_Position 	= cameraToView *  gl_Position; 
 			EmitVertex();
 
-			gs_out.coord	= vec2(len+dL, -dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(-d1-d2, 0., 0.)); 
+			gs_out.coord	= vec2(len, 1.0);
+			gl_Position 	= cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(0.,-pix, 0., 0.)); 
+			// gl_Position.y	= int(gl_Position.y) + 0.5;
+			// gl_Position 	= cameraToView *  gl_Position; 
 			EmitVertex();
 
-			gs_out.coord	= vec2(len+dL, dL);
-			gl_Position = cameraToView *  worldToCamera * (gl_in[2].gl_Position + vec4(d1-d2, 0., 0.)); 
+			gs_out.coord	= vec2(len, -1.0);
+			gl_Position 	= cameraToView *  worldToCamera * (gl_in[1].gl_Position + vec4(0.,pix, 0., 0.)); 
+			// gl_Position.y	= int(gl_Position.y) + 0.5;
+			// gl_Position 	= cameraToView *  gl_Position; 
 			EmitVertex();
 			EndPrimitive();
 /*

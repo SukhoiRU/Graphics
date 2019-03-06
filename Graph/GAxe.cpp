@@ -29,7 +29,6 @@ int		GAxe::u_data_worldToCamera	= 0;
 int		GAxe::u_data_cameraToView	= 0;
 int		GAxe::u_data_color			= 0;
 int		GAxe::u_data_alpha			= 0;
-int		GAxe::u_data_round			= 0;
 int		GAxe::u_data_lineType		= 0;
 int		GAxe::u_data_baseLine		= 0;
 int		GAxe::u_data_pixelSize		= 0;
@@ -158,7 +157,6 @@ void	GAxe::initializeGL()
 		u_data_cameraToView		= m_data_program->uniformLocation("cameraToView");
 		u_data_color			= m_data_program->uniformLocation("color");
 		u_data_alpha			= m_data_program->uniformLocation("alpha");
-		u_data_round			= m_data_program->uniformLocation("round");
 		u_data_lineType			= m_data_program->uniformLocation("lineType");
 		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
 		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
@@ -706,14 +704,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	{
 		case Graph::GAxe::Bool:
 		{
-			glUniform1i(u_data_lineType, 3);
-			glUniform1i(u_data_round, 1);
+			glUniform1i(u_data_lineType, 0);
 		}break;
 
 		case Graph::GAxe::Int:
 		{
 			glUniform1i(u_data_lineType, 1);
-			glUniform1i(u_data_round, 1);
 		}break;
 
 		default:
@@ -722,7 +718,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 				glUniform1i(u_data_lineType, 0);
 			else
 				glUniform1i(u_data_lineType, 1);
-			glUniform1i(u_data_round, 0);
 		}break;
 	}
 
@@ -731,6 +726,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_AxeMin, 0.f));
+	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
 	//Определяем базовую линию для вертикальных палок
 	float	baseLine	= m_AxeMin;
@@ -770,10 +766,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		}
 	}
 
-	//Рисуем основной график
-	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glUniform3fv(u_data_color, 1, &color.r);
-
 	//Определяем диапазон индексов
 	int	nMin	= 0;
 	int	nMax	= m_data.size()-1;
@@ -802,7 +794,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
+//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_data_program->release();
 

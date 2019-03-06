@@ -75,7 +75,7 @@ public:
     {
         if (GAxe_dialog->objectName().isEmpty())
             GAxe_dialog->setObjectName(QStringLiteral("GAxe_dialog"));
-        GAxe_dialog->resize(396, 441);
+        GAxe_dialog->resize(306, 389);
         GAxe_dialog->setSizeGripEnabled(true);
         gridLayout_3 = new QGridLayout(GAxe_dialog);
         gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));

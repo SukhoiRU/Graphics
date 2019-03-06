@@ -31,6 +31,17 @@ vec4 stroke(float distance,  // Signed distance to line
 
 void main()
 {
+  if(lineType == 3)
+  {
+	  fColor	= gs_in.gColor;
+	  return;
+	  
+	  //Отрисовка bool
+	  if(gs_in.bValue != 0.)				fColor	= gs_in.gColor;
+	  else if(abs(gs_in.coord.y) < 0.33)	fColor	= gs_in.gColor;
+	  else									discard;
+	  return;
+  }
   //Расстояние до отрезка
   float distance = abs(gs_in.coord.y);
   float Kalpha  = 1;
@@ -47,8 +58,6 @@ void main()
     Kalpha  = 0.5;
   }
 
-  // if(gs_in.coord.x < gs_in.coord.y*gs_in.tg1)  distance = 10.;
-  // if(gs_in.coord.x > gs_in.L - gs_in.coord.y*gs_in.tg2)  distance = 10.;
  
   fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
   fColor.a  *= Kalpha;

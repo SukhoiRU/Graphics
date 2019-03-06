@@ -71,7 +71,6 @@ private:
 	static int		u_data_cameraToView;
 	static int		u_data_color;
 	static int		u_data_alpha;
-	static int		u_data_round;
 	static int		u_data_lineType;
 	static int		u_data_baseLine;
 	static int		u_data_pixelSize;

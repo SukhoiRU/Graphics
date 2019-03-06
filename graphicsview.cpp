@@ -109,12 +109,6 @@ void GraphicsView::teardownGL()
 	if(m_fbo_program) {delete m_fbo_program; m_fbo_program = 0;}
 }
 
-void GraphicsView::pause(bool hold)
-{
-    if(hold)    disconnect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
-    else        connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
-}
-
 void GraphicsView::initializeGL()
 {
 	//Initialize OpenGL Backend

@@ -5,32 +5,22 @@
 TEMPLATE = app
 TARGET = Graphics
 
-unix{
-    CONFIG(release, debug|release) {
-        DESTDIR = $$PWD/../bin/qtcreator
-        OBJECTS_DIR = $$PWD/../garbage
-        LIBS += -ldl
-    }
+CONFIG(release, debug|release) {
+    DESTDIR = $$PWD/../../bin/qtcreator
+    OBJECTS_DIR = $$PWD/../../garbage
+}
 
-    CONFIG(debug, debug|release) {
-        DESTDIR = $$PWD/../bin/qtcreator/debug
-        OBJECTS_DIR = $$PWD/../garbage/debug
-        LIBS += -ldl
-    }
+CONFIG(debug, debug|release) {
+    DESTDIR = $$PWD/../../bin/qtcreator/debug
+    OBJECTS_DIR = $$PWD/../../garbage/debug
+}
+
+unix{
+    LIBS += -ldl
 }
 
 win32{
-    CONFIG(release, debug|release) {
-        DESTDIR = $$PWD/../../bin/qtcreator
-        OBJECTS_DIR = $$PWD/../../garbage
-        LIBS += -lopengl32 -lglu32
-    }
-
-    CONFIG(debug, debug|release) {
-        DESTDIR = $$PWD/../../bin/qtcreator/debug
-        OBJECTS_DIR = $$PWD/../../garbage/debug
-        LIBS += -lopengl32 -lglu32
-    }
+    LIBS += -lopengl32 -lglu32
 }
 
 QT += core xml opengl gui widgets printsupport svg

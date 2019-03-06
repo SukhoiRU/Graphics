@@ -465,7 +465,7 @@ void	GAxe::SetPosition(vec2 pt)
 	m_FrameBR		= pt;
 }
 
-void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize)
+void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& /*grid*/, const vec2& /*areaSize*/)
 {
 	if(!m_data.size())	return;
 	//При необходимости пересчитываем индексы
@@ -482,7 +482,7 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& gr
 		}
 
 		GLuint	nStartIndex	= max(0, nMin-1);
-
+/*
 		nMin	= 0;
 		nMax	= m_data.size()-1;
 		while(nMax - nMin > 1)
@@ -492,7 +492,7 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& gr
 			else														nMax	= n;
 		}
 		GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
-
+*/
 		oldTime0	= t0;
 		oldTimeStep	= TimeScale;
 

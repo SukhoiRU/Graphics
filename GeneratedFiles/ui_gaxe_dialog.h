@@ -9,6 +9,7 @@
 #ifndef UI_GAXE_DIALOG_H
 #define UI_GAXE_DIALOG_H
 
+#include <QtCore/QLocale>
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
@@ -25,7 +26,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QVBoxLayout>
-#include "colorbutton.h"
+#include "Dialogs/colorbutton.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -33,7 +34,6 @@ class Ui_GAxe_dialog
 {
 public:
     QGridLayout *gridLayout_3;
-    QDialogButtonBox *buttonBox;
     QPushButton *pushButton_Additional;
     QVBoxLayout *verticalLayout_2;
     QVBoxLayout *verticalLayout;
@@ -69,23 +69,16 @@ public:
     QLabel *label_8;
     QComboBox *comboStyle;
     QComboBox *comboType;
+    QDialogButtonBox *buttonBox;
 
     void setupUi(QDialog *GAxe_dialog)
     {
         if (GAxe_dialog->objectName().isEmpty())
             GAxe_dialog->setObjectName(QStringLiteral("GAxe_dialog"));
-        GAxe_dialog->resize(306, 389);
+        GAxe_dialog->resize(396, 441);
         GAxe_dialog->setSizeGripEnabled(true);
         gridLayout_3 = new QGridLayout(GAxe_dialog);
         gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
-        buttonBox = new QDialogButtonBox(GAxe_dialog);
-        buttonBox->setObjectName(QStringLiteral("buttonBox"));
-        buttonBox->setLayoutDirection(Qt::RightToLeft);
-        buttonBox->setOrientation(Qt::Vertical);
-        buttonBox->setStandardButtons(QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-
-        gridLayout_3->addWidget(buttonBox, 0, 1, 1, 1);
-
         pushButton_Additional = new QPushButton(GAxe_dialog);
         pushButton_Additional->setObjectName(QStringLiteral("pushButton_Additional"));
 
@@ -260,6 +253,15 @@ public:
 
 
         gridLayout_3->addWidget(groupBox, 2, 0, 1, 1);
+
+        buttonBox = new QDialogButtonBox(GAxe_dialog);
+        buttonBox->setObjectName(QStringLiteral("buttonBox"));
+        buttonBox->setLayoutDirection(Qt::RightToLeft);
+        buttonBox->setLocale(QLocale(QLocale::Russian, QLocale::Russia));
+        buttonBox->setOrientation(Qt::Vertical);
+        buttonBox->setStandardButtons(QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+
+        gridLayout_3->addWidget(buttonBox, 0, 1, 2, 1);
 
         QWidget::setTabOrder(lineEdit_Name, lineEdit_Min);
         QWidget::setTabOrder(lineEdit_Min, lineEdit_Scale);

@@ -82,9 +82,11 @@ GraphicsDoc::~GraphicsDoc()
 void GraphicsDoc::on_actionOpen_triggered()
 {
 	//Открываем файл экрана
-    ui->oglView->pause(true);
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
-    ui->oglView->pause(false);
+    QFileDialog::Options option;
+#ifdef __linux__
+    option = QFileDialog::DontUseNativeDialog;
+#endif
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf", nullptr, option);
     if(FileName.isEmpty())  return;
 
 	LoadScreen(FileName);
@@ -174,9 +176,11 @@ void GraphicsDoc::LoadScreen(QString FileName)
 void GraphicsDoc::on_action_LoadOrion_triggered()
 {
     QString     path;
-    ui->oglView->pause(true);
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления Орион", path, "*.orion");
-    ui->oglView->pause(false);
+    QFileDialog::Options option;
+#ifdef __linux__
+    option = QFileDialog::DontUseNativeDialog;
+#endif
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления Орион", path, "*.orion", nullptr, option);
     if(FileName.isEmpty())  return;
 
     // TODO: Add your dispatch handler code here

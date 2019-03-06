@@ -4,12 +4,8 @@ layout (triangle_strip, max_vertices = 8) out;
 
 uniform mat4 worldToCamera;
 uniform mat4 cameraToView;
-uniform int round;
 
 uniform int lineType;
-uniform float baseLine;
-uniform vec2 pixelSize;
-
 uniform float linewidth, antialias;
 
 flat in vec4 vColor[];

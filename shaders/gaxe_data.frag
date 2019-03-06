@@ -29,37 +29,34 @@ vec4 stroke(float distance,  // Signed distance to line
   else														return vec4(stroke.rgb, stroke.a * alpha);
 }
 
-void main()
+void main() 
 {
-  if(lineType == 3)
-  {	  
-	  //Отрисовка bool
-	  if(gs_in.bValue != 0.)				fColor	= gs_in.gColor;
-	  else if(gs_in.coord.y < 0.5)	fColor	= gs_in.gColor;
-	  else									discard;
-	  return;
+  if (lineType == 3) 
+  {
+    //Отрисовка bool
+    fColor = gs_in.gColor;
+    return;
   }
+
   //Расстояние до отрезка
   float distance = abs(gs_in.coord.y);
-  float Kalpha  = 1;
+  float Kalpha = 1;
 
   //Полукруги возле концов
-  if(gs_in.coord.x < 0.)
+  if (gs_in.coord.x < 0.) 
   {
-	  distance = length(gs_in.coord);
-	  Kalpha  = 0.5;
-  } 
-  else if(gs_in.coord.x > gs_in.L)
+    distance = length(gs_in.coord);
+    Kalpha = 0.5;
+  }
+  else if (gs_in.coord.x > gs_in.L) 
   {
     distance = length(gs_in.coord - vec2(gs_in.L, 0.));
-    Kalpha  = 0.5;
+    Kalpha = 0.5;
   }
 
- 
   fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
-  fColor.a  *= Kalpha;
-  //fColor  = gs_in.gColor;
-  //if(fColor.a > 0.5)   fColor.a = 0.5;
-//   if(fColor.a < 0.05)   fColor.a = 0.05;
+  fColor.a *= Kalpha;
+  // fColor  = gs_in.gColor;
+  // if(fColor.a > 0.5)   fColor.a = 0.5;
+  //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }
-  

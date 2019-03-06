@@ -70,12 +70,16 @@ private:
 	static int		u_data_worldToCamera;
 	static int		u_data_cameraToView;
 	static int		u_data_color;
-	static int		u_data_alpha;
 	static int		u_data_lineType;
-	static int		u_data_baseLine;
-	static int		u_data_pixelSize;
 	static int		u_data_linewidth;
 	static int		u_data_antialias;
+
+	static QOpenGLShaderProgram*	m_bool_program;
+	static int		u_bool_modelToWorld;
+	static int		u_bool_worldToCamera;
+	static int		u_bool_cameraToView;
+	static int		u_bool_color;
+	static int		u_bool_lineType;
 
 	static QOpenGLShaderProgram*	m_marker_program;
 	static int		u_marker_ortho;

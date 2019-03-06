@@ -5,7 +5,6 @@ flat out vec4 vColor;
 
 uniform mat4 modelToWorld;
 uniform vec3 color;
-uniform float alpha;
 uniform int lineType;
 
 void main()
@@ -22,5 +21,5 @@ void main()
 	{
 		gl_Position = modelToWorld * vec4(position, 0.0, 1.0);
 	}
-    vColor = vec4(color, alpha);
+    vColor = vec4(color, 1.0);
 }

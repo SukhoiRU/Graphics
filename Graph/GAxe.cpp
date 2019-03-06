@@ -9,9 +9,9 @@ int		GetMarker(int n);
 
 namespace Graph{
 
-double	GAxe::m_FontScale 	= 0.75;	//Просто коэффициент
-double	GAxe::m_TickSize  	= 1.5;	//Миллиметры
-double	GAxe::m_Width		= 30;
+double	GAxe::m_FontScale 		= 0.75;	//Просто коэффициент
+double	GAxe::m_TickSize  		= 1.5;	//Миллиметры
+double	GAxe::m_Width			= 30;
 double	GAxe::m_SelectedWidth	= 60;
 
 QOpenGLShaderProgram*	GAxe::m_axe_program	= nullptr;
@@ -28,12 +28,16 @@ int		GAxe::u_data_modelToWorld	= 0;
 int		GAxe::u_data_worldToCamera	= 0;
 int		GAxe::u_data_cameraToView	= 0;
 int		GAxe::u_data_color			= 0;
-int		GAxe::u_data_alpha			= 0;
 int		GAxe::u_data_lineType		= 0;
-int		GAxe::u_data_baseLine		= 0;
-int		GAxe::u_data_pixelSize		= 0;
 int		GAxe::u_data_linewidth		= 0;
 int		GAxe::u_data_antialias		= 0;
+
+QOpenGLShaderProgram*	GAxe::m_bool_program	= nullptr;
+int		GAxe::u_bool_modelToWorld	= 0;
+int		GAxe::u_bool_worldToCamera	= 0;
+int		GAxe::u_bool_cameraToView	= 0;
+int		GAxe::u_bool_color			= 0;
+int		GAxe::u_bool_lineType		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_marker_program	= nullptr;
 int		GAxe::u_marker_ortho		= 0;
@@ -117,8 +121,9 @@ void	GAxe::finalDelete()
 {
 	//Удаляем статические переменные
 	if(cross_texture)		glDeleteTextures(1, &cross_texture);
-	if(m_axe_program)			delete m_axe_program;
+	if(m_axe_program)		delete m_axe_program;
 	if(m_data_program)		delete m_data_program;
+	if(m_bool_program)		delete m_bool_program;
 	if(m_marker_program)	delete m_marker_program;
 	if(m_cross_program)		delete m_cross_program;
 	if(m_select_program)	delete m_select_program;
@@ -156,13 +161,25 @@ void	GAxe::initializeGL()
 		u_data_worldToCamera	= m_data_program->uniformLocation("worldToCamera");
 		u_data_cameraToView		= m_data_program->uniformLocation("cameraToView");
 		u_data_color			= m_data_program->uniformLocation("color");
-		u_data_alpha			= m_data_program->uniformLocation("alpha");
 		u_data_lineType			= m_data_program->uniformLocation("lineType");
-		u_data_baseLine			= m_data_program->uniformLocation("baseLine");
-		u_data_pixelSize		= m_data_program->uniformLocation("pixelSize");
 		u_data_linewidth		= m_data_program->uniformLocation("linewidth");
 		u_data_antialias		= m_data_program->uniformLocation("antialias");
 		m_data_program->release();
+
+		//Программа для bool
+		m_bool_program	= new QOpenGLShaderProgram;
+		m_bool_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/gaxe_data.vert");
+		m_bool_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/gaxe_data.frag");
+		m_bool_program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/shaders/gaxe_data_bool.geom");
+		m_bool_program->link();
+
+		m_bool_program->bind();
+		u_bool_modelToWorld		= m_bool_program->uniformLocation("modelToWorld");
+		u_bool_worldToCamera	= m_bool_program->uniformLocation("worldToCamera");
+		u_bool_cameraToView		= m_bool_program->uniformLocation("cameraToView");
+		u_bool_color			= m_bool_program->uniformLocation("color");
+		u_bool_lineType			= m_bool_program->uniformLocation("lineType");
+		m_bool_program->release();
 
 		//Программа для маркеров
 		m_marker_program	= new QOpenGLShaderProgram;
@@ -682,11 +699,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		if(m_DataType == Bool)
-		{
-			vec2*	pData	= (vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-			glUnmapBuffer(GL_ARRAY_BUFFER);
-		}
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -698,79 +710,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(!m_data.size())	return;
 	updateIndices(t0, TimeScale, grid, areaSize);
 
-	m_data_program->bind();
-	glUniform3fv(u_data_color, 1, &color.r);
-	glUniform1f(u_data_alpha, 1.0f);//alpha);
-	glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-	glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-	
-	//Выставляем тип линии
-	switch(m_DataType)
-	{
-		case Graph::GAxe::Bool:
-		{
-			glUniform1i(u_data_lineType, 3);
-		}break;
-
-		case Graph::GAxe::Int:
-		{
-			glUniform1i(u_data_lineType, 1);
-		}break;
-
-		default:
-		{
-			if(m_bInterpol)
-				glUniform1i(u_data_lineType, 0);
-			else
-				glUniform1i(u_data_lineType, 1);
-		}break;
-	}
-
-	//Формируем модельную матрицу
-	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
-	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
-	dataModel	= translate(dataModel, vec3(-t0, -m_AxeMin, 0.f));
-	glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-
-	//Определяем базовую линию для вертикальных палок
-	float	baseLine	= m_AxeMin;
-	if(m_AxeMin < 0 && m_AxeMin + m_AxeScale*m_AxeLength > 0)
-	{
-		//В оси присутствует 0
-		baseLine	= 0;
-	}
-
-	//Переводим ее в нормализованные координаты
-	baseLine	= (m_proj*m_view*dataModel*vec4(0.0f, baseLine, 0.0f, 1.0f)).y;
-	glUniform1f(u_data_baseLine, baseLine);
-
-	//Определяем размер пикселя в NDC
-	vec4	pixelSize	= m_proj*vec4(1.0f, 1.0f, 0.0f, 0.0f);
-	glUniform2f(u_data_pixelSize, pixelSize.x, pixelSize.y);
-
-	//Выставляем толщину линии
-	if(m_IsSelected)	
-	{
-		glUniform1f(u_data_linewidth, 2.0/m_scale);
-		glUniform1f(u_data_antialias, 0.5f/m_scale);
-		if(!m_bInterpol)
-		{
-			glUniform1f(u_data_linewidth, 1.5f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
-		}
-	}
-	else				
-	{
-		glUniform1f(u_data_linewidth, 1.0f/m_scale);
-		glUniform1f(u_data_antialias, 0.5f/m_scale);
-		if(!m_bInterpol)
-		{
-			glUniform1f(u_data_linewidth, 1.0f/m_scale);
-			glUniform1f(u_data_antialias, 0.);
-		}
-	}
-
 	//Определяем диапазон индексов
 	int	nMin	= 0;
 	int	nMax	= m_data.size()-1;
@@ -780,7 +719,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		if(m_data.at(n).x <= t0)	nMin	= n;
 		else						nMax	= n;
 	}
-
 	GLuint	nStartIndex	= max(0, nMin-1);
 
 	nMin	= 0;
@@ -793,48 +731,110 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
 
+	//Формируем модельную матрицу
+	dataModel	= mat4(1.0f);
+	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
+	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
+	dataModel	= translate(dataModel, vec3(-t0, -m_AxeMin, 0.f));
+
 	//Подключаем буфер графика
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
-//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	m_data_program->release();
-
-	//Рисуем набор маркеров
-	if(m_DataType != Bool)
+	if(m_DataType == Bool)
 	{
-		m_marker_program->bind();
-
-		//Настройка uniform
-		mat4	mpv	= m_proj*m_view*dataModel;
-		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
-
-		glUniform1f(u_marker_size, (1.5f + 1.5f*m_IsSelected)*m_scale);
-		static float angle = 0;
-		angle += 2./60./50.;
-		glUniform1f(u_marker_orientation, angle);
-		glUniform1f(u_marker_linewidth, 1.f);
-		glUniform1f(u_marker_antialias, 0.5f);
-		vec4	fg_color	= vec4(0.8f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);//vec4(0.999f*vec3(1.), 1.0f);
-		glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
-		vec4	bg_color	= vec4(color, 1.0f);
-		glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
-		glUniform1i(u_marker_type, m_nMarker);
-
-		//Отрисовка набора маркеров
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-		glDrawElements(GL_POINTS, m_markersCount, GL_UNSIGNED_INT, nullptr);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		m_marker_program->release();
+		m_bool_program->bind();
+		glUniform3fv(u_bool_color, 1, &color.r);
+		glUniformMatrix4fv(u_bool_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_bool_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+		glUniformMatrix4fv(u_bool_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+		glUniform1i(u_bool_lineType, 3);
+		
+		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);		
+		m_data_program->release();
 	}
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	else
+	{
+		m_data_program->bind();
+		glUniform3fv(u_data_color, 1, &color.r);
+		glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
+	
+		//Выставляем тип линии
+		switch(m_DataType)
+		{
+			case Graph::GAxe::Int:
+			{
+				glUniform1i(u_data_lineType, 1);
+			}break;
 
+			default:
+			{
+				if(m_bInterpol)
+					glUniform1i(u_data_lineType, 0);
+				else
+					glUniform1i(u_data_lineType, 1);
+			}break;
+		}
+
+		//Выставляем толщину линии
+		if(m_IsSelected)	
+		{
+			glUniform1f(u_data_linewidth, 2.0/m_scale);
+			glUniform1f(u_data_antialias, 0.5f/m_scale);
+			if(!m_bInterpol)
+			{
+				glUniform1f(u_data_linewidth, 1.5f/m_scale);
+				glUniform1f(u_data_antialias, 0.);
+			}
+		}
+		else				
+		{
+			glUniform1f(u_data_linewidth, 1.0f/m_scale);
+			glUniform1f(u_data_antialias, 0.5f/m_scale);
+			if(!m_bInterpol)
+			{
+				glUniform1f(u_data_linewidth, 1.0f/m_scale);
+				glUniform1f(u_data_antialias, 0.);
+			}
+		}
+		
+		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+		m_data_program->release();
+
+		//Рисуем набор маркеров
+		{
+			m_marker_program->bind();
+
+			//Настройка uniform
+			mat4	mpv	= m_proj*m_view*dataModel;
+			glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
+
+			glUniform1f(u_marker_size, (1.5f + 1.5f*m_IsSelected)*m_scale);
+			static float angle = 0;
+			angle += 2./60./50.;
+			glUniform1f(u_marker_orientation, angle);
+			glUniform1f(u_marker_linewidth, 1.f);
+			glUniform1f(u_marker_antialias, 0.5f);
+			vec4	fg_color	= vec4(0.8f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);//vec4(0.999f*vec3(1.), 1.0f);
+			glUniform4fv(u_marker_fg_color, 1, &fg_color.r);
+			vec4	bg_color	= vec4(color, 1.0f);
+			glUniform4fv(u_marker_bg_color, 1, &bg_color.r);
+			glUniform1i(u_marker_type, m_nMarker);
+
+			//Отрисовка набора маркеров
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+			glDrawElements(GL_POINTS, m_markersCount, GL_UNSIGNED_INT, nullptr);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			m_marker_program->release();
+		}
+	}
+
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

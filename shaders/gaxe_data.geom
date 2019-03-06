@@ -22,11 +22,6 @@ out GS_OUT
 	flat float	bValue;
 }gs_out;
 
-float	cross(vec2 v1, vec2 v2)
-{
-	return v1.x*v2.y - v1.y*v2.x;
-}
-
 void main() 
 { 
 	gs_out.gColor	= vColor[0];
@@ -99,61 +94,6 @@ void main()
 			gl_Position = cameraToView *  worldToCamera * (pos + vec4(d1-d2, 0., 0.)); 
 			EmitVertex();
 			EndPrimitive();*/
-		}break;
-
-		case 2:
-		{
-			//Вертикальные палки от baseLine
-			//if(gl_in[1].gl_Position.x - gl_in[0].gl_Position.x > pixelSize.x ||
-			//   gl_in[1].gl_Position.y - gl_in[0].gl_Position.y > pixelSize.y ||
-			//   gl_in[1].gl_Position.y - gl_in[0].gl_Position.y < -pixelSize.y)
-			{
-				gl_Position 	= gl_in[0].gl_Position; 
-				EmitVertex();
-				gl_Position 	= vec4(gl_in[0].gl_Position.x, baseLine, 0., 1.);
-				EmitVertex();
-				
-				//Черта в нуле
-				EndPrimitive();
-				gl_Position 	= vec4(gl_in[0].gl_Position.x, baseLine, 0., 1.);
-				EmitVertex();
-				gl_Position 	= vec4(gl_in[1].gl_Position.x, baseLine, 0., 1.);
-				EmitVertex();
-				EndPrimitive();
-			}
-		}break;
-
-		case 3:
-		{
-			///////////////////////////////////////////////////////////////////////////////
-			//Отрисовка сигналов bool
-			float	len		= gl_in[1].gl_Position.x - gl_in[0].gl_Position.x;
-
-			gs_out.bValue	= gl_in[0].gl_Position.z;
-			gs_out.L		= len;
-
-			//Получаем масштаб
-			float	pix		= 1.0/worldToCamera[0][0];
-			vec4	base	= worldToCamera * gl_in[0].gl_Position;
-			base.y			= int(base.y) + 0.5;
-			base			= inverse(worldToCamera)*base;
-
-			gs_out.coord	= vec2(0, 1.0);
-			gl_Position 	= cameraToView * worldToCamera * (base + vec4(0.,pix, 0., 0.)); 
-			EmitVertex();
-
-			gs_out.coord	= vec2(0, -1.0);
-			gl_Position 	= cameraToView * worldToCamera * (base + vec4(0.,-pix, 0., 0.)); 
-			EmitVertex();
-
-			gs_out.coord	= vec2(len, 1.0);
-			gl_Position 	= cameraToView * worldToCamera * vec4(gl_in[1].gl_Position.x, base.y + pix, 0., 1.); 
-			EmitVertex();
-
-			gs_out.coord	= vec2(len, -1.0);
-			gl_Position 	= cameraToView * worldToCamera * vec4(gl_in[1].gl_Position.x, base.y - pix, 0., 1.); 
-			EmitVertex();
-			EndPrimitive();
 		}break;
 
 	default:

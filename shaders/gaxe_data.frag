@@ -35,7 +35,7 @@ void main()
   {	  
 	  //Отрисовка bool
 	  if(gs_in.bValue != 0.)				fColor	= gs_in.gColor;
-	  else if(gs_in.coord.y < 0.35)	fColor	= gs_in.gColor;
+	  else if(gs_in.coord.y < 0.5)	fColor	= gs_in.gColor;
 	  else									discard;
 	  return;
   }

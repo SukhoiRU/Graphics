@@ -14,6 +14,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QDialogButtonBox>
@@ -64,11 +65,10 @@ public:
     ColorButton *pushButton_Color;
     QLineEdit *lineEdit_Min;
     QLineEdit *lineEdit_Length;
-    QLineEdit *lineEdit_Buffer;
-    QLabel *label_9;
     QLabel *label_8;
     QComboBox *comboStyle;
     QComboBox *comboType;
+    QCheckBox *checkBox_Interpol;
     QDialogButtonBox *buttonBox;
 
     void setupUi(QDialog *GAxe_dialog)
@@ -222,17 +222,6 @@ public:
 
         gridLayout->addWidget(lineEdit_Length, 2, 1, 1, 1);
 
-        lineEdit_Buffer = new QLineEdit(groupBox);
-        lineEdit_Buffer->setObjectName(QStringLiteral("lineEdit_Buffer"));
-        lineEdit_Buffer->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-
-        gridLayout->addWidget(lineEdit_Buffer, 6, 1, 1, 1);
-
-        label_9 = new QLabel(groupBox);
-        label_9->setObjectName(QStringLiteral("label_9"));
-
-        gridLayout->addWidget(label_9, 6, 0, 1, 1);
-
         label_8 = new QLabel(groupBox);
         label_8->setObjectName(QStringLiteral("label_8"));
 
@@ -251,6 +240,11 @@ public:
 
         verticalLayout_4->addLayout(gridLayout);
 
+        checkBox_Interpol = new QCheckBox(groupBox);
+        checkBox_Interpol->setObjectName(QStringLiteral("checkBox_Interpol"));
+
+        verticalLayout_4->addWidget(checkBox_Interpol);
+
 
         gridLayout_3->addWidget(groupBox, 2, 0, 1, 1);
 
@@ -268,8 +262,7 @@ public:
         QWidget::setTabOrder(lineEdit_Scale, lineEdit_Length);
         QWidget::setTabOrder(lineEdit_Length, comboType);
         QWidget::setTabOrder(comboType, comboStyle);
-        QWidget::setTabOrder(comboStyle, lineEdit_Buffer);
-        QWidget::setTabOrder(lineEdit_Buffer, pushButton_Replace);
+        QWidget::setTabOrder(comboStyle, pushButton_Replace);
         QWidget::setTabOrder(pushButton_Replace, pushButton_Stat);
         QWidget::setTabOrder(pushButton_Stat, pushButton_Additional);
         QWidget::setTabOrder(pushButton_Additional, pushButton_Color);
@@ -298,7 +291,6 @@ public:
         label_6->setText(QApplication::translate("GAxe_dialog", "\320\224\320\273\320\270\320\275\320\260", Q_NULLPTR));
         label_5->setText(QApplication::translate("GAxe_dialog", "\320\234\320\260\321\201\321\210\321\202\320\260\320\261", Q_NULLPTR));
         pushButton_Color->setProperty("text", QVariant(QApplication::translate("GAxe_dialog", "PushButton", Q_NULLPTR)));
-        label_9->setText(QApplication::translate("GAxe_dialog", "\320\224\320\260\320\275\320\275\321\213\320\265 \342\204\226", Q_NULLPTR));
         label_8->setText(QApplication::translate("GAxe_dialog", "\320\234\320\260\321\200\320\272\320\265\321\200", Q_NULLPTR));
         comboStyle->clear();
         comboStyle->insertItems(0, QStringList()
@@ -316,6 +308,7 @@ public:
          << QApplication::translate("GAxe_dialog", "\320\250\320\265\320\262\321\200\320\276\320\275", Q_NULLPTR)
          << QApplication::translate("GAxe_dialog", "\320\232\320\273\320\265\320\262\320\265\321\200", Q_NULLPTR)
         );
+        checkBox_Interpol->setText(QApplication::translate("GAxe_dialog", "\320\230\320\275\321\202\320\265\321\200\320\277\320\276\320\273\321\217\321\206\320\270\321\217", Q_NULLPTR));
     } // retranslateUi
 
 };

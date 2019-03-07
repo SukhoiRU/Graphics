@@ -118,6 +118,19 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 		}
 	}
 
+	//Интерполяция
+	bool	Interp	= axes.front()->m_bInterpol;
+	ui->checkBox_Interpol->setChecked(Interp);
+	for(size_t i = 0; i < axes.size(); i++)
+	{
+		GAxe*	pAxe	= axes.at(i);
+		if(pAxe->m_bInterpol != Interp)
+		{
+			ui->checkBox_Interpol->setCheckState(Qt::PartiallyChecked);
+			break;
+		}
+	}
+
 	//Отключаем кнопку замены для списков
 	if(axes.size() > 1)
 		ui->pushButton_Replace->setDisabled(true);
@@ -172,6 +185,11 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 		if(ui->comboType->currentIndex() != -1 && ui->comboStyle->currentIndex() != -1)
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_nMarker = ui->comboType->currentIndex()*3 + ui->comboStyle->currentIndex();
+
+		//Интерполяция
+		if(ui->checkBox_Interpol->checkState() != Qt::PartiallyChecked)
+			for(size_t i = 0; i < axes.size(); i++)
+				axes.at(i)->m_bInterpol = ui->checkBox_Interpol->checkState() == Qt::Checked;
 	}
 }
 

@@ -156,13 +156,12 @@ public:
 	virtual void	clearGL();
 	static  void	finalDelete();
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
-//	virtual void	DrawFrame(const QSize& grid);			//Отрисовка только рамки
 
 	//Мышиные дела
 	virtual bool	HitTest(const vec2& pt);//Проверка на попадание курсора
 	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
     virtual void	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf);	//Перемещение на заданное расстояние
-	virtual void	OnDoubleClick();				//Реакция на щелчок мышью
+    virtual void	onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees);	//Обработка колеса
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
 	virtual void	OnStopMoving();					//Реакция на конец перетаскивания
 
@@ -177,8 +176,6 @@ public:
 	//Служебные функции
 private:
 	void	updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize);						//Обновление массива отрисовываемых индексов
-	void	DrawMarker(int x, int y);				//Отрисовка маркера в заданных координатах
-	void	Draw_DEC_S();							//Отрисовка для вторички
 
 public:
 	void		SetPosition(double x, double y);		//Начальная установка координат
@@ -189,9 +186,7 @@ public:
 	bool		IsBoolean() const;						//Признак логической оси
 	void		GetStatistic() const;					//Выдача статистической информации
 	void		ErrorsFilter() const;					//Фильтрация сбоев
-	void		ClearOrionData() {m_pOrionData = 0; m_pOrionTime = 0;}
 	void		UpdateFiltering();						//Фильтрация сигнала
-	void		Zoom(bool bUp);							//Растяжение/сжатие
 	int			getAxeLength() const {return m_AxeLength;}
 	void		setAxeLength(int len);
 };

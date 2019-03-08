@@ -824,46 +824,81 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
 {
-	QPoint numDegrees			= event->angleDelta();
-	Qt::KeyboardModifiers	mdf	= event->modifiers();
+	QPointF					pLocal		= event->pos();
+	QPoint					numDegrees	= event->angleDelta();
+	Qt::KeyboardModifiers	mdf			= event->modifiers();
 
-	if(mdf.testFlag(Qt::NoModifier))
+	//Переводим мышь в координаты модели
+	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::mat4	iView	= glm::inverse(m_proj*m_view);
+	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
+
+	//Получаем мышь в поле графиков
+	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+	glm::vec4	graph	= glm::inverse(graphM)*world;
+	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
+	vec2	mousePos(world.x, world.y);
+
+	if(m_SelectedObjects.size())
 	{
-		Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
-#ifdef USE_FBO
-		drawScene();
-#endif // USE_FBO
+		//Есть выделенные объекты
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(i);
+			pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
+		}
 	}
-	else if(mdf.testFlag(Qt::ControlModifier))
+	else
 	{
-		//Нормализуем масштаб
-		double	Power	= floor(log10(TimeScale));
-		double	Mantiss	= TimeScale / pow(10., Power);
-		double	dLen	= (curTime - Time0)/TimeScale;
-
-		//Изменяем масштаб в нужную сторону
-		if(numDegrees.y() > 0)
+		//Определим объект, на который попала мышь
+		bool	bFound	= false;
+		for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
 		{
-			if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
-			else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
-			else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
-			else					TimeScale	= 5*pow(10., Power);
-		}
-		else
-		{
-			if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
-			else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
-			else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
-			else					TimeScale	= 20*pow(10., Power);
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			if(pGraph->HitTest(mousePos))
+			{
+				pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
+				bFound	= true;
+				break;
+			}
 		}
 
-		//Двигаем ноль так, чтобы попасть в то же время
-		Time0	= curTime - dLen*TimeScale;
-#ifdef USE_FBO
-		drawScene();
-#endif // USE_FBO
+		if(!bFound)
+		{
+			//Раз ни в один объект не попали, действия по окну
+			if(mdf.testFlag(Qt::NoModifier))
+			{
+				//Двигаем время
+				Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+			}
+			else if(mdf.testFlag(Qt::ControlModifier))
+			{
+				//Нормализуем масштаб
+				double	Power	= floor(log10(TimeScale));
+				double	Mantiss	= TimeScale / pow(10., Power);
+				double	dLen	= (curTime - Time0)/TimeScale;
+
+				//Изменяем масштаб в нужную сторону
+				if(numDegrees.y() > 0)
+				{
+					if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
+					else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
+					else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
+					else					TimeScale	= 5*pow(10., Power);
+				}
+				else
+				{
+					if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
+					else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
+					else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
+					else					TimeScale	= 20*pow(10., Power);
+				}
+
+				//Двигаем ноль так, чтобы попасть в то же время
+				Time0	= curTime - dLen*TimeScale;
+			}
+		}
 	}
-
 	event->accept();
 }
 

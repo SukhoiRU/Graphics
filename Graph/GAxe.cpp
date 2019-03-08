@@ -837,23 +837,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void	GAxe::Draw_DEC_S()
-{
-}
-
-void	GAxe::OnDoubleClick()
-{
-/*
-	Dialog::CAxeParam	dlg(this, 0);
-	if(IDOK	== dlg.DoModal())
-	{
-		UpdateRecord(false);
-		m_pDoc->CCS_UpdateReserv(this);
-		m_pDoc->UpdateAllViews(0);
-	}
-*/
-}
-
 bool	GAxe::HitTest(const vec2& pt)
 {
 	if(m_DataType == Bool)
@@ -966,50 +949,53 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 			break;
 	}
 }
-/*
-GRect	GAxe::GetFrameRect()
+
+void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees)
 {
-	const vector2D& GridStep = m_pDoc->m_pField->m_GridStep;
-	GRect	rc;
-
-	//В зависимости от типа перетаскивания изменим рамку
-	switch(m_Direction)
+	//Обработка колеса
+	if(mdf & Qt::ShiftModifier)
 	{
-	case TOP:{
-		rc.left		= (m_FrameBR.x - 0.25*GridStep.x)*m_Zoom;
-		rc.right	= (m_FrameBR.x + 0.25*GridStep.x)*m_Zoom;
-		rc.top		= (m_FrameBR.y + m_Length*GridStep.y + 0.25*GridStep.y)*m_Zoom;
-		rc.bottom	= (m_BottomRight.y - 0.25*GridStep.y)*m_Zoom;
-		}break;
-
-	case BOTTOM:{
-		rc.left		= (m_FrameBR.x - 0.25*GridStep.x)*m_Zoom;
-		rc.right	= (m_FrameBR.x + 0.25*GridStep.x)*m_Zoom;
-		rc.top		= (m_BottomRight.y + m_Length*GridStep.y + 0.25*GridStep.y)*m_Zoom;
-		rc.bottom	= (m_FrameBR.y - 0.25*GridStep.y)*m_Zoom;
-		}break;
-	
-	default:{
-		rc.left		= (m_FrameBR.x - 0.25*GridStep.x)*m_Zoom;
-		rc.right	= (m_FrameBR.x + 0.25*GridStep.x)*m_Zoom;
-		rc.top		= (m_FrameBR.y + m_Length*GridStep.y + 0.25*GridStep.y)*m_Zoom;
-		rc.bottom	= (m_FrameBR.y - 0.25*GridStep.y)*m_Zoom;
-			 }break;	
+		//Меняем начало
+		if(m_DataType != Bool)
+		{
+			m_AxeMin -= int(numdegrees.y/120.)*m_AxeScale;
+			setAxeLength(m_AxeLength);
+		}
 	}
-
-	//Для Bool рамка - название оси
-	if(m_DataType == Bool)
+	else if(mdf & Qt::ControlModifier)
 	{
-		rc.bottom	= (m_FrameBR.y-2)*m_Zoom;
-		rc.right	= m_FrameBR.x*m_Zoom;
-		rc.top		= rc.bottom + 6*m_Zoom;
-		int	len		= m_Name.GetLength();
-		if(len < 2)	len	= 2;
-		rc.left		= rc.right	- len*2.1*m_Zoom;
+		//Проверяем, что по высоте мышь находится на оси
+		if(pt.y < m_FrameBR.y+oldGrid.y*m_AxeLength+1 && pt.y > m_FrameBR.y-1 && m_DataType != Bool)
+		{
+			double Power	= floor(log10(m_AxeScale));
+			double Mantiss	= m_AxeScale / pow(10., Power);
+
+			//Изменяем масштаб в нужную сторону
+			double	Scale;
+			if(numdegrees.y > 0)
+			{
+				if(Mantiss == 1)		Scale	= 0.5*pow(10., Power);
+				else if(Mantiss <= 2)	Scale	= 1*pow(10., Power);
+				else if(Mantiss <= 5)	Scale	= 2*pow(10., Power);
+				else					Scale	= 5*pow(10., Power);
+			}
+			else
+			{
+				if(Mantiss == 1)		Scale	= 2*pow(10., Power);
+				else if(Mantiss <= 2)	Scale	= 5*pow(10., Power);
+				else if(Mantiss <= 5)	Scale	= 10*pow(10., Power);
+				else					Scale	= 20*pow(10., Power);
+			}
+
+			//Сохраняем значение в зависимости от того, где стоит курсор
+			int	index	= int((pt.y - m_BottomRight.y)/oldGrid.y + 0.5);
+			m_AxeMin	= m_AxeMin + index*(m_AxeScale - Scale);
+			m_AxeScale	= Scale;
+			setAxeLength(m_AxeLength);
+		}
 	}
-	return rc;
 }
-*/
+
 void	GAxe::GetLimits(double* pMin, double* pMax)
 {
 	if(m_data.empty())
@@ -1026,7 +1012,6 @@ void	GAxe::GetLimits(double* pMin, double* pMax)
 		if(f < *pMin)	*pMin	= f;
 		if(f > *pMax)	*pMax	= f;
 	}
-
 }
 
 void	GAxe::GetLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*pMax*/)
@@ -1297,83 +1282,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 	m_data.clear();
 }
 
-//Отрисовка маркера в заданных координатах
-void	GAxe::DrawMarker(int /*x*/, int /*y*/)
-{/*
-	if(m_DataType == Bool)	return;
-
-	pDC->SaveDC();
-//	pDC->SelectStockObject(NULL_BRUSH);
-	const double& GridStep = m_pDoc->m_pField->m_GridStep.y;
-
-	switch(m_nMarker)
-	{
-	case 0:
-		{
-			//Окружность
-			int	d = 0.2*m_Zoom*GridStep;
-			pDC->Ellipse(x-d, y-d, x+d, y+d);
-			pDC->SetPixel(x, y, m_Color);
-		}break;
-	case 1:
-		{
-			//Квадрат
-			int	d = 0.15*m_Zoom*GridStep;
-			pDC->Rectangle(x-d, y-d, x+d, y+d);
-			pDC->SetPixel(x, y, m_Color);
-		}break;
-	case 2:
-		{
-			//Сплошной квадрат
-			int	d = 0.15*m_Zoom*GridStep;
-			CRect	rc(x-d, y-d, x+d, y+d);
-			pDC->FillRect(rc, &CBrush(m_Color));
-			pDC->SetPixel(x, y, m_Color);
-		}break;
-	case 3:
-		{
-			//Треугольник вниз
-			int	d = 0.2*m_Zoom*GridStep;
-			pDC->MoveTo(x - d*0.86	, y + d/2);
-			pDC->LineTo(x + d*0.86	, y + d/2);
-			pDC->LineTo(x			, y - d);
-			pDC->LineTo(x - d*0.86	, y + d/2);
-			pDC->SetPixel(x, y, m_Color);
-		}break;
-	case 4:
-		{
-			//Треугольник вверх
-			int	d = 0.2*m_Zoom*GridStep;
-			pDC->MoveTo(x - d*0.86	, y - d/2);
-			pDC->LineTo(x			, y + d);
-			pDC->LineTo(x + d*0.86	, y - d/2);
-			pDC->LineTo(x - d*0.86	, y - d/2);
-			pDC->SetPixel(x, y, m_Color);
-		}break;
-	case 5:
-		{
-			//Х
-			int	d = 0.15*m_Zoom*GridStep;
-			pDC->MoveTo(x - d	, y - d);
-			pDC->LineTo(x + d	, y + d);
-			pDC->MoveTo(x - d	, y + d);
-			pDC->LineTo(x + d	, y - d);
-		}break;
-	case 6:
-		{
-			//Ромб
-			int	d = 0.15*m_Zoom*GridStep;
-			pDC->MoveTo(x - d	, y);
-			pDC->LineTo(x		, y + d);
-			pDC->LineTo(x + d	, y);
-			pDC->LineTo(x		, y - d);
-			pDC->LineTo(x - d	, y);
-		}break;
-	}
-
-	pDC->RestoreDC(-1);*/
-}
-
 double	GAxe::GetValueAtTime(const double Time) const
 {
 	//Получаем значение на заданный момент времени
@@ -1402,148 +1310,6 @@ double	GAxe::GetValueAtTime(const double Time) const
 		return	f1+(f2-f1)/(t2-t1)*(Time-t1);
 	else			
 		return	f1;
-	/*
-	//Определяем смещение в векторе данных
-	if(m_Record == -1)					return 0;
-	if(m_nAcc == -1)					return 0;	
-	if(m_pDoc->GetBufArray().empty())	return 0;
-
-	const Accumulation*	pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-	const BYTE*			pData		= pBuffer->GetData();
-	const int			RecCount	= pBuffer->GetRecCount();
-	const int			RecSize		= pBuffer->GetRecSize();
-	const AccType		Type		= pBuffer->GetType();
-
-	switch(Type)
-	{
-	case Acc_KARP:
-		{
-			//Ищем спец. для КАРП'а
-			int	nMin	= 0;
-			int	nMax	= m_KARP_Len;
-			float*	ptr	= (float*)(pData+m_Offset);
-
-			while(nMax - nMin > 1)
-			{
-				int n	= (nMin+nMax)/2;
-				if(*(ptr+2*n) <= Time)	nMin	= n;
-				else					nMax	= n;
-			}
-
-			double	f1	= *(ptr+2*nMin+1);	double	t1	= *(ptr+2*nMin);
-			double	f2	= *(ptr+2*nMax+1);	double	t2	= *(ptr+2*nMax);
-			if(m_bInterpol)	return	f1+(f2-f1)/(t2-t1)*(Time-t1);
-			else			return	f1;
-		}break;
-
-	case Acc_Orion:
-		{
-			if(!m_pOrionTime || !m_pOrionData)	return 0;
-
-			//Ищем спец. для Ориона
-			int	nMin	= 0;
-			int	nMax	= m_KARP_Len;
-
-			while(nMax - nMin > 1)
-			{
-				int n	= (nMin+nMax)/2;
-				if(m_pOrionTime[n] <= Time)	nMin	= n;
-				else						nMax	= n;
-			}
-
-			double	t1	= m_pOrionTime[nMin];
-			double	t2	= m_pOrionTime[nMax];
-
-			double	f1;
-			double	f2;
-			switch(m_DataType)
-			{
-			case Bool:		
-				{
-					f1	= *(bool*)(m_pOrionData + nMin*sizeof(bool));
-					return f1;
-					//f2	= *(bool*)(m_pOrionData + nMax*sizeof(bool));
-				}break;
-			case Int:
-				{
-					f1	= *(int*)(m_pOrionData + nMin*sizeof(int));
-					return f1;
-					//f2	= *(int*)(m_pOrionData + nMax*sizeof(int));
-				}break;
-			case Double:	
-				{
-					f1	= *(double*)(m_pOrionData + nMin*sizeof(double));
-					f2	= *(double*)(m_pOrionData + nMax*sizeof(double));
-				}break;
-			};
-			
-			if(m_bInterpol)	return	f1+(f2-f1)/(t2-t1)*(Time-t1);
-			else			return	f1;
-		}break;
-	}
-
-	//Ищем заданное время методом половинного деления
-	int	nMin	= 0;
-	int	nMax	= RecCount;
-	while(nMax - nMin > 1)
-	{
-		int			n		= (nMin+nMax)/2;
-		const BYTE*	pRec	= pData + n*RecSize;
-
-		double	t	= 0;
-		switch(Type)
-		{
-		case Acc_Excell:
-		case Acc_MIG:
-		case Acc_SAPR:	t	= *(double*)(pRec);		break;
-		case Acc_TRF:	t	= *(float*) (pRec + 1);	break;
-		case Acc_MIG_4:
-		case Acc_CCS:	t	= *(float*) (pRec);		break;
-		}
-
-		if(t <= Time)	nMin	= n;
-		else			nMax	= n;
-	}
-
-	//Получаем запись
-	const BYTE*	pRec	= pData + nMin*RecSize;
-	double		f		= 0;
-	
-	switch(m_DataType)
-	{
-	case Bool:		f		= *(bool*)	(pRec + m_Offset);	break;
-	case Int:		f		= *(int*)	(pRec + m_Offset);	break;
-	case Double:	f		= *(double*)(pRec + m_Offset);	break;
-	case Float:		f		= *(float*) (pRec + m_Offset);	break;
-	case Short:		
-		{
-			f		= *(short*) (pRec + m_Offset);
-			if(m_K_short)	f *= m_K_short;
-		}break;
-	};
-
-	//Особый случай для СРК
-	if(m_bSRK)
-	{
-		switch(pBuffer->GetType())
-		{
-		case Acc_MIG:
-		case Acc_MIG_4:	
-			{
-				DWORD	a	= *(DWORD*)(pRec + m_Offset);	
-				f	= (a & m_MaskSRK) != 0;
-			}break;
-		default:
-			{
-				float	fl	= *(DWORD*)(pRec + m_Offset);
-				DWORD	a	= *(DWORD*)&fl;
-				if(a < 0)	a = ~a;
-				f	= (a & m_MaskSRK) != 0;
-			}
-		}
-	}
-
-	return f;*/
 }
 
 double GAxe::GetTopPosition() const
@@ -1823,65 +1589,6 @@ void	GAxe::UpdateFiltering()
 	}
 
 //	m_pDoc->UpdateAllViews(0);*/
-}
-
-void	GAxe::Zoom(bool /*bUp*/)
-{/*
-	//Растяжение/сжатие масштаба
-	if(m_DataType == Bool)	return;
-
-	double Power	= floor(log10(m_Scale));
-	double Mantiss	= m_Scale / pow(10., Power);
-
-	//Изменяем масштаб в нужную сторону
-	double	Scale;
-	if(bUp)	
-	{
-		if(Mantiss == 1)		Scale	= 0.5*pow(10.,Power);
-		else if(Mantiss <= 2)	Scale	= 1*pow(10.,Power);
-		else if(Mantiss <= 5)	Scale	= 2*pow(10.,Power);
-		else					Scale	= 5*pow(10.,Power);
-	}
-	else
-	{
-		if(Mantiss == 1)		Scale	= 2*pow(10.,Power);
-		else if(Mantiss <= 2)	Scale	= 5*pow(10.,Power);
-		else if(Mantiss <= 5)	Scale	= 10*pow(10.,Power);
-		else					Scale	= 20*pow(10.,Power);
-	}
-
-	//Сохраняем значение в зависимости от того, где стоит курсор
-	switch(m_Direction)
-	{
-	case TOP:
-		{
-			//Должно сохраниться верхнее значение
-			m_Min	+= m_Length*(m_Scale - Scale);
-			m_Scale	= Scale;
-		}break;
-
-	case BOTTOM:
-		{
-			//Должно сохраниться нижнее значение
-			m_Scale	= Scale;
-		}break;
-
-	case ALL:
-		{
-			if(m_Min == -m_Scale)
-			{
-				//Должна сохраниться пропорция
-				m_Scale	= Scale;
-				m_Min	= -Scale;
-			}
-			else
-			{
-				//Должно сохраниться среднее значение
-				m_Min	+= m_Length*(m_Scale - Scale)/2.;
-				m_Scale	= Scale;
-			}
-		}break;
-	}*/
 }
 
 }

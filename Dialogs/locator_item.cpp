@@ -82,7 +82,7 @@ void	LocatorItem::update(double time)
 	{
 		double	val	= m_Data.pAxe->GetValueAtTime(time);
 		QString	strVal	= QString("%1").arg(val);
-		if(m_Data.pAxe->m_Record == -1)	strVal	= "";
+		if(m_Data.pAxe->isEmpty())	strVal	= "";
 		if(strVal != m_Data.value)
 		{
 			m_Data.value	= strVal;

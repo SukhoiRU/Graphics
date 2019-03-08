@@ -21,10 +21,10 @@ public:
 	void	SetPath(QString path, int nAcc);
 
     int m_nBufIndex;
-    int m_nAccIndex;
+    QString m_Path;
 private:
     Ui::GraphSelect *ui;
-    void    onSignalAccepted(int nBufIndex, int nAccIndex);
+    void    onSignalAccepted(int nBufIndex, QString path);
 };
 
 #endif // GRAPHSELECT_H

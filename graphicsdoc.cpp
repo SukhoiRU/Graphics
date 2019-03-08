@@ -13,6 +13,7 @@
 #include "Dialogs/locator_view.h"
 #include "Graph/GAxe.h"
 #include "Graph/GTextLabel.h"
+#include "Dialogs/gaxe_dialog.h"
 
 Panel::~Panel()
 {
@@ -348,43 +349,52 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		dlg.SetPath(m_oldPath, m_oldAcc);
 
     if(dlg.exec() == QDialog::Accepted)
-    {
-        //Добавляем ось
-        int nAcc		= dlg.m_nBufIndex;
-        int AccIndex	= dlg.m_nAccIndex;
+    {		
+		//Выделяем последнее имя и убираем имена накопления
+		QStringList	pathList	= dlg.m_Path.split('\\');
+		pathList.pop_back();
+		pathList.pop_front();
+		pathList.pop_front();
+
+		QString	path;
+		for(size_t i = 0; i < pathList.size(); i++)
+			path += pathList.at(i) + "\\";
 
 		if(!m_pActivePanel)			return;
 		if(m_BufArray.empty())		return;
 
-		//Создаем оси
-		Accumulation*	pAcc	= m_BufArray.at(nAcc);
-
-		Graph::GAxe*	pAxe	= new Graph::GAxe;
-		pAxe->m_Name		= pAcc->GetName(AccIndex);
-		pAxe->m_Path		= pAcc->GetPath(AccIndex);
-		pAxe->m_nAcc		= nAcc;
-		pAxe->m_Record		= AccIndex;
+		//Добавляем ось
+		Graph::GAxe* pAxe	= new Graph::GAxe;
+		pAxe->m_Name		= pathList.back();
+		pAxe->m_Path		= path;
+		pAxe->m_nAcc		= dlg.m_nBufIndex;
 		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
 		pAxe->m_nMarker		= 0;//GetNextMarker();
 		pAxe->setAxeLength(4);
 		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
 		pAxe->SetPosition(20, 200);
-//		pAxe->UpdateRecord();
+		pAxe->UpdateRecord(&m_BufArray);
 
-		//Axe.FitToScale();
-
-		////Вызовем диалог параметров оси
-		//Dialog::CAxeParam	dlg(&Axe);
-		//if(IDOK != dlg.DoModal()) return 0;
+		pAxe->fitToScale();
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);
 
 		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 
+		//Вызовем диалог параметров оси
+		{
+			vector<Graph::GAxe*>	axes;
+			axes.push_back(pAxe);
+
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, &m_BufArray, ui->oglView);
+			dlg->exec();
+			delete	dlg;
+		}
+
 		//Запоминаем данные об оси
-		m_oldAcc	= nAcc;
+		m_oldAcc	= dlg.m_nBufIndex;
 		m_oldPath	= pAxe->m_Path;
     }
 }

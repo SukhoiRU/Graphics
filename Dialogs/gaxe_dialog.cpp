@@ -206,18 +206,23 @@ void	GAxe_dialog::on_replace()
 	dlg.SetPath(path, nAcc);
 	if(dlg.exec() == QDialog::Accepted)
 	{
+		//Выделяем последнее имя и убираем имена накопления
+		QStringList	pathList	= dlg.m_Path.split('\\');
+		pathList.pop_back();
+		pathList.pop_front();
+		pathList.pop_front();
+
+		QString	path;
+		for(size_t i = 0; i < pathList.size(); i++)
+			path += pathList.at(i) + "\\";
+
 		//Меняем ось
-		int nAcc	= dlg.m_nBufIndex;
-		int AccIndex = dlg.m_nAccIndex;
-
-		const Accumulation*	pAcc = m_pBuffer->at(nAcc);
-		if(!pAcc)	return;
-
 		GAxe*	pAxe	= axes.front();
-		pAxe->m_Name	= pAcc->GetName(AccIndex);
-		pAxe->m_Path	= pAcc->GetPath(AccIndex);
-		pAxe->m_nAcc	= nAcc;
+		pAxe->m_Name	= pathList.back();
+		pAxe->m_Path	= path;
+		pAxe->m_nAcc	= dlg.m_nBufIndex;
 		pAxe->UpdateRecord(m_pBuffer);
+		pAxe->fitToScale();
 
 		//Меняем диалог
 		ui->lineEdit_Name->setText(pAxe->m_Name);
@@ -225,5 +230,7 @@ void	GAxe_dialog::on_replace()
 		pAxe->GetLimits(&Min, &Max);
 		ui->label_Min->setText(QString("[%1]").arg(Min));
 		ui->label_Max->setText(QString("[%1]").arg(Max));
+		ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
+		ui->lineEdit_Scale->setText(QString("%1").arg(pAxe->m_AxeScale));
 	}
 }

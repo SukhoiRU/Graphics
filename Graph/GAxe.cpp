@@ -73,7 +73,6 @@ GAxe::GAxe()
 	m_nAcc		= 0;
 	m_AccName	= "Данные №1";
 
-	m_Record	= -1;
 	m_OldPoint	= {0,0};
 	m_nSubTicks	= 5;
 	m_Offset	= -1;
@@ -623,7 +622,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 
 	//Крест на оси без данных
-	if(m_Record == -1)
+	if(m_data.empty())
 	{
 		m_cross_program->bind();
 		glUniformMatrix4fv(u_cross_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
@@ -927,6 +926,7 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
 			{
 				m_AxeLength--;
+				if(m_AxeLength < 1)	m_AxeLength	= 1;
 				setAxeLength(m_AxeLength);
 			}
 		}break;
@@ -936,8 +936,12 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
 			{
 				m_AxeLength--;
-				m_AxeMin += m_AxeScale;
-				m_BottomRight.y	+= oldGrid.y;
+				if(m_AxeLength < 1)	m_AxeLength	= 1;
+				else
+				{
+					m_AxeMin += m_AxeScale;
+					m_BottomRight.y	+= oldGrid.y;
+				}
 				setAxeLength(m_AxeLength);
 			}
 			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
@@ -1008,7 +1012,7 @@ GRect	GAxe::GetFrameRect()
 */
 void	GAxe::GetLimits(double* pMin, double* pMax)
 {
-	if(m_Record == -1 || m_data.size() == 0)
+	if(m_data.empty())
 	{
 		*pMax = 0;
 		*pMin = 0;
@@ -1136,17 +1140,8 @@ void	GAxe::GetLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*p
 	}*/
 }
 
-void	GAxe::FitToScale(double /*t0*/ /* = 0 */, double /*t1*/ /* = 0 */)
-{/*
-	//Если буфер пустой...
-	if(m_nAcc == -1)	return;
-	if(m_pDoc->GetBufArray().empty())	return;
-
-	const Accumulation*		pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-
-	if(!pBuffer->GetRecCount() && pBuffer->GetType() != Acc_Orion) 
-		return;	
-
+void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
+{
 	//Найдем минимум и максимум
 	double	Min;
 	double	Max;
@@ -1157,7 +1152,7 @@ void	GAxe::FitToScale(double /*t0*/ /* = 0 */, double /*t1*/ /* = 0 */)
 		GetLimits(t0, t1, &Min, &Max);
 
 	//Зная минимум и максимум, определим диапазон
-	double Step = (Max - Min)/m_Length;
+	double Step = (Max - Min)/m_AxeLength;
 	
 	//Округлим его до нормализованного значения
 	if(Step)
@@ -1165,26 +1160,27 @@ void	GAxe::FitToScale(double /*t0*/ /* = 0 */, double /*t1*/ /* = 0 */)
 		double Power	= floor(log10(Step));
 		double Mantiss	= Step / pow(10., Power);
 		
-		if(Mantiss == 1)		m_Scale = 1*pow(10.,Power);
-		else if(Mantiss <= 2)	m_Scale = 2*pow(10.,Power);
-		else if(Mantiss <= 5)	m_Scale	= 5*pow(10.,Power);
-		else					m_Scale	= 10*pow(10.,Power);
+		if(Mantiss == 1)		m_AxeScale	= 1*pow(10.,Power);
+		else if(Mantiss <= 2)	m_AxeScale	= 2*pow(10.,Power);
+		else if(Mantiss <= 5)	m_AxeScale	= 5*pow(10.,Power);
+		else					m_AxeScale	= 10*pow(10.,Power);
 		
 		//Итак, получили масштаб. Считаем минимальное значение
-		m_Min = floor(Min/m_Scale)*m_Scale;		
+		m_AxeMin = floor(Min/m_AxeScale)*m_AxeScale;		
 	}
 	else
 	{
-		m_Scale = 1;
-		m_Min	= Min - m_Scale;
-		m_Length= 2;
+		m_AxeScale	= 1;
+		m_AxeMin	= Min - m_AxeScale;
+		m_AxeLength	= 2;
 	}
 	if(m_DataType == Bool)
 	{
-		m_Min	= 0;
-		m_Scale	= 1;
-		m_Length= 1;
-	}*/
+		m_AxeMin	= 0;
+		m_AxeScale	= 1;
+		m_AxeLength= 1;
+	}
+	setAxeLength(m_AxeLength);
 }
 
 void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
@@ -1192,7 +1188,7 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
 	if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
 	{
-		m_Record	= -1;
+		m_data.clear();
 		return;
 	}
 
@@ -1200,7 +1196,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 	const Accumulation::HeaderList&	Head		= pBuffer->GetHeader();
 
 	//Перебираем все элементы заголовка накопления
-	int	AccIndex	= 0;
 	for(size_t posHead = 0; posHead < Head.size(); posHead++)
 	{
 		const Accumulation::HeaderElement&	H	= Head[posHead];
@@ -1216,7 +1211,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 		//Если нашли такой путь
 		if(m_Path == Path)
 		{
-			m_Record	= AccIndex;
 			m_Offset	= H.Offset;
 			m_Data_Len	= H.Length;
 			m_K_short	= H.K;
@@ -1274,40 +1268,18 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 				if(dataVBO)
 				{
 					glDeleteBuffers(1, &dataVBO);
-					glGenBuffers(1, &dataVBO);
-					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-					glDeleteBuffers(1, &dataIBO);
-					glGenBuffers(1, &dataIBO);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-					glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_data.size()*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 					glDeleteBuffers(1, &markerIBO);
-					glGenBuffers(1, &markerIBO);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-					glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 				}
-				else
-				{
-					glGenBuffers(1, &dataVBO);
-					glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-					glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-					
-					glGenBuffers(1, &dataIBO);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataIBO);
-					glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_data.size()*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-					glGenBuffers(1, &markerIBO);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-					glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-				}
+				glGenBuffers(1, &dataVBO);
+				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+					
+				glGenBuffers(1, &markerIBO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 				//Обновляем VAO оси
 				setAxeLength(m_AxeLength);
@@ -1319,12 +1291,10 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 			UpdateFiltering();
 			return;
 		}
-		else
-			AccIndex++;
 	}
 
 	//Раз не нашли, то...
-	m_Record	= -1;
+	m_data.clear();
 }
 
 //Отрисовка маркера в заданных координатах

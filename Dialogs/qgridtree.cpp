@@ -145,9 +145,20 @@ void    QGridTree::onAccept()
     QModelIndex index = currentIndex();
     TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
     const TreeItem::Data*	data	= item->GetData();
+
+	//Собираем полный путь
+	QString	path	= data->name + '\\';
+	int		nAcc	= data->nBufIndex;
+	while(item)
+	{
+		item	= item->parent();
+		if(item)
+			path	= item->GetData()->name + "\\" + path;
+	}
+
     if(data->nBufIndex != -1 && data->nAccIndex != -1)
     {
-        emit onSignalAccepted(data->nBufIndex, data->nAccIndex);
+        emit onSignalAccepted(data->nBufIndex, path);
     }
 }
 

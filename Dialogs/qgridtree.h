@@ -27,7 +27,7 @@ private:
 	void	onCustomMenuRequested(QPoint pos);
 
 signals:
-    void    onSignalAccepted(int nBufIndex, int nAccIndex);
+    void    onSignalAccepted(int nBufIndex, QString	path);
 };
 
 #endif // QMYTREE_H

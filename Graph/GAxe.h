@@ -44,7 +44,6 @@ private:
 	vector<GLuint>	m_indices;
 	GLuint			m_markersCount;
 	GLuint			dataVBO;
-	GLuint			dataIBO;
 	GLuint			markerIBO;
 	GLuint			axeVBO;
 	GTextLabel*		textLabel;
@@ -110,7 +109,6 @@ private:
 public:
 	QString			m_Name;			//Название оси
 	QString			m_Path;			//Путь к элементу в накоплении
-	int				m_Record;		//Номер в накоплении
 	int				m_nMarker;		//Тип маркера
 	int				m_nAcc;			//Номер накопления
 	QString			m_AccName;		//Имя накопления
@@ -146,6 +144,7 @@ public:
 	//Конструктор-деструктор
 	GAxe();
 	virtual ~GAxe();
+	bool	isEmpty() const {return m_data.empty();}
 
 	//Запись-чтение
 	virtual void	Save(QDomElement* node);		//Сохранение XML
@@ -167,7 +166,7 @@ public:
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
 	virtual void	OnStopMoving();					//Реакция на конец перетаскивания
 
-	void	FitToScale(double t0 = 0, double t1 = 0);//Подбор масштаба и начала
+	void	fitToScale(double t0 = 0, double t1 = 0);//Подбор масштаба и начала
 	void	GetLimits(	double* pMin = 0,
 						double* pMax = 0);			//минимакс
 

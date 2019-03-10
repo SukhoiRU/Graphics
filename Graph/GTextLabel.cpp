@@ -200,12 +200,12 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 	{
 		//Получаем информацию о символе
 		CharInfo	info;
-		map<int, CharInfo>::iterator	it	= font->charMap.find(str.at(i).unicode());
+		map<int, CharInfo>::iterator	it		= font->charMap.find(str.at(i).unicode());
 		if(it == font->charMap.end())	info	= font->charMap.at(126);
 		else							info	= it->second;
 
-		float		texSize	= (std::max(info.size.x, info.size.y)*fontSize)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
-		vec2		center	= vec2(x, y) + fontSize*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
+		float	texSize	= (std::max(info.size.x, info.size.y)*fontSize)*((float)(font->texSize + 3*font->pxrange))/(float)font->texSize;
+		vec2	center	= vec2(x, y) + fontSize*vec2(info.offset.x + 0.5f*info.size.x, info.offset.y - 0.5*info.size.y);
 
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;

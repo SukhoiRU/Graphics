@@ -56,7 +56,7 @@ void main()
 
   fColor = stroke(distance, linewidth, antialias, gs_in.gColor);
   fColor.a *= Kalpha;
-  // fColor  = gs_in.gColor;
+   //fColor  = gs_in.gColor;
   // if(fColor.a > 0.5)   fColor.a = 0.5;
   //   if(fColor.a < 0.05)   fColor.a = 0.05;
 }

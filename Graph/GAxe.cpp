@@ -786,8 +786,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 			glUniform1f(u_data_antialias, 0.5f/m_scale);
 			if(!m_bInterpol)
 			{
-				glUniform1f(u_data_linewidth, 1.5f/m_scale);
-				glUniform1f(u_data_antialias, 0.);
+				glUniform1f(u_data_linewidth, 2.0f/m_scale);
+				glUniform1f(u_data_antialias, 0.5f/m_scale);
 			}
 		}
 		else				
@@ -797,11 +797,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 			if(!m_bInterpol)
 			{
 				glUniform1f(u_data_linewidth, 1.0f/m_scale);
-				glUniform1f(u_data_antialias, 0.);
+				glUniform1f(u_data_antialias, 0.1f/m_scale);
 			}
 		}
-		
+//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
+//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		m_data_program->release();
 
 		//Рисуем набор маркеров

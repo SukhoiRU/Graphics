@@ -21,7 +21,7 @@ LocatorModel::~LocatorModel()
     delete m_rootItem;
 }
 
-void	LocatorModel::setPanel(const std::vector<Graph::GAxe*>* axes)
+void	LocatorModel::setPanel(const std::vector<Graph::GAxe*>* axes, bool bUseBool, bool bUseEmpty)
 {
 	//Очищаем старые данные
 	m_rootItem->clear();
@@ -33,7 +33,10 @@ void	LocatorModel::setPanel(const std::vector<Graph::GAxe*>* axes)
 		LocatorItem::Data	data;
 		data.name	= pAxe->m_Name;
 		data.pAxe	= pAxe;
-		m_rootItem->addChildren(data);
+
+		if(!pAxe->IsBoolean() || (pAxe->IsBoolean() && bUseBool))
+			if(!pAxe->isEmpty() || (pAxe->isEmpty() && bUseEmpty))
+				m_rootItem->addChildren(data);
 	}
 
 	//Сортируем список по высоте осей

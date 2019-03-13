@@ -13,17 +13,14 @@
 
 LocatorView::LocatorView(QWidget *parent) : QTreeView(parent)
 {
-	m_bHeader	= false;
-	m_bAutoSize	= true;
-	m_bGrid		= true;
-	m_bAnimated	= true;
-
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
 	m_bHeader	= settings.value("LocatorView/m_bHeader", false).toBool();
 	m_bAutoSize	= settings.value("LocatorView/m_bAutoSize", true).toBool();
 	m_bGrid		= settings.value("LocatorView/m_bGrid", false).toBool();
 	m_bAnimated	= settings.value("LocatorView/m_bAnimated", true).toBool();
 	m_bAlternate	= settings.value("LocatorView/m_bAlternate", true).toBool();
+	m_bUseBool	= settings.value("LocatorView/m_bUseBool", true).toBool();
+	m_bUseEmpty	= settings.value("LocatorView/m_bUseEmpty", true).toBool();
 
 	QHeaderView*	h	= header();
 	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -41,6 +38,7 @@ LocatorView::LocatorView(QWidget *parent) : QTreeView(parent)
 	connect(this, &LocatorView::customContextMenuRequested, this, &LocatorView::onCustomMenuRequested);
 
 	m_model	= nullptr;
+	oldTime	= 0;
 }
 
 LocatorView::~LocatorView()
@@ -50,6 +48,9 @@ LocatorView::~LocatorView()
 	settings.setValue("LocatorView/m_bAutoSize", m_bAutoSize);
 	settings.setValue("LocatorView/m_bGrid", m_bGrid);
 	settings.setValue("LocatorView/m_bAnimated", m_bAnimated);
+	settings.setValue("LocatorView/m_bAlternate", m_bAlternate);
+	settings.setValue("LocatorView/m_bUseBool", m_bUseBool);
+	settings.setValue("LocatorView/m_bUseEmpty", m_bUseEmpty);
 
 	settings.sync();
 
@@ -115,16 +116,22 @@ void	LocatorView::onCustomMenuRequested(QPoint pos)
 	QAction*	actAutoSize		= new QAction("Размер по содержимому", this);	
 	QAction*	actShowGrid		= new QAction("Сетка", this);		
 	QAction*	actAlternate	= new QAction("Полоски", this);	
+	QAction*	actBool			= new QAction("Показывать bool", this);
+	QAction*	actEmpty		= new QAction("Показывать пустые", this);
 
 	actHeader->setCheckable(true);
 	actAutoSize->setCheckable(true);
 	actShowGrid->setCheckable(true);
 	actAlternate->setCheckable(true);
+	actBool->setCheckable(true);
+	actEmpty->setCheckable(true);
 
 	actHeader->setChecked(m_bHeader);
 	actAutoSize->setChecked(m_bAutoSize);
 	actShowGrid->setChecked(m_bGrid);
 	actAlternate->setChecked(m_bAlternate);
+	actBool->setChecked(m_bUseBool);
+	actEmpty->setChecked(m_bUseEmpty);
 
 	connect(actHeader, &QAction::toggled, [=](bool bHeader){m_bHeader	= bHeader; setHeaderHidden(!m_bHeader);});
 	connect(actAutoSize, &QAction::toggled, [=](bool bAutoSize)
@@ -136,27 +143,37 @@ void	LocatorView::onCustomMenuRequested(QPoint pos)
 	});
 	connect(actShowGrid, &QAction::toggled, [=](bool bGrid){m_bGrid	= bGrid;});
 	connect(actAlternate, &QAction::toggled, [=](bool bAlternate){m_bAlternate = bAlternate; setAlternatingRowColors(m_bAlternate);});
+	connect(actBool, &QAction::toggled, [=](bool bUseBool){m_bUseBool = bUseBool; on_panelChanged(m_axes); on_timeChanged(oldTime);});
+	connect(actEmpty, &QAction::toggled, [=](bool bUseEmpty){m_bUseEmpty = bUseEmpty; on_panelChanged(m_axes); on_timeChanged(oldTime);});
 
 	menu->addAction(actHeader);
 	menu->addAction(actAutoSize);
 	menu->addAction(actShowGrid);
 	menu->addAction(actAlternate);
+	menu->addSeparator();
+	menu->addAction(actBool);
+	menu->addAction(actEmpty);
 	menu->popup(viewport()->mapToGlobal(pos));
 }
 
 void	LocatorView::on_panelChanged(vector<Graph::GAxe*>* axes)
 {
+	m_axes	= axes;
 	//Создаем новую модель
 	if(m_model)	delete m_model;
 	m_model	= new LocatorModel;
-	m_model->setPanel(axes);
+	m_model->setPanel(axes, m_bUseBool, m_bUseEmpty);
 	setModel(m_model);
+	m_model->updateModel(oldTime);
 }
 
 void	LocatorView::on_timeChanged(double time)
 {
 	if(m_model)
+	{
+		oldTime	= time;
 		m_model->updateModel(time);
+	}
 }
 
 void	LocatorView::on_axeSelected(bool bSelected)

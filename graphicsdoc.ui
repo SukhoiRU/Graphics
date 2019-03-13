@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="graphics.qrc">
-    <normaloff>:/Resources/images/open_gl.png</normaloff>:/Resources/images/open_gl.png</iconset>
+    <normaloff>:/Resources/images/line.png</normaloff>:/Resources/images/line.png</iconset>
   </property>
   <widget class="QSplitter" name="splitter">
    <property name="orientation">
@@ -132,7 +132,7 @@
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
-     <string>График</string>
+     <string>&amp;График</string>
     </property>
     <addaction name="actionAddAxe"/>
    </widget>

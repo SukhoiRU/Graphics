@@ -34,7 +34,7 @@ public:
 	virtual Qt::ItemFlags flags(const QModelIndex &index) const;
     virtual bool setData(const QModelIndex &, const QVariant &, int) {return false;}
 
-    void	setPanel(const std::vector<Graph::GAxe*>* axes);
+    void	setPanel(const std::vector<Graph::GAxe*>* axes, bool m_bUseBool, bool bUseEmpty);
 	void	updateModel(double time);
 	void	setSelected(bool bSelected);
 	void	resortAxes();

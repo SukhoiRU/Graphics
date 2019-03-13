@@ -18,8 +18,12 @@ private:
 	bool	m_bGrid;
 	bool	m_bAnimated;
 	bool	m_bAlternate;
+	bool	m_bUseBool;
+	bool	m_bUseEmpty;
 
 	LocatorModel*	m_model;
+	vector<Graph::GAxe*>* m_axes;
+	double	oldTime;
 
 public:
     explicit LocatorView(QWidget *parent = nullptr);

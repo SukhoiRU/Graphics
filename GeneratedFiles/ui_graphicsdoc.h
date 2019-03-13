@@ -59,7 +59,7 @@ public:
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
         GraphicsDoc->resize(449, 649);
         QIcon icon;
-        icon.addFile(QStringLiteral(":/Resources/images/open_gl.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon.addFile(QStringLiteral(":/Resources/images/line.png"), QSize(), QIcon::Normal, QIcon::Off);
         GraphicsDoc->setWindowIcon(icon);
         actionOpen = new QAction(GraphicsDoc);
         actionOpen->setObjectName(QStringLiteral("actionOpen"));
@@ -184,7 +184,7 @@ public:
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
-        menu_4->setTitle(QApplication::translate("GraphicsDoc", "\320\223\321\200\320\260\321\204\320\270\320\272", Q_NULLPTR));
+        menu_4->setTitle(QApplication::translate("GraphicsDoc", "&\320\223\321\200\320\260\321\204\320\270\320\272", Q_NULLPTR));
         toolBarPanel->setWindowTitle(QApplication::translate("GraphicsDoc", "toolBar", Q_NULLPTR));
     } // retranslateUi
 

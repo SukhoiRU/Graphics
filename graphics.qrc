@@ -55,5 +55,6 @@
         <file>Resources/tranlations/qtbase_ru.qm</file>
         <file>Resources/images/open_gl.png</file>
         <file>shaders/gaxe_data_bool.geom</file>
+        <file>Resources/images/line.png</file>
     </qresource>
 </RCC>

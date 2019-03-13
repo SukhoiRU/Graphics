@@ -188,7 +188,7 @@ public:
 	void		ErrorsFilter() const;					//Фильтрация сбоев
 	void		UpdateFiltering();						//Фильтрация сигнала
 	int			getAxeLength() const {return m_AxeLength;}
-	void		setAxeLength(int len);
+	void		setAxeLength(int len, int highlighted = -1);
 };
 }
 

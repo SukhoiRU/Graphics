@@ -680,6 +680,13 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 			Graph::GraphObject*	pG = m_SelectedObjects.at(i);
 			pG->m_IsSelected	= false;
 			pG->m_IsMoving		= false;
+
+			//Отмена выделения шрифтом
+			if(pG->m_Type == AXE)
+			{
+				GAxe*	pAxe	= (GAxe*)pG;
+				pAxe->setAxeLength(pAxe->getAxeLength());
+			}
 		}
 		m_SelectedObjects.clear();
 	}
@@ -796,9 +803,6 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
 			}
-#ifdef USE_FBO
-			drawScene();
-#endif // USE_FBO
 			emit axesMoved();
 		}
 		else
@@ -809,9 +813,35 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.x*TimeScale;
-#ifdef USE_FBO
-				drawScene();
-#endif // USE_FBO
+			}
+		}
+	}
+
+	if(mdf & Qt::ControlModifier)
+	{
+		//При нажатом Ctrl и выделенных осях подсветим центры
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			GraphObject*	pGraph	= m_SelectedObjects.at(i);
+			if(pGraph->m_Type == AXE)
+			{
+				GAxe*	pAxe	= (GAxe*)pGraph;
+				int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
+
+				pAxe->setAxeLength(pAxe->getAxeLength(), index);
+			}
+		}
+	}
+	else
+	{
+		//При отпускании Ctrl восстановим надписи осей
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			GraphObject*	pGraph	= m_SelectedObjects.at(i);
+			if(pGraph->m_Type == AXE)
+			{
+				GAxe*	pAxe	= (GAxe*)pGraph;
+				pAxe->setAxeLength(pAxe->getAxeLength());
 			}
 		}
 	}
@@ -1012,30 +1042,48 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
+	Qt::KeyboardModifiers	mdf		= event->modifiers();
+
 	switch(event->key())
 	{
-	case Qt::Key_Escape:
-	{
-		//Если есть выделенные объекты, закончим перемещение
-		if(m_SelectedObjects.size())
+		case Qt::Key_Escape:
 		{
-			if((*m_SelectedObjects.begin())->m_IsMoving)
+			//Если есть выделенные объекты, закончим перемещение
+			if(m_SelectedObjects.size())
 			{
-				//Конец перемещения
-				for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+				if((*m_SelectedObjects.begin())->m_IsMoving)
 				{
-					GraphObject*	pGraph	= m_SelectedObjects.at(i);
-					pGraph->m_IsMoving	= false;
-					pGraph->OnStopMoving();
+					//Конец перемещения
+					for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+					{
+						GraphObject*	pGraph	= m_SelectedObjects.at(i);
+						pGraph->m_IsMoving	= false;
+						pGraph->OnStopMoving();
+					}
 				}
+				SelectObject(nullptr);
 			}
-            SelectObject(nullptr);
-		}
-		event->accept();
-	}break;
+			event->accept();
+		}break;
 
-	default:
-		break;
+		default:
+			break;
+	}
+
+	if(mdf & Qt::ControlModifier)
+	{
+		//При нажатом Ctrl и выделенных осях подсветим центры
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			GraphObject*	pGraph	= m_SelectedObjects.at(i);
+			if(pGraph->m_Type == AXE)
+			{
+				GAxe*	pAxe	= (GAxe*)pGraph;
+				int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
+
+				pAxe->setAxeLength(pAxe->getAxeLength(), index);
+			}
+		}
 	}
 
 	return QOpenGLWidget::keyPressEvent(event);

@@ -256,7 +256,7 @@ void	GAxe::clearGL()
 	textLabel->clearGL();
 }
 
-void	GAxe::setAxeLength(int len)
+void	GAxe::setAxeLength(int len, int highlighted)
 {
 	//Установка длины оси
 	m_AxeLength	= len;
@@ -382,6 +382,9 @@ void	GAxe::setAxeLength(int len)
 		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.y + 2.0f);
 		for(int i = 0; i <= m_AxeLength; i++)
 		{
+			if(i == highlighted) 	textLabel->setFont(5.5f);
+			else 					textLabel->setFont(3.5f);
+
 			QString	txt		= QString("%1").arg(m_AxeMin + i*m_AxeScale);
 			vec2	size	= textLabel->textSize(txt);
 			textLabel->addString(txt, -size.x - 2., i*grid.y - textLabel->midLine());
@@ -1002,7 +1005,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 			int	index	= int((pt.y - m_BottomRight.y)/oldGrid.y + 0.5);
 			m_AxeMin	= m_AxeMin + index*(m_AxeScale - Scale);
 			m_AxeScale	= Scale;
-			setAxeLength(m_AxeLength);
+			setAxeLength(m_AxeLength, index);
 		}
 	}
 }

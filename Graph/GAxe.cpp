@@ -870,6 +870,8 @@ bool	GAxe::HitTest(const vec2& pt)
 
 bool	GAxe::getCursor(const vec2& pt, Qt::CursorShape& shape)
 {
+	shape	= Qt::CursorShape::SizeAllCursor;
+/*
 	if(m_DataType == Bool)	
 	{
 		shape	= Qt::CursorShape::SizeAllCursor; 
@@ -881,7 +883,7 @@ bool	GAxe::getCursor(const vec2& pt, Qt::CursorShape& shape)
 	if(mouse.y > oldGrid.y*(float(m_AxeLength)-0.5)-1.)	{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = TOP;}
 	else if(mouse.y < 0.5*oldGrid.y)					{shape	= Qt::CursorShape::SizeVerCursor; m_Direction = BOTTOM;}
 	else												{shape	= Qt::CursorShape::SizeAllCursor; m_Direction = ALL;}
-
+*/
 	return	true;
 }
 
@@ -896,6 +898,14 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	m_FrameBR		+= delta;
 	m_BottomRight.x	= m_FrameBR.x;
 
+	//Положение оси по высоте округлим до сетки
+	float	step	= oldGrid.y;
+	if(m_DataType == Bool)		step	= 0.5f*step;
+	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
+	else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
+
+	return;
+/*
 	//Дальше в зависимости от типа перетаскивания
 	switch(m_Direction)
 	{
@@ -948,7 +958,7 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 
 		default:
 			break;
-	}
+	}*/
 }
 
 void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees)

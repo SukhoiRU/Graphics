@@ -827,21 +827,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 			{
 				GAxe*	pAxe	= (GAxe*)pGraph;
 				int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
-
 				pAxe->setAxeLength(pAxe->getAxeLength(), index);
-			}
-		}
-	}
-	else
-	{
-		//При отпускании Ctrl восстановим надписи осей
-		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
-		{
-			GraphObject*	pGraph	= m_SelectedObjects.at(i);
-			if(pGraph->m_Type == AXE)
-			{
-				GAxe*	pAxe	= (GAxe*)pGraph;
-				pAxe->setAxeLength(pAxe->getAxeLength());
 			}
 		}
 	}
@@ -1066,24 +1052,24 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			event->accept();
 		}break;
 
-		default:
-			break;
-	}
-
-	if(mdf & Qt::ControlModifier)
-	{
-		//При нажатом Ctrl и выделенных осях подсветим центры
-		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		case Qt::Key_Control:
 		{
-			GraphObject*	pGraph	= m_SelectedObjects.at(i);
-			if(pGraph->m_Type == AXE)
+			//При нажатом Ctrl и выделенных осях подсветим центры
+			for(size_t i = 0; i < m_SelectedObjects.size(); i++)
 			{
-				GAxe*	pAxe	= (GAxe*)pGraph;
-				int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
+				GraphObject*	pGraph	= m_SelectedObjects.at(i);
+				if(pGraph->m_Type == AXE)
+				{
+					GAxe*	pAxe	= (GAxe*)pGraph;
+					int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
 
-				pAxe->setAxeLength(pAxe->getAxeLength(), index);
+					pAxe->setAxeLength(pAxe->getAxeLength(), index);
+				}
 			}
 		}
+
+		default:
+			break;
 	}
 
 	return QOpenGLWidget::keyPressEvent(event);
@@ -1091,6 +1077,26 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
+	switch(event->key())
+	{
+		case Qt::Key_Control:
+		{
+			//При отпускании Ctrl восстановим надписи осей
+			for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+			{
+				GraphObject*	pGraph	= m_SelectedObjects.at(i);
+				if(pGraph->m_Type == AXE)
+				{
+					GAxe*	pAxe	= (GAxe*)pGraph;
+					pAxe->setAxeLength(pAxe->getAxeLength());
+				}
+			}
+			event->accept();
+		}
+
+		default:
+			break;
+	}
 	return QOpenGLWidget::keyReleaseEvent(event);
 }
 

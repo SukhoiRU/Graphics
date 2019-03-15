@@ -913,7 +913,7 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	float	step	= oldGrid.y;
 	if(m_DataType == Bool)		step	= 0.5f*step;
 	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
-	else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
+	else						m_BottomRight.y	= int(m_FrameBR.y/step + 0.5f)*step;
 
 	return;
 /*
@@ -987,7 +987,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 	else if(mdf & Qt::ControlModifier)
 	{
 		//Проверяем, что по высоте мышь находится на оси
-		if(pt.y < m_FrameBR.y+oldGrid.y*m_AxeLength+1 && pt.y > m_FrameBR.y-1 && m_DataType != Bool)
+		if(pt.y < m_FrameBR.y + oldAreaBL.y +oldGrid.y*m_AxeLength+1 && pt.y > m_FrameBR.y-1 && m_DataType != Bool)
 		{
 			double Power	= floor(log10(m_AxeScale));
 			double Mantiss	= m_AxeScale / pow(10., Power);
@@ -1010,7 +1010,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 			}
 
 			//Сохраняем значение в зависимости от того, где стоит курсор
-			int	index	= int((pt.y - m_BottomRight.y)/oldGrid.y + 0.5);
+			int	index	= int((pt.y - oldAreaBL.y - m_BottomRight.y)/oldGrid.y + 0.5);
 			m_AxeMin	= m_AxeMin + index*(m_AxeScale - Scale);
 			m_AxeScale	= Scale;
 			setAxeLength(m_AxeLength, index);

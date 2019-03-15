@@ -180,7 +180,7 @@ private:
 public:
 	void		SetPosition(double x, double y);		//Начальная установка координат
 	void		SetPosition(vec2 pt);					//Начальная установка координат
-	vec2		GetPosition()const{return m_BottomRight;} 	//Получение позиции
+	vec2		GetPosition()const{return m_BottomRight + oldAreaBL;} 	//Получение позиции
 	double		GetValueAtTime(const double Time) const;	//Получение данных из конкретной записи
 	double		GetTopPosition() const;						//Координата верхнего угла по высоте
 	bool		IsBoolean() const;						//Признак логической оси

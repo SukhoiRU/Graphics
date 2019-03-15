@@ -146,6 +146,10 @@ void GraphicsDoc::LoadScreen(QString FileName)
 		return;
 	}
 
+	//Получаем версию
+	QDomElement e_ver = e.firstChildElement("Версия");
+	double	ver	= e_ver.text().toDouble();
+
 	for(QDomElement p = e.firstChildElement("Панель"); !p.isNull(); p = p.nextSiblingElement("Панель"))
 	{
 		//Создаем новую панель
@@ -158,7 +162,7 @@ void GraphicsDoc::LoadScreen(QString FileName)
 		for(QDomElement g = p.firstChildElement("График"); !g.isNull(); g = g.nextSiblingElement("График"))
 		{
 			Graph::GAxe*	pAxe	= new Graph::GAxe;
-			pAxe->Load(&g);
+			pAxe->Load(&g, ver);
 			pPanel->Axes.push_back(pAxe);
 		}
 	}

@@ -279,11 +279,11 @@ void	GAxe::setAxeLength(int len)
 	//Штрихи оси
 	for(int i = 0; i < m_AxeLength; i++)
 	{
-		data.push_back(vec2(-1.0f, 0 + 5.f*i));	data.push_back(vec2(0.f, 0 + 5.f*i));
-		data.push_back(vec2(-0.5f, 1 + 5.f*i));	data.push_back(vec2(0.f, 1 + 5.f*i));
-		data.push_back(vec2(-0.5f, 2 + 5.f*i));	data.push_back(vec2(0.f, 2 + 5.f*i));
-		data.push_back(vec2(-0.5f, 3 + 5.f*i));	data.push_back(vec2(0.f, 3 + 5.f*i));
-		data.push_back(vec2(-0.5f, 4 + 5.f*i));	data.push_back(vec2(0.f, 4 + 5.f*i));
+		data.push_back(vec2(-1.0f, 0 + oldGrid.y*i));	data.push_back(vec2(0.f, 0 + oldGrid.y*i));
+		data.push_back(vec2(-0.5f, 1 + oldGrid.y*i));	data.push_back(vec2(0.f, 1 + oldGrid.y*i));
+		data.push_back(vec2(-0.5f, 2 + oldGrid.y*i));	data.push_back(vec2(0.f, 2 + oldGrid.y*i));
+		data.push_back(vec2(-0.5f, 3 + oldGrid.y*i));	data.push_back(vec2(0.f, 3 + oldGrid.y*i));
+		data.push_back(vec2(-0.5f, 4 + oldGrid.y*i));	data.push_back(vec2(0.f, 4 + oldGrid.y*i));
 	}
 
 	//Верхний штрих
@@ -425,7 +425,7 @@ void	GAxe::Save(QDomElement* /*node*/)
 	}*/
 
 }
-void	GAxe::Load(QDomElement* node)
+void	GAxe::Load(QDomElement* node, double ver)
 {
 	//Получаем набор полей
 	if(node->hasAttribute("Название"))		m_Name			= node->attribute("Название");
@@ -451,7 +451,12 @@ void	GAxe::Load(QDomElement* node)
 	if(node->hasAttribute("Шаг"))			m_AxeScale		= node->attribute("Шаг").toDouble();
 	if(node->hasAttribute("Длина"))			setAxeLength(node->attribute("Длина").toInt());
 	if(node->hasAttribute("X_мм"))			m_BottomRight.x	= node->attribute("X_мм").toDouble();
-	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= 297 + node->attribute("Y_мм").toDouble();
+	if(node->hasAttribute("Y_мм"))			m_BottomRight.y	= node->attribute("Y_мм").toDouble();
+	if(ver < 2.0)
+	{
+		m_BottomRight.x -= 65;
+		m_BottomRight.y	+= 297 - 17;
+	}
 	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
 	if(node->hasAttribute("Толщина"))		m_SpecWidth		= node->attribute("Толщина").toDouble();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
@@ -572,7 +577,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 
 	mat4 dataModel	= mat4(1.0f);
-	dataModel		= translate(dataModel, vec3(m_BottomRight, 0.f));
+	dataModel		= translate(dataModel, vec3(areaBL + m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
@@ -583,7 +588,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(m_IsSelected)
 	{
 		m_select_program->bind();
-		mat4 dataModel	= translate(mat4(1.0f), vec3(m_FrameBR, 0.f));
+		mat4 dataModel	= translate(mat4(1.0f), vec3(areaBL + m_FrameBR, 0.f));
 		glUniformMatrix4fv(u_select_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glUniformMatrix4fv(u_select_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 		glUniformMatrix4fv(u_select_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
@@ -614,7 +619,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//Надписи у оси
-	dataModel	= translate(mat4(1.f), vec3(m_BottomRight, 0.f));
+	dataModel	= translate(mat4(1.f), vec3(areaBL + m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
@@ -633,6 +638,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.5*textLabel->midLine(), 0.f));
 		else
 			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.y, 0.f));
+		cross	= translate(cross, vec3(areaBL, 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.x, 0.6f*grid.x, 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
 
@@ -663,6 +669,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		//Матрица проекции
 		mat4	data(1.0f);
 		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, m_BottomRight.y + m_AxeLength*grid.y + 0.5*grid.y, 0.f));
+		data	= translate(data, vec3(areaBL, 0.f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
@@ -732,7 +739,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 	//Формируем модельную матрицу
 	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(areaBL.x, m_BottomRight.y, 0.f));
+	dataModel	= translate(dataModel, vec3(areaBL.x, areaBL.y + m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
 	dataModel	= translate(dataModel, vec3(-t0, -m_AxeMin, 0.f));
 
@@ -838,8 +845,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-bool	GAxe::HitTest(const vec2& pt)
+bool	GAxe::HitTest(const vec2& pt_)
 {
+	vec2 pt	= pt_ - oldAreaBL;
 	if(m_DataType == Bool)
 	{
 		//Для Bool рамка должна быть размером надписи

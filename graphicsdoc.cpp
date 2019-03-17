@@ -47,6 +47,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(m_pPanelSelect->ui->pushButtonCopy, &QPushButton::clicked, this, &GraphicsDoc::on_PanelCopy);
 	connect(m_pPanelSelect->ui->comboBox, &QComboBox::editTextChanged, this, &GraphicsDoc::on_PanelRenamed);
 	connect(m_pPanelSelect->ui->comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &GraphicsDoc::on_PanelIndexChanged);
+	connect(ui->actionGraphSettings, &QAction::triggered, ui->oglView, &GraphicsView::on_graphSettings);
 
     m_bAddAcc_Mode  = false;
 

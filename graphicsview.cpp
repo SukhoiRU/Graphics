@@ -11,6 +11,7 @@
 #include "Graph/GAxe.h"
 #include "Graph/GAxeArg.h"
 #include "Dialogs/gaxe_dialog.h"
+#include "Dialogs/graphSettings.h"
 
 #include <vector>
 using std::max;
@@ -1156,4 +1157,10 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 	menu->addAction(actAngle);
 	menu->addAction(actPersp);
 	menu->popup(mapToGlobal(pos));
+}
+
+void	GraphicsView::on_graphSettings()
+{
+	graphSettings	dlg(this);
+	dlg.exec();
 }

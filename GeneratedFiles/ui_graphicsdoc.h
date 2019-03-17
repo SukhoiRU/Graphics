@@ -37,6 +37,7 @@ public:
     QAction *action_LoadOrion;
     QAction *actionAddAxe;
     QAction *actionPageInfo;
+    QAction *actionGraphSettings;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -49,6 +50,7 @@ public:
     QMenu *menu_2;
     QMenu *menu_3;
     QMenu *menu_4;
+    QMenu *menu_5;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
     QToolBar *toolBarPanel;
@@ -75,10 +77,13 @@ public:
         action_2->setObjectName(QStringLiteral("action_2"));
         action_LoadOrion = new QAction(GraphicsDoc);
         action_LoadOrion->setObjectName(QStringLiteral("action_LoadOrion"));
+        action_LoadOrion->setIcon(icon);
         actionAddAxe = new QAction(GraphicsDoc);
         actionAddAxe->setObjectName(QStringLiteral("actionAddAxe"));
         actionPageInfo = new QAction(GraphicsDoc);
         actionPageInfo->setObjectName(QStringLiteral("actionPageInfo"));
+        actionGraphSettings = new QAction(GraphicsDoc);
+        actionGraphSettings->setObjectName(QStringLiteral("actionGraphSettings"));
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -135,9 +140,12 @@ public:
         menu_3->setObjectName(QStringLiteral("menu_3"));
         menu_4 = new QMenu(menuBar);
         menu_4->setObjectName(QStringLiteral("menu_4"));
+        menu_5 = new QMenu(menuBar);
+        menu_5->setObjectName(QStringLiteral("menu_5"));
         GraphicsDoc->setMenuBar(menuBar);
         mainToolBar = new QToolBar(GraphicsDoc);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
+        mainToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
         GraphicsDoc->addToolBar(Qt::TopToolBarArea, mainToolBar);
         statusBar = new QStatusBar(GraphicsDoc);
         statusBar->setObjectName(QStringLiteral("statusBar"));
@@ -149,17 +157,20 @@ public:
         menuBar->addAction(menu->menuAction());
         menuBar->addAction(menu_2->menuAction());
         menuBar->addAction(menu_4->menuAction());
+        menuBar->addAction(menu_5->menuAction());
         menu->addAction(actionOpen);
         menu->addAction(actionSave);
-        menu->addAction(actionPageInfo);
         menu_2->addAction(menu_3->menuAction());
         menu_3->addAction(action_2);
         menu_3->addAction(action_LoadOrion);
         menu_4->addAction(actionAddAxe);
+        menu_5->addAction(actionPageInfo);
+        menu_5->addAction(actionGraphSettings);
         mainToolBar->addSeparator();
         mainToolBar->addAction(actionOpen);
-        mainToolBar->addSeparator();
         mainToolBar->addAction(actionSave);
+        mainToolBar->addSeparator();
+        mainToolBar->addAction(action_LoadOrion);
 
         retranslateUi(GraphicsDoc);
 
@@ -180,11 +191,13 @@ public:
 #ifndef QT_NO_SHORTCUT
         actionAddAxe->setShortcut(QApplication::translate("GraphicsDoc", "Ins", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
-        actionPageInfo->setText(QApplication::translate("GraphicsDoc", "\320\237\320\260\321\200\320\260\320\274\320\265\321\202\321\200\321\213 \321\201\321\202\321\200\320\260\320\275\320\270\321\206\321\213", Q_NULLPTR));
+        actionPageInfo->setText(QApplication::translate("GraphicsDoc", "\320\237\320\260\321\200\320\260\320\274\320\265\321\202\321\200\321\213 \321\201\321\202\321\200\320\260\320\275\320\270\321\206\321\213...", Q_NULLPTR));
+        actionGraphSettings->setText(QApplication::translate("GraphicsDoc", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270 \320\263\321\200\320\260\321\204\320\270\320\272\320\270...", Q_NULLPTR));
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
         menu_4->setTitle(QApplication::translate("GraphicsDoc", "&\320\223\321\200\320\260\321\204\320\270\320\272", Q_NULLPTR));
+        menu_5->setTitle(QApplication::translate("GraphicsDoc", "&\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\260", Q_NULLPTR));
         toolBarPanel->setWindowTitle(QApplication::translate("GraphicsDoc", "toolBar", Q_NULLPTR));
     } // retranslateUi
 

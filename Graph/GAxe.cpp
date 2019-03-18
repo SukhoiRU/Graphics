@@ -9,11 +9,6 @@ int		GetMarker(int n);
 
 namespace Graph{
 
-double	GAxe::m_FontScale 		= 0.75;	//Просто коэффициент
-double	GAxe::m_TickSize  		= 1.5;	//Миллиметры
-double	GAxe::m_Width			= 30;
-double	GAxe::m_SelectedWidth	= 60;
-
 QOpenGLShaderProgram*	GAxe::m_axe_program	= nullptr;
 int		GAxe::u_modelToWorld	= 0;
 int		GAxe::u_worldToCamera	= 0;
@@ -65,6 +60,13 @@ int		GAxe::u_select_dL			= 0;
 int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
+GLfloat	GAxe::m_width		= 1.0f;
+GLfloat	GAxe::m_selWidth	= 1.0f;
+GLfloat	GAxe::m_interpWidth	= 1.0f;
+GLfloat	GAxe::m_alias		= 0.5f;
+GLfloat	GAxe::m_selAlias	= 0.5f;
+GLfloat	GAxe::m_interpAlias	= 0.5f;
+
 GAxe::GAxe()
 {
 	m_Type		= AXE;
@@ -78,7 +80,6 @@ GAxe::GAxe()
 	m_Offset	= -1;
 	m_Data_Len	= 0;
 	m_bShowNum	= false;
-	m_SpecWidth	= m_Width;
 	m_bSRK		= false;
 	m_MaskSRK	= 0;
 	m_nBitSRK	= 0;
@@ -461,7 +462,6 @@ void	GAxe::Load(QDomElement* node, double ver)
 		m_BottomRight.y	+= 297 - 17;
 	}
 	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
-	if(node->hasAttribute("Толщина"))		m_SpecWidth		= node->attribute("Толщина").toDouble();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
 	if(node->hasAttribute("Бит_СРК"))		m_nBitSRK		= node->attribute("Бит_СРК").toInt();
 	if(node->hasAttribute("Формат"))		m_TextFormat	= node->attribute("Формат");
@@ -792,22 +792,22 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		//Выставляем толщину линии
 		if(m_IsSelected)	
 		{
-			glUniform1f(u_data_linewidth, 2.0/m_scale);
-			glUniform1f(u_data_antialias, 0.5f/m_scale);
+			glUniform1f(u_data_linewidth, m_selWidth/m_scale);
+			glUniform1f(u_data_antialias, m_selAlias/m_scale);
 			if(!m_bInterpol)
 			{
-				glUniform1f(u_data_linewidth, 2.0f/m_scale);
-				glUniform1f(u_data_antialias, 0.5f/m_scale);
+				glUniform1f(u_data_linewidth, m_selWidth/m_scale);
+				glUniform1f(u_data_antialias, m_interpAlias/m_scale);
 			}
 		}
 		else				
 		{
-			glUniform1f(u_data_linewidth, 1.0f/m_scale);
-			glUniform1f(u_data_antialias, 0.5f/m_scale);
+			glUniform1f(u_data_linewidth, m_width/m_scale);
+			glUniform1f(u_data_antialias, m_alias/m_scale);
 			if(!m_bInterpol)
 			{
-				glUniform1f(u_data_linewidth, 1.0f/m_scale);
-				glUniform1f(u_data_antialias, 0.1f/m_scale);
+				glUniform1f(u_data_linewidth, m_interpWidth/m_scale);
+				glUniform1f(u_data_antialias, m_interpAlias/m_scale);
 			}
 		}
 //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

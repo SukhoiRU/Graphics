@@ -11,6 +11,9 @@ public:
 	graphSettings(QWidget *parent = Q_NULLPTR);
 	~graphSettings();
 
+private slots:
+	void	on_accept(QAbstractButton* pButton);
+
 private:
 	Ui::graphSettings ui;
 };

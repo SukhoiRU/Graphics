@@ -107,6 +107,10 @@ private:
 	static	int		u_select_round;
 
 public:
+	static	GLfloat	m_width, m_selWidth, m_interpWidth;
+	static	GLfloat	m_alias, m_selAlias, m_interpAlias;
+
+public:
 	QString			m_Name;			//Название оси
 	QString			m_Path;			//Путь к элементу в накоплении
 	int				m_nMarker;		//Тип маркера
@@ -119,11 +123,6 @@ public:
 
 	vec3	  		m_Color;		//Цвет графика
 	bool			m_bShowNum;		//Признак отрисовки номера накопления
-	static double 	m_FontScale;	//Масштабный коэффициент шрифта
-	static double 	m_TickSize;		//Размер штриха, мм
-	static double	m_Width;		//Толщина линии
-	static double	m_SelectedWidth;//Толщина выделенной линии
-	double			m_SpecWidth;	//Особая толщина 
 	bool			m_bSRK;			//Признак разовой команды
 	int				m_nBitSRK;		//Бит СРК
 	QString			m_TextFormat;	//Вывод в таблице и на оси

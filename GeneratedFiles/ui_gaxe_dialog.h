@@ -9,7 +9,6 @@
 #ifndef UI_GAXE_DIALOG_H
 #define UI_GAXE_DIALOG_H
 
-#include <QtCore/QLocale>
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
@@ -251,7 +250,6 @@ public:
         buttonBox = new QDialogButtonBox(GAxe_dialog);
         buttonBox->setObjectName(QStringLiteral("buttonBox"));
         buttonBox->setLayoutDirection(Qt::RightToLeft);
-        buttonBox->setLocale(QLocale(QLocale::Russian, QLocale::Russia));
         buttonBox->setOrientation(Qt::Vertical);
         buttonBox->setStandardButtons(QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 

@@ -8,6 +8,7 @@ graphSettings::graphSettings(QWidget *parent)
 {
 	ui.setupUi(this);
 	connect(ui.buttonBox, &QDialogButtonBox::clicked, this, &graphSettings::on_accept);
+	ui.buttonBox->button(QDialogButtonBox::Apply)->setDefault(true);
 
 	ui.lineEdit_width->setText(QString("%1").arg(GAxe::m_width));
 	ui.lineEdit_alias->setText(QString("%1").arg(GAxe::m_alias));
@@ -33,5 +34,8 @@ void	graphSettings::on_accept(QAbstractButton* pButton)
 		GAxe::m_selAlias	= ui.lineEdit_sel_alias->text().toFloat();
 		GAxe::m_interpWidth	= ui.lineEdit_interp_width->text().toFloat();
 		GAxe::m_interpAlias	= ui.lineEdit_interp_alias->text().toFloat();
+
+		if(ui.buttonBox->buttonRole(pButton) == QDialogButtonBox::AcceptRole)
+			accept();
 	}
 }

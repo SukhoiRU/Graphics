@@ -91,13 +91,13 @@ void GraphicsDoc::on_actionOpen_triggered()
     QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf", nullptr, option);
     if(FileName.isEmpty())  return;
 
-	LoadScreen(FileName);
+	loadScreen(FileName);
 }
 
-void GraphicsDoc::LoadScreen(QString FileName)
+void GraphicsDoc::loadScreen(QString FileName)
 {
-    // TODO: Add your dispatch handler code here
-    QFile	file(FileName);
+	//Чтение файла экрана
+	QFile	file(FileName);
     if(!file.open(QFile::ReadOnly))
     {
         QMessageBox::critical(this, "Ошибка чтения файла экрана!", QString("Cannot read file %1: %2.").arg(FileName).arg(file.errorString()));
@@ -177,6 +177,66 @@ void GraphicsDoc::LoadScreen(QString FileName)
 		int	cur	= act.text().toInt();
 		m_pPanelSelect->ui->comboBox->setCurrentIndex(cur);
 	}
+
+	//Сохраняем путь к файлу
+	m_screenFileName	= FileName;
+}
+
+void	GraphicsDoc::on_actionSave_triggered()
+{
+	//Сохраняем файл экрана
+	if(!m_screenFileName.isEmpty())
+		saveScreen(m_screenFileName);
+}
+
+void	GraphicsDoc::on_actionSaveAs_triggered()
+{
+	//Сохраняем файл экрана
+	QFileDialog::Options option;
+#ifdef __linux__
+	option = QFileDialog::DontUseNativeDialog;
+#endif
+	QString	FileName	= QFileDialog::getSaveFileName(this, "Запись файла экрана", "", "*.grf", nullptr, option);
+	if(FileName.isEmpty())  return;
+
+	saveScreen(FileName);
+}
+
+void	GraphicsDoc::saveScreen(QString FileName)
+{
+	QFile	file(FileName);
+	if(!file.open(QFile::WriteOnly))
+	{
+		QMessageBox::critical(this, "Ошибка сохранения файла экрана!", QString("Cannot open file %1: %2.").arg(FileName).arg(file.errorString()));
+		return;
+	}
+
+	QXmlStreamWriter	xml(&file);
+	xml.setAutoFormatting(true);
+	xml.writeStartDocument("2.0");
+	xml.writeStartElement("Файл_экрана");
+	xml.writeStartElement("Список_панелей");
+	xml.writeTextElement("Версия", "2.0");
+	xml.writeTextElement("Активная_панель", QString::number(m_pPanelSelect->ui->comboBox->currentIndex()));
+	xml.writeTextElement("Текущий_цвет", "5");
+
+	//Пишем список панелей
+	for(size_t i = 0; i < m_PanelList.size(); i++)
+	{
+		Panel*	panel	= m_PanelList.at(i);
+		xml.writeStartElement("Панель");
+		xml.writeAttribute("Название", panel->Name);
+		for(size_t j = 0; j < panel->Axes.size(); j++)
+		{
+			Graph::GAxe*	pAxe	= panel->Axes.at(j);
+			pAxe->save(xml);
+		}
+		xml.writeEndElement(); //Панель
+	}
+	xml.writeEndElement();	//Список_панелей
+	xml.writeEndElement();	//Файл_экрана
+	xml.writeEndDocument();
+	file.close();
 }
 
 void GraphicsDoc::on_action_LoadOrion_triggered()
@@ -198,11 +258,11 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
     }
     in.close();
 
-	LoadOrion(FileName);
+	loadOrion(FileName);
 	ui->statusBar->showMessage(QString("Загружен файл %1").arg(FileName), 5000);
 }
 
-void	GraphicsDoc::LoadOrion(QString FileName)
+void	GraphicsDoc::loadOrion(QString FileName)
 {
     Accumulation*	pAcc;
     if(m_bAddAcc_Mode)

@@ -146,7 +146,7 @@ public:
 	bool	isEmpty() const {return m_data.empty();}
 
 	//Запись-чтение
-	virtual void	Save(QDomElement* node);		//Сохранение XML
+	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
 	virtual void	Load(QDomElement* node, double ver);		//Чтение XML
 	void			UpdateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
 	

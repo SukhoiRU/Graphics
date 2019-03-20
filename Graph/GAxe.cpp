@@ -395,39 +395,28 @@ void	GAxe::setAxeLength(int len, int highlighted)
 	textLabel->prepare();
 }
 
-void	GAxe::Save(QDomElement* /*node*/)
-{/*
-	IXMLDOMNamedNodeMap*	map		= 0;
-	pXml->GetNodeMap(node, &map);
-	pXml->SetNodeItem(map, "Название",	m_Name);
-	pXml->SetNodeItem(map, "Путь",		m_Path);
-	pXml->SetNodeItem(map, "Накопление",ToString(m_nAcc));
-//	pXml->SetNodeItem(map, "Имя_накопления", m_AccName);
-	pXml->SetNodeItem(map, "Цвет",		ToString(m_Color));
-	pXml->SetNodeItem(map, "Маркер",	ToString(m_nMarker));
-	pXml->SetNodeItem(map, "Минимум",	ToString(m_Min));
-	pXml->SetNodeItem(map, "Шаг",		ToString(m_Scale));
-	pXml->SetNodeItem(map, "Длина",		ToString(m_Length));
-	pXml->SetNodeItem(map, "X_мм", 		ToString(m_BottomRight.x));
-	pXml->SetNodeItem(map, "Y_мм", 		ToString(m_BottomRight.y));
-	pXml->SetNodeItem(map, "Тип", 		ToString(m_DataType));
-	pXml->SetNodeItem(map, "Толщина", 	ToString(m_SpecWidth));
-	pXml->SetNodeItem(map, "СРК", 		ToString(m_bSRK));
-	pXml->SetNodeItem(map, "Бит_СРК",	ToString(m_nBitSRK));
-	pXml->SetNodeItem(map, "Формат",	m_TextFormat);
-	pXml->SetNodeItem(map, "Интерполяция",	ToString(m_bInterpol));
-	if(m_bAperiodic)
+void	GAxe::save(QXmlStreamWriter& xml)
+{
+	xml.writeStartElement("График");
 	{
-		pXml->SetNodeItem(map, "Апериодика",	ToString(m_bAperiodic));
-		pXml->SetNodeItem(map, "T_Aperiodic",	ToString(m_Aperiodic_T));
+		xml.writeAttribute("Название", m_Name);
+		xml.writeAttribute("Путь", m_Path);
+		xml.writeAttribute("Накопление", QString::number(m_nAcc));
+		xml.writeAttribute("Имя_накопления", m_AccName);
+		xml.writeAttribute("Цвет", QString("(%1, %2, %3)").arg(m_Color.r*255).arg(m_Color.g*255).arg(m_Color.b*255));
+		xml.writeAttribute("Маркер", QString::number(m_nMarker));
+		xml.writeAttribute("Минимум", QString::number(m_AxeMin));
+		xml.writeAttribute("Шаг", QString::number(m_AxeScale));
+		xml.writeAttribute("Длина", QString::number(m_AxeLength));
+		xml.writeAttribute("X_мм", QString::number(m_BottomRight.x));
+		xml.writeAttribute("Y_мм", QString::number(m_BottomRight.y));
+		xml.writeAttribute("Тип", QString::number(m_DataType));
+		xml.writeAttribute("СРК", m_bSRK ? "true" : "false");
+		xml.writeAttribute("Бит_СРК", QString::number(m_nBitSRK));
+		xml.writeAttribute("Формат", m_TextFormat);
+		xml.writeAttribute("Интерполяция", m_bInterpol ? "true" : "false");
 	}
-	if(m_bOscill)
-	{
-		pXml->SetNodeItem(map, "Колебательное",	ToString(m_bOscill));
-		pXml->SetNodeItem(map, "T_Oscill",	ToString(m_Oscill_T));
-		pXml->SetNodeItem(map, "Ksi_Oscill",	ToString(m_Oscill_Ksi));
-	}*/
-
+	xml.writeEndElement();	//График
 }
 void	GAxe::Load(QDomElement* node, double ver)
 {

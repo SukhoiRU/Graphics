@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 //    if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
 	w.showMaximized();
 //	w.show();
-	if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
-	if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));
+	if(parser.isSet(orionOption))	w.loadOrion(parser.value(orionOption));
+	if(parser.isSet(grfOption))		w.loadScreen(parser.value(grfOption));
 	
     return a.exec();
 }

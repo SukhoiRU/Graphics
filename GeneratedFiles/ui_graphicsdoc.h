@@ -38,6 +38,7 @@ public:
     QAction *actionAddAxe;
     QAction *actionPageInfo;
     QAction *actionGraphSettings;
+    QAction *actionSaveAs;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -84,6 +85,9 @@ public:
         actionPageInfo->setObjectName(QStringLiteral("actionPageInfo"));
         actionGraphSettings = new QAction(GraphicsDoc);
         actionGraphSettings->setObjectName(QStringLiteral("actionGraphSettings"));
+        actionSaveAs = new QAction(GraphicsDoc);
+        actionSaveAs->setObjectName(QStringLiteral("actionSaveAs"));
+        actionSaveAs->setIcon(icon2);
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -160,6 +164,7 @@ public:
         menuBar->addAction(menu_5->menuAction());
         menu->addAction(actionOpen);
         menu->addAction(actionSave);
+        menu->addAction(actionSaveAs);
         menu_2->addAction(menu_3->menuAction());
         menu_3->addAction(action_2);
         menu_3->addAction(action_LoadOrion);
@@ -193,6 +198,7 @@ public:
 #endif // QT_NO_SHORTCUT
         actionPageInfo->setText(QApplication::translate("GraphicsDoc", "\320\237\320\260\321\200\320\260\320\274\320\265\321\202\321\200\321\213 \321\201\321\202\321\200\320\260\320\275\320\270\321\206\321\213...", Q_NULLPTR));
         actionGraphSettings->setText(QApplication::translate("GraphicsDoc", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270 \320\263\321\200\320\260\321\204\320\270\320\272\320\270...", Q_NULLPTR));
+        actionSaveAs->setText(QApplication::translate("GraphicsDoc", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214 \320\272\320\260\320\272...", Q_NULLPTR));
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

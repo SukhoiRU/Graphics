@@ -115,6 +115,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -226,6 +227,15 @@
   <action name="actionGraphSettings">
    <property name="text">
     <string>Настройки графики...</string>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/images/save.png</normaloff>:/Resources/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить как...</string>
    </property>
   </action>
  </widget>

@@ -31,13 +31,15 @@ public:
     explicit GraphicsDoc(QWidget *parent = nullptr);
     ~GraphicsDoc();
 
-	void LoadScreen(QString FileName);
-	void LoadOrion(QString FileName);
+	void loadScreen(QString FileName);
+	void saveScreen(QString FileName);
+	void loadOrion(QString FileName);
 
 private slots:
     void on_actionOpen_triggered();
     void on_action_LoadOrion_triggered();
-
+	void on_actionSave_triggered();
+	void on_actionSaveAs_triggered();
     void on_actionAddAxe_triggered();
 
 signals:
@@ -49,6 +51,7 @@ signals:
 private:
     Ui::GraphicsDoc *ui;
     PanelSelect*    m_pPanelSelect;
+	QString			m_screenFileName;
 
 private:
     vector<Accumulation*>   m_BufArray;	//Набор накоплений

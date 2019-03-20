@@ -139,7 +139,7 @@ void	GTextLabel::loadFontInfo()
 	int	w	= font->texSize;
 	int	h	= font->texSize;
 
-	//Загружаем текстурный массив
+	//Создаем текстурный массив
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
@@ -161,7 +161,8 @@ void	GTextLabel::loadFontInfo()
 		font->charMap.insert(std::pair<int, CharInfo>(info.unicode, info));
 
 		//Загружаем символ с контролем формата
-		QString		imgBase64	= c.attribute("texture");
+		QDomElement	t	= c.firstChildElement("texture");
+		QString		imgBase64	= t.text();
 		QByteArray	imgArray;
 		QBuffer		imgBuffer(&imgArray);
 		imgBuffer.open(QIODevice::WriteOnly);

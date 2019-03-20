@@ -32,8 +32,8 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	ui->splitter->setStretchFactor(1, 0);
 
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
-	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
 	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
@@ -125,11 +125,15 @@ void GraphicsDoc::loadScreen(QString FileName)
 		return;
 	}
 
-	if(root.hasAttribute("version") && root.attribute("version") != "1.0")
+	if(root.hasAttribute("version") && root.attribute("version").toDouble() < 1.0)
 	{
 		QMessageBox::critical(this, "Чтение файла экрана", "Версия экрана должна быть не меньше 1.0!");
 		return;
 	}
+
+	//Читаем настройки оси времени
+	QDomElement	arg	= root.firstChildElement("Ось_времени");
+	ui->oglView->loadAxeArg(&arg, root.attribute("version").toDouble());
 
 	//Очищаем список панелей
     for(size_t i = 0; i < m_PanelList.size(); i++)
@@ -163,7 +167,7 @@ void GraphicsDoc::loadScreen(QString FileName)
 		for(QDomElement g = p.firstChildElement("График"); !g.isNull(); g = g.nextSiblingElement("График"))
 		{
 			Graph::GAxe*	pAxe	= new Graph::GAxe;
-			pAxe->Load(&g, ver);
+			pAxe->load(&g, ver);
 			pPanel->Axes.push_back(pAxe);
 		}
 	}
@@ -213,8 +217,14 @@ void	GraphicsDoc::saveScreen(QString FileName)
 
 	QXmlStreamWriter	xml(&file);
 	xml.setAutoFormatting(true);
-	xml.writeStartDocument("2.0");
+	xml.writeStartDocument();
 	xml.writeStartElement("Файл_экрана");
+	xml.writeAttribute("version", "2.0");
+	{
+		xml.writeStartElement("Ось_времени");
+		ui->oglView->saveAxeArg(xml);
+		xml.writeEndElement();	//Ось_времени
+	}
 	xml.writeStartElement("Список_панелей");
 	xml.writeTextElement("Версия", "2.0");
 	xml.writeTextElement("Активная_панель", QString::number(m_pPanelSelect->ui->comboBox->currentIndex()));
@@ -439,7 +449,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
 		pAxe->SetPosition(20, 200);
-		pAxe->UpdateRecord(&m_BufArray);
+		pAxe->updateRecord(&m_BufArray);
 
 		pAxe->fitToScale();
 

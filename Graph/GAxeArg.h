@@ -16,8 +16,6 @@ class GAxeArg : public GraphObject  //Класс оси графика
 //		Данные
 //////////////////////////////////////////////////////////////////////////////////
 private:
-	vec2			m_BottomRight;	//Положение нижнего правого угла, мм
-
 	//Данные для OpenGL
 	vector<vec2>			m_data;
 	QOpenGLShaderProgram*	m_program;
@@ -38,7 +36,8 @@ private:
 	GTextLabel*		textLabel;
 
 public:
-	QString			m_Name;			//Название оси
+	QString			m_Name;		//Название оси
+	GLfloat			m_y;		//Положение по высоте, мм
 
 //////////////////////////////////////////////////////////////////////////////////
 //		Методы
@@ -53,8 +52,9 @@ public:
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
 
 	//Мышиные дела
-	virtual bool	HitTest(const vec2& /*pt*/){return false;}//Проверка на попадание курсора
-	virtual void	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/){};	//Перемещение на заданное расстояние
+	virtual bool	HitTest(const vec2& /*pt*/);//Проверка на попадание курсора
+	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
+	virtual void	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/);	//Перемещение на заданное расстояние
 	virtual void	OnDoubleClick(){};				//Реакция на щелчок мышью
 	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
 	virtual void	OnStopMoving() {};				//Реакция на конец перетаскивания

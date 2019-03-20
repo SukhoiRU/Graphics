@@ -12,6 +12,7 @@ class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
 class Accumulation;
+class QDomElement;
 
 namespace Graph{
 class GraphObject;
@@ -51,6 +52,8 @@ public slots:
 	void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
     void	on_panelDeleted(vector<Graph::GAxe*>* axes);
 	void	on_graphSettings();
+	void	saveAxeArg(QXmlStreamWriter& xml);
+	void	loadAxeArg(QDomElement* e, double ver);
 protected slots:
 	void	teardownGL();
 	void	update();

@@ -221,7 +221,7 @@ void	GAxe_dialog::on_replace()
 		pAxe->m_Name	= pathList.back();
 		pAxe->m_Path	= path;
 		pAxe->m_nAcc	= dlg.m_nBufIndex;
-		pAxe->UpdateRecord(m_pBuffer);
+		pAxe->updateRecord(m_pBuffer);
 		pAxe->fitToScale();
 
 		//Меняем диалог

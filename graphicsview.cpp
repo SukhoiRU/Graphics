@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QPainter>
 #include <QSvgGenerator>
+#include <QDomDocument>
 #include "Dialogs/pageSetup.h"
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
@@ -108,6 +109,25 @@ void GraphicsView::teardownGL()
 
 	if(fboVBO)	{glDeleteBuffers(1, &fboVBO); fboVBO = 0;}
 	if(m_fbo_program) {delete m_fbo_program; m_fbo_program = 0;}
+}
+
+void	GraphicsView::saveAxeArg(QXmlStreamWriter& xml)
+{
+	xml.writeTextElement("Начало", QString::number(Time0));
+	xml.writeTextElement("Шаг", QString::number(TimeScale));
+	xml.writeTextElement("Положение", QString::number(axeArg->m_y));
+}
+
+void	GraphicsView::loadAxeArg(QDomElement* e, double ver)
+{
+	QDomElement	sub;
+	sub	= e->firstChildElement("Начало");
+	if(sub.isElement())
+		Time0		= sub.text().toDouble();
+	sub	= e->firstChildElement("Шаг");			if(sub.isElement())	TimeScale	= sub.text().toDouble();
+	sub	= e->firstChildElement("Положение");	if(sub.isElement())	axeArg->m_y	= sub.text().toDouble();
+	
+	if(ver < 2.0) axeArg->m_y += 270;
 }
 
 void GraphicsView::initializeGL()
@@ -464,7 +484,7 @@ void GraphicsView::drawScene()
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			if(m_SelectedObjects.size())
+			if(m_SelectedObjects.size() && pGraph->m_Type != AXEARG)
 			{
 				//Пропускаем выделенные
 				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
@@ -479,7 +499,9 @@ void GraphicsView::drawScene()
 		//Дорисовываем выделенные
 		for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 		{
-			m_SelectedObjects.at(j)->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
+			if(pGraph->m_Type != AXEARG)
+				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -750,9 +772,9 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 	//Определим объект, на который попала мышь
 	bool	bFound	= false;
-	for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
+	for(size_t i = m_GraphObjects.size(); i > 0; i--)
 	{
-		Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+		Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
 		if(pGraph->HitTest(mousePos))
 		{
 			Qt::CursorShape	shape;
@@ -803,6 +825,14 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 			{
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->MoveOffset(delta, buttons, mdf);
+				if(pGraph->m_Type == AXEARG)
+				{
+					//Для оси дополнительно двигаем время
+					if(m_bOnMouse)
+					{
+						Time0	-=	delta.x/gridStep.x*TimeScale;
+					}
+				}
 			}
 			emit axesMoved();
 		}
@@ -869,9 +899,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	{
 		//Определим объект, на который попала мышь
 		bool	bFound	= false;
-		for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
+		for(size_t i = m_GraphObjects.size(); i > 0; i--)
 		{
-			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
 			if(pGraph->HitTest(mousePos))
 			{
 				pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
@@ -930,9 +960,9 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 
 		//Определим объект, в который произошел клик
 		bool	bFound	= false;
-		for(size_t i = (m_GraphObjects.size()-1); i > 0; i--)
+		for(size_t i = m_GraphObjects.size(); i > 0; i--)
 		{
-			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
+			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
 			if(pGraph->HitTest(m_clickPos))
 			{
 				if(!m_SelectedObjects.size())
@@ -1115,9 +1145,6 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		}
 	}
 
-	//Сбрасываем выделение
-    SelectObject(nullptr);
-
 	//Запоминаем новый список осей
     m_pPanel	= axes;
 	if(!oglInited)	return;
@@ -1130,9 +1157,12 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	{
 		Graph::GAxe*	pAxe	= axes->at(i);
 		pAxe->initializeGL();
-		pAxe->UpdateRecord(pBuffer);
+		pAxe->updateRecord(pBuffer);
 		m_GraphObjects.push_back(pAxe);
 	}
+
+	//Сбрасываем выделение
+    SelectObject(nullptr);
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)

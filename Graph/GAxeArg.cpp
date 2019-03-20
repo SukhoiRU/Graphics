@@ -14,6 +14,7 @@ GAxeArg::GAxeArg()
 	oldAreaSize	= vec2(0.);
 	nCountGrid	= 0;
 	nCountAxe	= 0;
+	m_y			= 0;
 
 	m_program	= 0;
 	gridVBO	= 0;
@@ -240,7 +241,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 
 		//Растягиваем прямоугольник область оси
 		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(areaBL.x, areaBL.y+0.5f, 0));
+		areaMat	= translate(areaMat, vec3(areaBL.x, areaBL.y+m_y+0.5f, 0));
 		areaMat	= scale(areaMat, vec3(areaSize.x, -2.5f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 
@@ -259,7 +260,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	glEnableVertexAttribArray(1);
 
 	dataModel	= mat4(1.0f);
-	dataModel	= translate(dataModel, vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y,0.0f));
+	dataModel	= translate(dataModel, vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y + m_y,0.0f));
 	dataModel	= scale(dataModel, vec3(grid.x/5.0f, 1.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -268,9 +269,41 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_program->release();
 
-	dataModel	= translate(mat4(1.f), vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y, 0.f));
+	dataModel	= translate(mat4(1.f), vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y + m_y, 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(vec3(0.f), 1);
+}
+
+bool	GAxeArg::HitTest(const vec2& pt_)
+{
+	vec2 pt	= pt_ - oldAreaBL;
+
+	//Определяем попадание в шкалу
+	if(pt.x < oldAreaSize.x &&
+		pt.x > 0 &&
+		pt.y < m_y + 1 &&
+		pt.y > m_y - 2)
+		return true;
+	else
+		return false;
+}
+
+bool	GAxeArg::getCursor(const vec2& pt, Qt::CursorShape& shape)
+{
+	shape	= Qt::CursorShape::SizeVerCursor;
+	return	true;
+}
+
+void	GAxeArg::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
+{
+	//Переместим рамку
+	m_y		+= delta.y;
+
+	//Положение оси по высоте ограничим полем
+	if(m_y < 0)	m_y	= 0;
+	if(m_y > oldAreaSize.y)	m_y	= oldAreaSize.y;
+
+	return;
 }
 
 }

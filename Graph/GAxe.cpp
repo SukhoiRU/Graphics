@@ -77,7 +77,6 @@ GAxe::GAxe()
 
 	m_OldPoint	= {0,0};
 	m_nSubTicks	= 5;
-	m_Offset	= -1;
 	m_Data_Len	= 0;
 	m_bShowNum	= false;
 	m_bSRK		= false;
@@ -418,7 +417,7 @@ void	GAxe::save(QXmlStreamWriter& xml)
 	}
 	xml.writeEndElement();	//График
 }
-void	GAxe::Load(QDomElement* node, double ver)
+void	GAxe::load(QDomElement* node, double ver)
 {
 	//Получаем набор полей
 	if(node->hasAttribute("Название"))		m_Name			= node->attribute("Название");
@@ -1179,7 +1178,7 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	setAxeLength(m_AxeLength);
 }
 
-void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
+void	GAxe::updateRecord(std::vector<Accumulation*>* pData)
 {
 	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
 	if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
@@ -1207,7 +1206,6 @@ void	GAxe::UpdateRecord(std::vector<Accumulation*>* pData)
 		//Если нашли такой путь
 		if(m_Path == Path)
 		{
-			m_Offset	= H.Offset;
 			m_Data_Len	= H.Length;
 			m_K_short	= H.K;
 

@@ -31,7 +31,6 @@ private:
 	int				m_AxeLength;	//Длина оси в клетках	
 	int				m_Axe_nCount;	//Количество точек в буфере отрисовки шкалы
 
-	int				m_Offset;		//Смещение в записи		
 	int				m_Data_Len;		//Длина для Орион
 	int				m_MaskSRK;		//Маска СРК
 	double			m_K_short;		//Масштаб для записей *.mig
@@ -147,8 +146,8 @@ public:
 
 	//Запись-чтение
 	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
-	virtual void	Load(QDomElement* node, double ver);		//Чтение XML
-	void			UpdateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
+	virtual void	load(QDomElement* node, double ver);		//Чтение XML
+	void			updateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
 	
 	//Рисование
 	virtual void	initializeGL();

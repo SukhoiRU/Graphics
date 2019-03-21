@@ -1164,7 +1164,13 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 	}
 
 	//Сбрасываем выделение
-    SelectObject(nullptr);
+	for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+	{
+		Graph::GraphObject*	pG = m_SelectedObjects.at(i);
+		pG->m_IsSelected	= false;
+		pG->m_IsMoving		= false;
+	}
+	m_SelectedObjects.clear();
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)

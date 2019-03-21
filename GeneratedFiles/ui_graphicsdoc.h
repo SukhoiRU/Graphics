@@ -176,6 +176,7 @@ public:
         mainToolBar->addAction(actionSave);
         mainToolBar->addSeparator();
         mainToolBar->addAction(action_LoadOrion);
+        mainToolBar->addAction(actionGraphSettings);
 
         retranslateUi(GraphicsDoc);
 

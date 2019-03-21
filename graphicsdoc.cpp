@@ -32,8 +32,8 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	ui->splitter->setStretchFactor(1, 0);
 
 	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
-	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
 	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
 	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);

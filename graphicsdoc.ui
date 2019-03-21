@@ -163,6 +163,7 @@
    <addaction name="actionSave"/>
    <addaction name="separator"/>
    <addaction name="action_LoadOrion"/>
+   <addaction name="actionGraphSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="toolBarPanel">

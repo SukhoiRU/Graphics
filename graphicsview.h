@@ -13,6 +13,7 @@ class QScrollBar;
 class PageSetup;
 class Accumulation;
 class QDomElement;
+class graphSettings;
 
 namespace Graph{
 class GraphObject;
@@ -99,6 +100,7 @@ private:
 	vector<Graph::GraphObject*>	m_SelectedObjects;
 	Graph::GTextLabel*			m_pLabel;
 	vector<Accumulation*>*		m_pBuffer;
+	graphSettings*				m_pGraphSettings;
 
 	//Начальное время и масштаб
 	double		Time0;

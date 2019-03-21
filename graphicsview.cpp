@@ -82,6 +82,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	m_pLabel	= new Graph::GTextLabel;
 	m_pBuffer	= 0;
+
+	m_pGraphSettings	= nullptr;
 }
 
 GraphicsView::~GraphicsView()
@@ -1191,6 +1193,7 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 
 void	GraphicsView::on_graphSettings()
 {
-	graphSettings	dlg(this);
-	dlg.exec();
+	if(!m_pGraphSettings)
+		m_pGraphSettings	= new graphSettings(this);
+	m_pGraphSettings->show();
 }

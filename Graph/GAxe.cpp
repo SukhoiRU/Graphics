@@ -98,7 +98,6 @@ GAxe::GAxe()
 	m_AxeLength		= 0;
 
 	textLabel	= new GTextLabel;
-	m_axe_program	= 0;
 	dataVBO		= 0;
 	axeVBO		= 0;
 	oldGrid		= vec2(5.0f);
@@ -106,6 +105,32 @@ GAxe::GAxe()
 	oldTime0	= 0;
 	oldTimeStep	= 20;
 	m_markersCount	= 0;
+}
+
+//Конструктор копирования
+GAxe::GAxe(GAxe& axe):GAxe()
+{
+	m_AccName	= axe.m_AccName;
+	m_nAcc		= axe.m_nAcc;
+	m_Name		= axe.m_Name;
+	m_Path		= axe.m_Path;
+	m_nMarker	= axe.m_nMarker;
+	m_Color		= axe.m_Color;
+	m_TextFormat	= axe.m_TextFormat;
+	m_bInterpol	= axe.m_bInterpol;
+	m_AxeMin	= axe.m_AxeMin;
+	m_AxeScale	= axe.m_AxeScale;
+	m_AxeLength	= axe.m_AxeLength;
+	m_BottomRight	= axe.m_BottomRight;
+	m_FrameBR	= axe.m_FrameBR;
+	m_DataType	= axe.m_DataType;
+	oldGrid		= axe.oldGrid;
+	oldAreaBL	= axe.oldAreaBL;
+	oldAreaSize	= axe.oldAreaSize;
+	oldScale	= axe.oldScale;
+	oldTime0	= axe.oldTime0;
+	oldTimeStep	= axe.oldTimeStep;
+//	clearGL();
 }
 
 GAxe::~GAxe()

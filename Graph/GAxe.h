@@ -141,6 +141,7 @@ public:
 public:
 	//Конструктор-деструктор
 	GAxe();
+	GAxe(GAxe& axe);
 	virtual ~GAxe();
 	bool	isEmpty() const {return m_data.empty();}
 

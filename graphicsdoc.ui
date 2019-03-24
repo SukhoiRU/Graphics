@@ -135,6 +135,9 @@
      <string>&amp;График</string>
     </property>
     <addaction name="actionAddAxe"/>
+    <addaction name="actionScaleUp"/>
+    <addaction name="actionScaleDown"/>
+    <addaction name="actionFitTime"/>
    </widget>
    <widget class="QMenu" name="menu_5">
     <property name="title">
@@ -161,6 +164,8 @@
    <addaction name="separator"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
+   <addaction name="actionScaleDown"/>
+   <addaction name="actionScaleUp"/>
    <addaction name="separator"/>
    <addaction name="action_LoadOrion"/>
    <addaction name="actionGraphSettings"/>
@@ -237,6 +242,42 @@
    </property>
    <property name="text">
     <string>Сохранить как...</string>
+   </property>
+  </action>
+  <action name="actionScaleUp">
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/tree/plot-playback-start.png</normaloff>:/Resources/tree/plot-playback-start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Растянуть время</string>
+   </property>
+   <property name="shortcut">
+    <string>+</string>
+   </property>
+  </action>
+  <action name="actionScaleDown">
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/tree/player_pause-6509013283.png</normaloff>:/Resources/tree/player_pause-6509013283.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сжать время</string>
+   </property>
+   <property name="shortcut">
+    <string>-</string>
+   </property>
+  </action>
+  <action name="actionFitTime">
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/tree/plot-playback-pause.png</normaloff>:/Resources/tree/plot-playback-pause.png</iconset>
+   </property>
+   <property name="text">
+    <string>Весь полет</string>
+   </property>
+   <property name="shortcut">
+    <string>*</string>
    </property>
   </action>
  </widget>

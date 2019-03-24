@@ -168,6 +168,7 @@ public:
 	virtual void	OnStopMoving();					//Реакция на конец перетаскивания
 
 	void	fitToScale(double t0 = 0, double t1 = 0);//Подбор масштаба и начала
+	void	getTime(double& t0, double& t1);	
 	void	GetLimits(	double* pMin = 0,
 						double* pMax = 0);			//минимакс
 

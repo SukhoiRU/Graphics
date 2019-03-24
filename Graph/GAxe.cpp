@@ -1628,4 +1628,15 @@ void	GAxe::UpdateFiltering()
 //	m_pDoc->UpdateAllViews(0);*/
 }
 
+void	GAxe::getTime(double& t0, double& t1)
+{
+	if(!m_data.size())
+	{
+		t0	= 0;
+		t1	= 0;
+		return;
+	}
+	t0	= m_data.front().x;
+	t1	= m_data.back().x;
+}
 }

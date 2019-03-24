@@ -59,6 +59,8 @@ public slots:
 	void	on_graphSettings();
 	void	saveAxeArg(QXmlStreamWriter& xml);
 	void	loadAxeArg(QDomElement* e, double ver);
+	void	fitTime();
+
 protected slots:
 	void	teardownGL();
 	void	update();

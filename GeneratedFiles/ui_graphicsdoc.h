@@ -39,6 +39,9 @@ public:
     QAction *actionPageInfo;
     QAction *actionGraphSettings;
     QAction *actionSaveAs;
+    QAction *actionScaleUp;
+    QAction *actionScaleDown;
+    QAction *actionFitTime;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -88,6 +91,21 @@ public:
         actionSaveAs = new QAction(GraphicsDoc);
         actionSaveAs->setObjectName(QStringLiteral("actionSaveAs"));
         actionSaveAs->setIcon(icon2);
+        actionScaleUp = new QAction(GraphicsDoc);
+        actionScaleUp->setObjectName(QStringLiteral("actionScaleUp"));
+        QIcon icon3;
+        icon3.addFile(QStringLiteral(":/Resources/tree/plot-playback-start.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionScaleUp->setIcon(icon3);
+        actionScaleDown = new QAction(GraphicsDoc);
+        actionScaleDown->setObjectName(QStringLiteral("actionScaleDown"));
+        QIcon icon4;
+        icon4.addFile(QStringLiteral(":/Resources/tree/player_pause-6509013283.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionScaleDown->setIcon(icon4);
+        actionFitTime = new QAction(GraphicsDoc);
+        actionFitTime->setObjectName(QStringLiteral("actionFitTime"));
+        QIcon icon5;
+        icon5.addFile(QStringLiteral(":/Resources/tree/plot-playback-pause.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionFitTime->setIcon(icon5);
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -169,11 +187,16 @@ public:
         menu_3->addAction(action_2);
         menu_3->addAction(action_LoadOrion);
         menu_4->addAction(actionAddAxe);
+        menu_4->addAction(actionScaleUp);
+        menu_4->addAction(actionScaleDown);
+        menu_4->addAction(actionFitTime);
         menu_5->addAction(actionPageInfo);
         menu_5->addAction(actionGraphSettings);
         mainToolBar->addSeparator();
         mainToolBar->addAction(actionOpen);
         mainToolBar->addAction(actionSave);
+        mainToolBar->addAction(actionScaleDown);
+        mainToolBar->addAction(actionScaleUp);
         mainToolBar->addSeparator();
         mainToolBar->addAction(action_LoadOrion);
         mainToolBar->addAction(actionGraphSettings);
@@ -200,6 +223,18 @@ public:
         actionPageInfo->setText(QApplication::translate("GraphicsDoc", "\320\237\320\260\321\200\320\260\320\274\320\265\321\202\321\200\321\213 \321\201\321\202\321\200\320\260\320\275\320\270\321\206\321\213...", Q_NULLPTR));
         actionGraphSettings->setText(QApplication::translate("GraphicsDoc", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270 \320\263\321\200\320\260\321\204\320\270\320\272\320\270...", Q_NULLPTR));
         actionSaveAs->setText(QApplication::translate("GraphicsDoc", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214 \320\272\320\260\320\272...", Q_NULLPTR));
+        actionScaleUp->setText(QApplication::translate("GraphicsDoc", "\320\240\320\260\321\201\321\202\321\217\320\275\321\203\321\202\321\214 \320\262\321\200\320\265\320\274\321\217", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionScaleUp->setShortcut(QApplication::translate("GraphicsDoc", "+", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        actionScaleDown->setText(QApplication::translate("GraphicsDoc", "\320\241\320\266\320\260\321\202\321\214 \320\262\321\200\320\265\320\274\321\217", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionScaleDown->setShortcut(QApplication::translate("GraphicsDoc", "-", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        actionFitTime->setText(QApplication::translate("GraphicsDoc", "\320\222\320\265\321\201\321\214 \320\277\320\276\320\273\320\265\321\202", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionFitTime->setShortcut(QApplication::translate("GraphicsDoc", "*", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

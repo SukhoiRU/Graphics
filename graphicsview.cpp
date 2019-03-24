@@ -116,6 +116,40 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	hBar	= ui->horizontalScrollBar;
 	connect(ui->actionPageInfo, &QAction::triggered, this, &GraphicsView::openPageSetup);
 	connect(ui->actionGraphSettings, &QAction::triggered, this, &GraphicsView::on_graphSettings);
+
+	connect(ui->actionScaleUp, &QAction::triggered, this, [=]{
+		//Нормализуем масштаб
+		double	Power	= floor(log10(TimeScale));
+		double	Mantiss	= TimeScale / pow(10., Power);
+		double	dLen	= (curTime - Time0)/TimeScale;
+
+		//Изменяем масштаб
+		if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
+		else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
+		else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
+		else					TimeScale	= 5*pow(10., Power);
+
+		//Двигаем ноль так, чтобы попасть в то же время
+		Time0	= curTime - dLen*TimeScale;	
+	});
+
+	connect(ui->actionScaleDown, &QAction::triggered, this, [=]{
+		//Нормализуем масштаб
+		double	Power	= floor(log10(TimeScale));
+		double	Mantiss	= TimeScale / pow(10., Power);
+		double	dLen	= (curTime - Time0)/TimeScale;
+
+		//Изменяем масштаб
+		if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
+		else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
+		else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
+		else					TimeScale	= 20*pow(10., Power);
+
+		//Двигаем ноль так, чтобы попасть в то же время
+		Time0	= curTime - dLen*TimeScale;
+	});
+
+	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
 }
 
 void GraphicsView::teardownGL()
@@ -1130,11 +1164,11 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 		//case Qt::Key_Right:		timeMoving	= +10.*TimeScale;	break;
 		//case Qt::Key_PageUp:	timeMoving	= -50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
 		//case Qt::Key_PageDown:	timeMoving	= 50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
-		case Qt::Key_Left:		Time0	-= TimeScale;	break;
-		case Qt::Key_Right:		Time0	+= TimeScale;	break;
-		case Qt::Key_PageUp:	Time0	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
-		case Qt::Key_PageDown:	Time0	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
-
+		case Qt::Key_Left:		{Time0	-= TimeScale; curTime -= TimeScale;}	break;
+		case Qt::Key_Right:		{Time0	+= TimeScale; curTime += TimeScale;}	break;
+		case Qt::Key_PageUp:	{Time0	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale; curTime	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;}	break;
+		case Qt::Key_PageDown:	{Time0	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	curTime	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;}	break;
+		
 		default:
 			break;
 	}
@@ -1245,4 +1279,35 @@ void	GraphicsView::on_graphSettings()
 	if(!m_pGraphSettings)
 		m_pGraphSettings	= new graphSettings(this);
 	m_pGraphSettings->show();
+}
+
+void	GraphicsView::fitTime()
+{
+	//По звездочке выставляем полное время полета
+	double	tMin	= 0;
+	double	tMax	= 0;
+	for(size_t i = 0; i < m_pPanel->size(); i++)
+	{
+		GAxe*	pAxe	= m_pPanel->at(i);
+		double t0, t1;
+		if(i == 0)	pAxe->getTime(tMin, tMax);
+		else		pAxe->getTime(t0, t1);
+
+		if(t0 < tMin)	tMin	= t0;
+		if(t1 > tMax)	tMax	= t1;
+	}
+
+	//Подбираем под диапазон
+	Time0	= tMin;
+	int	nGrids	= (pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x;
+	TimeScale	= (tMax - tMin)/(nGrids);
+
+	//Нормализуем масштаб
+	double	Power	= floor(log10(TimeScale));
+	double	Mantiss	= TimeScale / pow(10., Power);
+
+	if(Mantiss == 1)		TimeScale	= 1*pow(10., Power);
+	else if(Mantiss <= 2)	TimeScale	= 2*pow(10., Power);
+	else if(Mantiss <= 5)	TimeScale	= 5*pow(10., Power);
+	else					TimeScale	= 10*pow(10., Power);
 }

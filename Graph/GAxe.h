@@ -38,6 +38,9 @@ private:
 	double*			m_pOrionTime;	//Время Ориона из большого файла
     BYTE*			m_pOrionData;	//Данные Ориона
 
+	//Фазовые
+	float			ph_dL;	//Смещение выделения оси
+
 	//Данные для OpenGL
 	vector<vec2>	m_data;
 	vector<GLuint>	m_indices;

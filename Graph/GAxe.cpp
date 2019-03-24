@@ -105,6 +105,8 @@ GAxe::GAxe()
 	oldTime0	= 0;
 	oldTimeStep	= 20;
 	m_markersCount	= 0;
+
+	ph_dL		= 0;
 }
 
 //Конструктор копирования
@@ -617,9 +619,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1f(u_select_toc, 1.0f);
 		glUniform1i(u_select_round, 1);
 
-		static float dL = 0;
-		dL -= 100./60./50.;
-		glUniform1f(u_select_dL, dL);
+		ph_dL += -2.*timeStep;
+		glUniform1f(u_select_dL, ph_dL);
 
 		//Меняем описание данных на два последовательных vec2
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "graphicsview.h"
+#include "ui_graphicsdoc.h"
 #include <QOpenGLShaderProgram>
 #include <QKeyEvent>
 #include <QTime>
@@ -84,6 +85,12 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	m_pBuffer	= 0;
 
 	m_pGraphSettings	= nullptr;
+
+	timer.start();
+	modelTime	= 0;
+	timeStep	= 0;
+
+	timeMoving	= 0;
 }
 
 GraphicsView::~GraphicsView()
@@ -100,6 +107,15 @@ GraphicsView::~GraphicsView()
 	if(m_pLabel) {delete m_pLabel; m_pLabel = 0;}
 	if(pPageSetup)	{delete pPageSetup; pPageSetup = 0;}
 	teardownGL();
+}
+
+void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
+{
+	ui	= pUI;
+	vBar	= ui->verticalScrollBar;
+	hBar	= ui->horizontalScrollBar;
+	connect(ui->actionPageInfo, &QAction::triggered, this, &GraphicsView::openPageSetup);
+	connect(ui->actionGraphSettings, &QAction::triggered, this, &GraphicsView::on_graphSettings);
 }
 
 void GraphicsView::teardownGL()
@@ -333,7 +349,15 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
-	t0.start();
+	//Реальное время
+	timeStep	= 0.001*timer.elapsed(); 
+	modelTime += timeStep;
+	timer.start();
+
+	Time0 += timeMoving*timeStep;
+
+	GAxe::modelTime	= modelTime;
+	GAxe::timeStep	= timeStep;
 
 	//Очистка вида
 	glStencilMask(0xFF);
@@ -1101,6 +1125,16 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			}
 		}
 
+		//Двигаем время
+		//case Qt::Key_Left:		timeMoving	= -10.*TimeScale;	break;
+		//case Qt::Key_Right:		timeMoving	= +10.*TimeScale;	break;
+		//case Qt::Key_PageUp:	timeMoving	= -50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
+		//case Qt::Key_PageDown:	timeMoving	= 50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
+		case Qt::Key_Left:		Time0	-= TimeScale;	break;
+		case Qt::Key_Right:		Time0	+= TimeScale;	break;
+		case Qt::Key_PageUp:	Time0	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
+		case Qt::Key_PageDown:	Time0	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
+
 		default:
 			break;
 	}
@@ -1126,6 +1160,15 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 			}
 			event->accept();
 		}
+	
+		//Двигаем время
+		case Qt::Key_Left:
+		case Qt::Key_Right:
+		case Qt::Key_PageUp:
+		case Qt::Key_PageDown:
+		{
+			timeMoving	= 0;
+		}break;
 
 		default:
 			break;

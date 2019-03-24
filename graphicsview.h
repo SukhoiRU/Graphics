@@ -8,6 +8,10 @@ using glm::mat4;
 #include <vector>
 using std::vector;
 
+namespace Ui {
+	class GraphicsDoc;
+}
+
 class QOpenGLShaderProgram;
 class QScrollBar;
 class PageSetup;
@@ -29,10 +33,10 @@ class GraphicsView : public QOpenGLWidget
 	Q_OBJECT
 
 // OpenGL Events
-QTime	t0;
 public:
     explicit GraphicsView(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
     virtual ~GraphicsView();
+	void	setUI(Ui::GraphicsDoc* pUI);
 
     virtual void	initializeGL() override;
     virtual void	resizeGL(int width, int height) override;
@@ -83,6 +87,8 @@ protected:
 	void	paintOverGL(QPainter* p);
 
 private:
+	Ui::GraphicsDoc *ui;
+
 	//Информация о странице
 	QSizeF		pageSize;
 	QRectF		pageBorders;
@@ -108,7 +114,14 @@ private:
 	double		curTime;
 	bool		m_bTurning;
 	bool		m_bPerspective;
-	
+
+	//Реальное время
+	QTime	timer;
+	double	modelTime;
+	double	timeStep;
+
+	float	timeMoving;
+
 	// OpenGL State Information
 	QOpenGLShaderProgram*	m_program;
 	GLuint	pageVAO, pageVBO;

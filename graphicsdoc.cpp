@@ -26,12 +26,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
-	ui->oglView->vBar	= ui->verticalScrollBar;
-	ui->oglView->hBar	= ui->horizontalScrollBar;
+	ui->oglView->setUI(ui);
+	ui->oglView->setFocus();
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
 
-	connect(ui->actionPageInfo, &QAction::triggered, ui->oglView, &GraphicsView::openPageSetup);
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
@@ -47,7 +46,6 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(m_pPanelSelect->ui->pushButtonCopy, &QPushButton::clicked, this, &GraphicsDoc::on_PanelCopy);
 	connect(m_pPanelSelect->ui->comboBox, &QComboBox::editTextChanged, this, &GraphicsDoc::on_PanelRenamed);
 	connect(m_pPanelSelect->ui->comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &GraphicsDoc::on_PanelIndexChanged);
-	connect(ui->actionGraphSettings, &QAction::triggered, ui->oglView, &GraphicsView::on_graphSettings);
 
     m_bAddAcc_Mode  = false;
 

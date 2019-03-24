@@ -1269,6 +1269,9 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 	connect(actAngle, &QAction::toggled, [=](bool bCheck){m_bTurning = bCheck;});
 	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(width(), height());});
 
+	menu->addAction(ui->actionScaleUp);
+	menu->addAction(ui->actionScaleDown);
+	menu->addSeparator();
 	menu->addAction(actAngle);
 	menu->addAction(actPersp);
 	menu->popup(mapToGlobal(pos));

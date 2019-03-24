@@ -39,7 +39,10 @@ private:
     BYTE*			m_pOrionData;	//Данные Ориона
 
 	//Фазовые
-	float			ph_dL;	//Смещение выделения оси
+	double			ph_dL;	//Смещение выделения оси
+	double			ph_dX;
+	double			y_zad;
+	vec2			ph_Y;
 
 	//Данные для OpenGL
 	vector<vec2>	m_data;

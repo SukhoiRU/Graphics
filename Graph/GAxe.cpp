@@ -107,6 +107,9 @@ GAxe::GAxe()
 	m_markersCount	= 0;
 
 	ph_dL		= 0;
+	ph_dX		= 0;
+	y_zad		= 0;
+	ph_Y		= vec2(0.,0.);
 }
 
 //Конструктор копирования
@@ -476,6 +479,8 @@ void	GAxe::load(QDomElement* node, double ver)
 		m_BottomRight.x -= 65;
 		m_BottomRight.y	+= 297 - 17;
 	}
+	y_zad	= m_BottomRight.y;
+	ph_dX	= y_zad;
 	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
 	if(node->hasAttribute("Бит_СРК"))		m_nBitSRK		= node->attribute("Бит_СРК").toInt();
@@ -579,6 +584,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaSize	= areaSize;
 	oldAreaBL	= areaBL;
 
+	m_BottomRight.y	= Strip(ph_dX, 0.2, 0.5)[y_zad];
+//	m_BottomRight.y	= Oscill(ph_Y, 0.2, 0.5)[y_zad];
+
+
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
 
@@ -619,8 +628,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1f(u_select_toc, 1.0f);
 		glUniform1i(u_select_round, 1);
 
-		ph_dL += -2.*timeStep;
-		glUniform1f(u_select_dL, ph_dL);
+		glUniform1f(u_select_dL, Integral(ph_dL, 2.)[-1.]);
 
 		//Меняем описание данных на два последовательных vec2
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
@@ -928,8 +936,8 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.y;
 	if(m_DataType == Bool)		step	= 0.5f*step;
-	if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
-	else						m_BottomRight.y	= int(m_FrameBR.y/step + 0.5f)*step;
+	if(mdf & Qt::AltModifier)	y_zad	= m_FrameBR.y;
+	else						y_zad	= int(m_FrameBR.y/step + 0.5f)*step;
 
 	return;
 /*

@@ -116,10 +116,10 @@ public:
 	Oscill(vec2& x, double T, double ksi):x(x), T(T), ksi(ksi){};
 	double operator [] (const double& u)
 	{
-		if(GraphObject::modelTime == 0) x = vec2(0, u);
+		if(GraphObject::modelTime < 1) x = vec2(0, u);
 
-		x.x += (-2.*ksi/T*x.x - 1/T/T*x.y + u/T/T)*GraphObject::timeStep;
-		x.y	+= (-1./T/T*x.x)*GraphObject::timeStep;
+		x.x	+= (-2.*ksi/T*x.x -1./T/T*x.y + u/T/T)*GraphObject::timeStep;
+		x.y += (x.x)*GraphObject::timeStep;
 
 		return	x.y;
 	}

@@ -584,8 +584,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaSize	= areaSize;
 	oldAreaBL	= areaBL;
 
-	m_BottomRight.y	= Strip(ph_dX, 0.2, 0.5)[y_zad];
-//	m_BottomRight.y	= Oscill(ph_Y, 0.2, 0.5)[y_zad];
+//	m_BottomRight.y	= Strip(ph_dX, 0.4, 0.5)[y_zad];
+	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.4)[y_zad];
 
 
 	//Смешиваем цвет с белым
@@ -606,7 +606,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 
 	mat4 dataModel	= mat4(1.0f);
-	dataModel		= translate(dataModel, vec3(areaBL + m_BottomRight, 0.f));
+	dataModel		= translate(dataModel, vec3(areaBL + vec2(m_BottomRight.x, y_zad), 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
@@ -646,7 +646,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//Надписи у оси
-	dataModel	= translate(mat4(1.f), vec3(areaBL + m_BottomRight, 0.f));
+	dataModel	= translate(mat4(1.f), vec3(areaBL + vec2(m_BottomRight.x, y_zad), 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
@@ -662,9 +662,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 		mat4	cross(1.0f);
 		if(m_DataType == Bool)
-			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.5*textLabel->midLine(), 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, y_zad - 0.5*textLabel->midLine(), 0.f));
 		else
-			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_AxeLength*grid.y, 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, y_zad + 0.5f*m_AxeLength*grid.y, 0.f));
 		cross	= translate(cross, vec3(areaBL, 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.x, 0.6f*grid.x, 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
@@ -695,7 +695,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 		//Матрица проекции
 		mat4	data(1.0f);
-		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, m_BottomRight.y + m_AxeLength*grid.y + 0.5*grid.y, 0.f));
+		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, y_zad + m_AxeLength*grid.y + 0.5*grid.y, 0.f));
 		data	= translate(data, vec3(areaBL, 0.f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);

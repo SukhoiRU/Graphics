@@ -86,11 +86,8 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	m_pGraphSettings	= nullptr;
 
-	timer.start();
 	modelTime	= 0;
 	timeStep	= 0;
-
-	timeMoving	= 0;
 }
 
 GraphicsView::~GraphicsView()
@@ -387,8 +384,6 @@ void GraphicsView::paintGL()
 	timeStep	= 0.001*timer.elapsed(); 
 	modelTime += timeStep;
 	timer.start();
-
-	Time0 += timeMoving*timeStep;
 
 	GAxe::modelTime	= modelTime;
 	GAxe::timeStep	= timeStep;
@@ -1157,7 +1152,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 					pAxe->setAxeLength(pAxe->getAxeLength(), index);
 				}
 			}
-		}
+		}break;
 
 		//Двигаем время
 		//case Qt::Key_Left:		timeMoving	= -10.*TimeScale;	break;
@@ -1193,17 +1188,8 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 				}
 			}
 			event->accept();
-		}
-	
-		//Двигаем время
-		case Qt::Key_Left:
-		case Qt::Key_Right:
-		case Qt::Key_PageUp:
-		case Qt::Key_PageDown:
-		{
-			timeMoving	= 0;
 		}break;
-
+	
 		default:
 			break;
 	}
@@ -1248,6 +1234,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accum
 		pG->m_IsMoving		= false;
 	}
 	m_SelectedObjects.clear();
+	modelTime	= 0;
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)

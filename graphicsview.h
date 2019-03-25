@@ -122,8 +122,6 @@ private:
 	double	modelTime;
 	double	timeStep;
 
-	float	timeMoving;
-
 	// OpenGL State Information
 	QOpenGLShaderProgram*	m_program;
 	GLuint	pageVAO, pageVBO;

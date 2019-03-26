@@ -1280,7 +1280,7 @@ void	GraphicsView::fitTime()
 	{
 		GAxe*	pAxe	= m_pPanel->at(i);
 		double t0, t1;
-		if(i == 0)	pAxe->getTime(tMin, tMax);
+		if(tMin == 0 && tMax == 0)	pAxe->getTime(tMin, tMax);
 		else		pAxe->getTime(t0, t1);
 
 		if(t0 < tMin)	tMin	= t0;

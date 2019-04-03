@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QWidget>
+#include <QDialog>
 #include "ui_graphSettings.h"
 
 class graphSettings : public QDialog

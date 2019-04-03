@@ -62,6 +62,6 @@ public:
 };
 }
 
-#include "..\SystemDynamic.h"
+#include "SystemDynamic.h"
 
 #endif	//GRAPH_OBJECT_H

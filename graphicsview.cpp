@@ -663,8 +663,7 @@ void GraphicsView::setScale(float scale)
 
 void GraphicsView::update()
 {
-	QTime	time	= QTime::currentTime();
-    GLfloat	dist	= 800. + 400.*sin(0.01*time.msecsSinceStartOfDay()/1000.*6.28);
+    GLfloat	dist	= 800. + 400.*sin(0.01*modelTime*6.28);
 	if(!m_bPerspective)	dist	= 400.;
 
     m_view  = mat4(1.0f);
@@ -675,10 +674,10 @@ void GraphicsView::update()
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
 	{
-		float angle	= 5.;
-		GLfloat	anglez	= glm::radians(angle)*sin(0.1*time.msecsSinceStartOfDay()/1000.*6.28);
-		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*time.msecsSinceStartOfDay()/1000.*6.28);
-		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*time.msecsSinceStartOfDay()/1000.*6.28);
+		float angle	= 90.;
+		GLfloat	anglez	= glm::radians(angle)*sin(0.1*modelTime*6.28);
+		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*modelTime*6.28);
+		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*modelTime*6.28);
 		if(m_bPerspective)
 		{
 			m_view  = rotate(m_view, anglex, vec3(1.f, 0.f, 0.0f));
@@ -1253,8 +1252,8 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 	actPersp->setCheckable(true);
 	actPersp->setChecked(m_bPerspective);
 
-	connect(actAngle, &QAction::toggled, [=](bool bCheck){m_bTurning = bCheck;});
-	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(width(), height());});
+	connect(actAngle, &QAction::toggled, [=](bool bCheck){m_bTurning = bCheck; modelTime = 0;});
+	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(width(), height()); modelTime = 0;});
 
 	menu->addAction(ui->actionScaleUp);
 	menu->addAction(ui->actionScaleDown);

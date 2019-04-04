@@ -799,6 +799,12 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
 
+void	GraphicsView::on_axeAdded(Graph::GAxe* pAxe)
+{
+	SelectObject(NULL);
+	SelectObject(pAxe);
+}
+
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
 	QPointF	pLocal	= event->pos();

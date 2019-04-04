@@ -110,6 +110,7 @@ GAxe::GAxe()
 	ph_dX		= 0;
 	y_zad		= 0;
 	ph_Y		= vec2(0.,0.);
+	m_BottomRight	= vec2(0.,0.);
 }
 
 //Конструктор копирования
@@ -499,12 +500,16 @@ void	GAxe::SetPosition(double x, double y)
 {
 	m_BottomRight	= vec2(x,y);
 	m_FrameBR		= vec2(x,y);
+	ph_Y			= vec2(0.,y);
+	y_zad			= y;
 }
 
 void	GAxe::SetPosition(vec2 pt)
 {
 	m_BottomRight	= pt;
 	m_FrameBR		= pt;
+	ph_Y			= vec2(0.,pt.y);
+	y_zad			= pt.y;
 }
 
 void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& /*grid*/, const vec2& /*areaSize*/)
@@ -585,8 +590,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaBL	= areaBL;
 
 //	m_BottomRight.y	= Strip(ph_dX, 0.4, 0.5)[y_zad];
-	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.4)[y_zad];
-
+	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.45)[y_zad];
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);

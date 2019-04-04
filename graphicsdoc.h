@@ -49,6 +49,7 @@ signals:
 	void	panelDeleted(vector<Graph::GAxe*>* axes);
 	void	dataChanged(std::vector<Accumulation*>* pBuffer);	//Признак загрузки новых данных
 	void	dataRemoved(std::vector<Accumulation*>* pBuffer);	//Признак смены данных в том же накоплении
+	void	axeAdded(Graph::GAxe* pAxe);
 
 private:
     Ui::GraphicsDoc *ui;

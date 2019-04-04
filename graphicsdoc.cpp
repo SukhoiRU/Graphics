@@ -60,6 +60,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
 	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
 	connect(ui->oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
+	connect(this, &GraphicsDoc::axeAdded, ui->oglView, &GraphicsView::on_axeAdded);
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -444,18 +445,19 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		pAxe->m_nAcc		= dlg.m_nBufIndex;
 		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
 		pAxe->m_nMarker		= 0;//GetNextMarker();
-		pAxe->setAxeLength(4);
 		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
-		pAxe->SetPosition(20, 200);
+		pAxe->SetPosition(-20, 200);
+		pAxe->setAxeLength(4);
 		pAxe->updateRecord(&m_BufArray);
-
 		pAxe->fitToScale();
+		pAxe->initializeGL();
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);
 
 		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+		emit axeAdded(pAxe);
 
 		//Вызовем диалог параметров оси
 		{
@@ -463,6 +465,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 			axes.push_back(pAxe);
 
 			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->oglView);
+			connect(dlg, &GAxe_dialog::change_axe, [=](Graph::GAxe* pAxe){on_changeAxe(pAxe, dlg);});
 			dlg->exec();
 			delete	dlg;
 		}

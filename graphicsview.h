@@ -56,6 +56,7 @@ public slots:
 	void	saveAxeArg(QXmlStreamWriter& xml);
 	void	loadAxeArg(QDomElement* e, double ver);
 	void	fitTime();
+	void	on_axeAdded(Graph::GAxe* pAxe);
 	void	on_deleteAxes();
 
 protected slots:

@@ -135,6 +135,7 @@
      <string>&amp;График</string>
     </property>
     <addaction name="actionAddAxe"/>
+    <addaction name="actionDelAxe"/>
     <addaction name="actionScaleUp"/>
     <addaction name="actionScaleDown"/>
     <addaction name="actionFitTime"/>
@@ -278,6 +279,21 @@
    </property>
    <property name="shortcut">
     <string>*</string>
+   </property>
+  </action>
+  <action name="actionDelAxe">
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/images/delete.png</normaloff>:/Resources/images/delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+   <property name="toolTip">
+    <string>Удаление графиков</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>

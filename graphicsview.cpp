@@ -144,6 +144,7 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	});
 
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
+	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
 }
 
 void GraphicsView::teardownGL()
@@ -1108,6 +1109,27 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 	}
 	else
 		return QOpenGLWidget::mouseDoubleClickEvent(event);
+}
+
+void	GraphicsView::on_deleteAxes()
+{
+	if(m_SelectedObjects.size())
+	{
+		//При наличии списка объектов собираем только оси
+		vector<GAxe*>	axes;
+		for(size_t i = 0; i < m_SelectedObjects.size(); i++)
+		{
+			GraphObject*	pAxe	= m_SelectedObjects.at(i);
+			if(pAxe->m_Type == AXE)
+				axes.push_back((GAxe*)pAxe);
+		}
+
+		if(axes.size())
+		{
+			emit delete_axe(&axes);
+			setCursor(Qt::ArrowCursor);
+		}
+	}
 }
 
 void	GraphicsView::keyPressEvent(QKeyEvent *event)

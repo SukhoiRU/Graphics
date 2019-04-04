@@ -42,6 +42,7 @@ public:
     QAction *actionScaleUp;
     QAction *actionScaleDown;
     QAction *actionFitTime;
+    QAction *actionDelAxe;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -106,6 +107,11 @@ public:
         QIcon icon5;
         icon5.addFile(QStringLiteral(":/Resources/tree/plot-playback-pause.png"), QSize(), QIcon::Normal, QIcon::Off);
         actionFitTime->setIcon(icon5);
+        actionDelAxe = new QAction(GraphicsDoc);
+        actionDelAxe->setObjectName(QStringLiteral("actionDelAxe"));
+        QIcon icon6;
+        icon6.addFile(QStringLiteral(":/Resources/images/delete.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionDelAxe->setIcon(icon6);
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -187,6 +193,7 @@ public:
         menu_3->addAction(action_2);
         menu_3->addAction(action_LoadOrion);
         menu_4->addAction(actionAddAxe);
+        menu_4->addAction(actionDelAxe);
         menu_4->addAction(actionScaleUp);
         menu_4->addAction(actionScaleDown);
         menu_4->addAction(actionFitTime);
@@ -234,6 +241,13 @@ public:
         actionFitTime->setText(QApplication::translate("GraphicsDoc", "\320\222\320\265\321\201\321\214 \320\277\320\276\320\273\320\265\321\202", Q_NULLPTR));
 #ifndef QT_NO_SHORTCUT
         actionFitTime->setShortcut(QApplication::translate("GraphicsDoc", "*", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        actionDelAxe->setText(QApplication::translate("GraphicsDoc", "\320\243\320\264\320\260\320\273\320\270\321\202\321\214", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        actionDelAxe->setToolTip(QApplication::translate("GraphicsDoc", "\320\243\320\264\320\260\320\273\320\265\320\275\320\270\320\265 \320\263\321\200\320\260\321\204\320\270\320\272\320\276\320\262", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+#ifndef QT_NO_SHORTCUT
+        actionDelAxe->setShortcut(QApplication::translate("GraphicsDoc", "Del", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));

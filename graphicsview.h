@@ -56,11 +56,13 @@ public slots:
 	void	saveAxeArg(QXmlStreamWriter& xml);
 	void	loadAxeArg(QDomElement* e, double ver);
 	void	fitTime();
+	void	on_deleteAxes();
 
 protected slots:
 	void	teardownGL();
 	void	update();
 	void	updatePageBuffer();
+
 signals:
 	void	dt(int msecs);
 	void	timeChanged(double time);

@@ -59,6 +59,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 
 	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
 	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
+	connect(ui->oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -502,5 +503,22 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 
 void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 {
+	//Удаляем заданный список осей
+	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
+	{
+		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
+		for(size_t j = 0; j < pAxes->size(); j++)
+		{
+			if(pAxe == pAxes->at(j))
+			{
+				m_pActivePanel->Axes.erase(m_pActivePanel->Axes.begin()+i);
+				pAxes->erase(pAxes->begin()+j);
+				delete pAxe;
+				i--;
+			}
+		}
+	}
 
+	//Обновляем графики и таблицу
+	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 }

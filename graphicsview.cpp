@@ -82,7 +82,6 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	qFBO_unsamled	= nullptr;
 
 	m_pLabel	= new Graph::GTextLabel;
-	m_pBuffer	= 0;
 
 	m_pGraphSettings	= nullptr;
 
@@ -109,8 +108,6 @@ GraphicsView::~GraphicsView()
 void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 {
 	ui	= pUI;
-	vBar	= ui->verticalScrollBar;
-	hBar	= ui->horizontalScrollBar;
 	connect(ui->actionPageInfo, &QAction::triggered, this, &GraphicsView::openPageSetup);
 	connect(ui->actionGraphSettings, &QAction::triggered, this, &GraphicsView::on_graphSettings);
 
@@ -362,20 +359,20 @@ void GraphicsView::resizeGL(int width, int height)
 #endif // USE_FBO
 
 	//Меняем полосы прокрутки
-    vBar->setMinimum(0);
-    vBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
-    vBar->setPageStep(pageSize.height());
-    vBar->setSingleStep(1);
+    ui->verticalScrollBar->setMinimum(0);
+    ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
+    ui->verticalScrollBar->setPageStep(pageSize.height());
+    ui->verticalScrollBar->setSingleStep(1);
 
-    hBar->setMinimum(0);
-    hBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
-    hBar->setPageStep(pageSize.width());
-    hBar->setSingleStep(1);
+    ui->horizontalScrollBar->setMinimum(0);
+    ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
+    ui->horizontalScrollBar->setPageStep(pageSize.width());
+    ui->horizontalScrollBar->setSingleStep(1);
 
-    if(vBar->maximum() == 0)    vBar->hide();
-    else                        vBar->show();
-    if(hBar->maximum() == 0)    hBar->hide();
-    else                        hBar->show();
+    if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
+    else										ui->verticalScrollBar->show();
+    if(ui->horizontalScrollBar->maximum() == 0)	ui->horizontalScrollBar->hide();
+    else										ui->horizontalScrollBar->show();
 }
 
 void GraphicsView::paintGL()
@@ -651,13 +648,13 @@ void GraphicsView::setScale(float scale)
         m_scale = scale;
 		Graph::GraphObject::m_scale	= m_scale;
 
-        vBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
-        hBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
+        ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
+		ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
 
-        if(vBar->maximum() == 0)    vBar->hide();
-        else                        vBar->show();
-        if(hBar->maximum() == 0)    hBar->hide();
-        else                        hBar->show();
+        if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
+        else										ui->verticalScrollBar->show();
+        if(ui->horizontalScrollBar->maximum() == 0) ui->horizontalScrollBar->hide();
+        else										ui->horizontalScrollBar->show();
     }
 }
 
@@ -669,7 +666,7 @@ void GraphicsView::update()
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
     m_view	= translate(m_view, -vec3(0.f, pageSize.height(), dist));
-    m_view	= translate(m_view, -vec3(hBar->value(), -vBar->value(), 0.f));
+    m_view	= translate(m_view, -vec3(ui->horizontalScrollBar->value(), -ui->verticalScrollBar->value(), 0.f));
 
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
@@ -1101,7 +1098,9 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 		if(axes.size())
 		{
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, m_pBuffer, this);
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
+			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){
+				emit change_axe(pAxe, dlg);});
 			dlg->exec();
 			emit axesRenamed();
 			delete	dlg;
@@ -1197,8 +1196,6 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
 {
-	m_pBuffer	= pBuffer;
-
 	if(m_pPanel)
 	{
 		//Очищаем текущий список осей

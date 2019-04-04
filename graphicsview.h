@@ -41,13 +41,9 @@ public:
     virtual void	initializeGL() override;
     virtual void	resizeGL(int width, int height) override;
     virtual void	paintGL() override;
+	
 	void	drawScene();
-
     void	setPageInfo();
-
-	QScrollBar*	vBar;
-	QScrollBar*	hBar;
-	QStatusBar*	pStatus;
 
 public slots:
 	void	openPageSetup();
@@ -71,6 +67,8 @@ signals:
 	void	hasSelectedAxes(bool bSelected);
 	void	axesMoved();
 	void	axesRenamed();
+	void	change_axe(Graph::GAxe* pAxe, QWidget* pDlg);
+	void	delete_axe(vector<Graph::GAxe*>* pAxes);
 
 protected:
 	//Обработка мыши и клавиатуры
@@ -107,7 +105,6 @@ private:
 	vector<Graph::GraphObject*>	m_GraphObjects;
 	vector<Graph::GraphObject*>	m_SelectedObjects;
 	Graph::GTextLabel*			m_pLabel;
-	vector<Accumulation*>*		m_pBuffer;
 	graphSettings*				m_pGraphSettings;
 
 	//Начальное время и масштаб

@@ -31,16 +31,18 @@ public:
     explicit GraphicsDoc(QWidget *parent = nullptr);
     ~GraphicsDoc();
 
-	void loadScreen(QString FileName);
-	void saveScreen(QString FileName);
-	void loadOrion(QString FileName);
+	void	loadScreen(QString FileName);
+	void	saveScreen(QString FileName);
+	void	loadOrion(QString FileName);
 
 private slots:
-    void on_actionOpen_triggered();
-    void on_action_LoadOrion_triggered();
-	void on_actionSave_triggered();
-	void on_actionSaveAs_triggered();
-    void on_actionAddAxe_triggered();
+	void	on_actionOpen_triggered();
+	void	on_action_LoadOrion_triggered();
+	void	on_actionSave_triggered();
+	void	on_actionSaveAs_triggered();
+	void	on_actionAddAxe_triggered();
+	void	on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg);
+	void	on_deleteAxe(vector<Graph::GAxe*>* pAxes);
 
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);

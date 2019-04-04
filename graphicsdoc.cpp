@@ -58,7 +58,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	on_PanelListChanged();
 
 	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
-	ui->oglView->pStatus	= ui->statusBar;
+	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -461,7 +461,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 			vector<Graph::GAxe*>	axes;
 			axes.push_back(pAxe);
 
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, &m_BufArray, ui->oglView);
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->oglView);
 			dlg->exec();
 			delete	dlg;
 		}
@@ -470,4 +470,37 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		m_oldAcc	= dlg.m_nBufIndex;
 		m_oldPath	= pAxe->m_Path;
     }
+}
+
+void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
+{
+	GraphSelect	dlg(pDlg);
+	dlg.SetAccumulation(&m_BufArray);
+	QString	path	= pAxe->m_Path;
+	int	nAcc		= pAxe->m_nAcc;
+	dlg.SetPath(path, nAcc);
+	if(dlg.exec() == QDialog::Accepted)
+	{
+		//Выделяем последнее имя и убираем имена накопления
+		QStringList	pathList	= dlg.m_Path.split('\\');
+		pathList.pop_back();
+		pathList.pop_front();
+		pathList.pop_front();
+
+		QString	path;
+		for(size_t i = 0; i < pathList.size(); i++)
+			path += pathList.at(i) + "\\";
+
+		//Меняем ось
+		pAxe->m_Name	= pathList.back();
+		pAxe->m_Path	= path;
+		pAxe->m_nAcc	= dlg.m_nBufIndex;
+		pAxe->updateRecord(&m_BufArray);
+		pAxe->fitToScale();
+	}
+}
+
+void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
+{
+
 }

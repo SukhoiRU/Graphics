@@ -3,10 +3,9 @@
 #include "ui_gaxe_dialog.h"
 #include "../Graph/GAxe.h"
 #include "graphselect.h"
-#include "Accumulation.h"
 using namespace Graph;
 
-GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBuffer, QWidget *parent) :
+GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GAxe_dialog)
 {
@@ -17,7 +16,6 @@ GAxe_dialog::GAxe_dialog(vector<Graph::GAxe*>* pAxes, vector<Accumulation*>* pBu
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
 	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);
 	axes		= *pAxes;
-	m_pBuffer	= pBuffer;
 
 	//Заполняем поля
 	{
@@ -195,42 +193,18 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 
 void	GAxe_dialog::on_replace()
 {
-	if(!m_pBuffer)		return;
 	if(axes.empty())	return;
 	if(axes.size() > 1)	return;
 
-	GraphSelect	dlg(this);
-	dlg.SetAccumulation(m_pBuffer);
-	QString	path	= axes.front()->m_Path;
-	int	nAcc		= axes.front()->m_nAcc;
-	dlg.SetPath(path, nAcc);
-	if(dlg.exec() == QDialog::Accepted)
-	{
-		//Выделяем последнее имя и убираем имена накопления
-		QStringList	pathList	= dlg.m_Path.split('\\');
-		pathList.pop_back();
-		pathList.pop_front();
-		pathList.pop_front();
+	GAxe*	pAxe	= axes.front();
+	emit	change_axe(pAxe);
 
-		QString	path;
-		for(size_t i = 0; i < pathList.size(); i++)
-			path += pathList.at(i) + "\\";
-
-		//Меняем ось
-		GAxe*	pAxe	= axes.front();
-		pAxe->m_Name	= pathList.back();
-		pAxe->m_Path	= path;
-		pAxe->m_nAcc	= dlg.m_nBufIndex;
-		pAxe->updateRecord(m_pBuffer);
-		pAxe->fitToScale();
-
-		//Меняем диалог
-		ui->lineEdit_Name->setText(pAxe->m_Name);
-		double	Min, Max;
-		pAxe->GetLimits(&Min, &Max);
-		ui->label_Min->setText(QString("[%1]").arg(Min));
-		ui->label_Max->setText(QString("[%1]").arg(Max));
-		ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
-		ui->lineEdit_Scale->setText(QString("%1").arg(pAxe->m_AxeScale));
-	}
+	//Меняем диалог
+	ui->lineEdit_Name->setText(pAxe->m_Name);
+	double	Min, Max;
+	pAxe->GetLimits(&Min, &Max);
+	ui->label_Min->setText(QString("[%1]").arg(Min));
+	ui->label_Max->setText(QString("[%1]").arg(Max));
+	ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
+	ui->lineEdit_Scale->setText(QString("%1").arg(pAxe->m_AxeScale));
 }

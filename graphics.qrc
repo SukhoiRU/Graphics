@@ -56,5 +56,6 @@
         <file>Resources/images/open_gl.png</file>
         <file>shaders/gaxe_data_bool.geom</file>
         <file>Resources/images/line.png</file>
+        <file>Resources/images/raa-st.png</file>
     </qresource>
 </RCC>

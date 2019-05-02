@@ -12,8 +12,6 @@ QAbstractItemModel(parent)
 	data.type	= TreeItem::Item_Chapter;
 	data.name	= "Имя";
     data.comm   = "Описание";
-	data.nAccIndex	= -1;
-    data.nBufIndex  = -1;
 	m_rootItem	= new TreeItem(data);
 
 	//Загружаем иконки
@@ -83,7 +81,7 @@ TreeModel::~TreeModel()
     delete m_rootItem;
 }
 
-void	TreeModel::loadAcc(const vector<Accumulation *>* pBuffer)
+void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
 {
     for(size_t n = 0; n < pBuffer->size(); n++)
     {
@@ -93,41 +91,46 @@ void	TreeModel::loadAcc(const vector<Accumulation *>* pBuffer)
         TreeItem::Data	data;
         data.type		= TreeItem::Item_Chapter;
         data.name		= QString("Данные № %1").arg(n+1);
-        data.nBufIndex  = -1;
-        data.nAccIndex	= -1;
 
-        switch (pAcc->GetType())
+        switch (pAcc->type())
         {
-        case Acc_SAPR:      data.comm   = "САПР"; break;
-        case Acc_TRF:       data.comm   = "TRF"; break;
-        case Acc_CCS:       data.comm   = "КСУ"; break;
-        case Acc_Excell:    data.comm   = "Excell"; break;
-        case Acc_MIG:
-        case Acc_MIG_4:     data.comm   = "МиГ"; break;
-        case Acc_Orion:     data.comm   = "Орион"; break;
+        case Accumulation::AccType::Acc_SAPR:      data.comm   = "САПР"; break;
+        case Accumulation::AccType::Acc_TRF:       data.comm   = "TRF"; break;
+        case Accumulation::AccType::Acc_CCS:       data.comm   = "КСУ"; break;
+        case Accumulation::AccType::Acc_Excell:    data.comm   = "Excell"; break;
+        case Accumulation::AccType::Acc_MIG:
+        case Accumulation::AccType::Acc_MIG_4:     data.comm   = "МиГ"; break;
+        case Accumulation::AccType::Acc_Orion:     data.comm   = "Орион"; break;
         default:
             break;
         }
         TreeItem*	pAccItem	= m_rootItem->addChildren(data);
 
         //Загружаем содержимое
-        const vector<Accumulation::HeaderElement>&	header	= pAcc->GetHeader();
+        const vector<Accumulation::SignalInfo*>&	header	= pAcc->header();
         for(size_t i = 0; i < header.size(); i++)
         {
             //Перебираем все элементы заголовка
             TreeItem* pParent	= pAccItem;
-            const Accumulation::HeaderElement&	h		= header.at(i);
-            for(size_t j = 0; j < h.Desc.size(); j++)
+            const Accumulation::SignalInfo*	info	= header.at(i);
+
+			QStringList	names	= info->path.split("/");
+			if(names.size() != info->icons.size())	
+				return;
+
+            for(size_t j = 0; j < names.size(); j++)
             {
                 //Для каждого элемента перебираем описатель
-                const Accumulation::Level&	l	= h.Desc.at(j);
-                TreeItem::Data	data;
-                data.name		= l.Name;
-                data.comm		= l.Comment;
-                data.nAccIndex	= -1;
-                data.nBufIndex  = -1;
+                const QString&	name	= names.at(j);
+				const int		nIcon	= info->icons.at(j);
+                
+				TreeItem::Data	data;
+                data.name		= name;
+				//Последнему в пути присваиваем комментарий
+				if(j == names.size()-1)	data.comm	= info->comment;
+				else					data.comm		= "";
 
-                switch(l.nIcon)
+                switch(nIcon)
                 {
                 case 0: data.type	= TreeItem::Item_Bool; break;
                 case 1: data.type	= TreeItem::Item_Int; break;
@@ -146,15 +149,8 @@ void	TreeModel::loadAcc(const vector<Accumulation *>* pBuffer)
                     break;
                 }
 
-                if(j == h.Desc.size()-1)
-                {
-                    //Последнему в пути присваиваем индекс и указатель
-                    data.nAccIndex	= i;
-                    data.nBufIndex  = n;
-                }
-
                 //Ищем, куда прилепить путь
-                TreeItem* item	= pParent->findChild(l.Name);
+                TreeItem* item	= pParent->findChild(name);
                 if(!item)
                 {
                     //Не нашли. Создаем новый

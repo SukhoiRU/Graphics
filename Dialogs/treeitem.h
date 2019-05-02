@@ -29,8 +29,6 @@ public:
         ItemType	type;       //Тип
 		QString		name;		//Имя элемента
 		QString		comm;		//Комментарий во второй колонке
-        int			nAccIndex;	//Номер сигнала в накоплении
-        int         nBufIndex;  //Номер накопления
 		QString		typeName() const;
 	};
 

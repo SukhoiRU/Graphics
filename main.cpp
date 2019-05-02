@@ -13,13 +13,15 @@ int main(int argc, char *argv[])
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
 	QCoreApplication::setApplicationName(APPLICATION_NAME);
+	QCoreApplication::setApplicationVersion("Версия 1.0 по ветке autoframe");
 
 	QCommandLineParser parser;
 	parser.addHelpOption();
 	parser.addVersionOption();
 
-	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "file.orion");
-	QCommandLineOption grfOption("grf", QCoreApplication::translate("main", "Copy all source files into <directory>."), "*.grf");
+	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "*.orion");
+//	QCommandLineOption grfOption("grf", QCoreApplication::translate("main", "Copy all source files into <directory>."), "*.grf");
+	QCommandLineOption grfOption("grf", "Загружает файл экрана <file.grf>", "*.grf");
 	parser.addOption(orionOption);
 	parser.addOption(grfOption);
 	parser.process(a);

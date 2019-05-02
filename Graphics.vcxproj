@@ -290,6 +290,7 @@
     <ClCompile Include="Graph\GraphObject.cpp" />
     <ClCompile Include="Graph\GTextLabel.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Orion_Accumulation.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -527,6 +528,7 @@
     <ClInclude Include="Graph\GAxeArg.h" />
     <ClInclude Include="Graph\GraphObject.h" />
     <ClInclude Include="Graph\GTextLabel.h" />
+    <ClInclude Include="Orion_Accumulation.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

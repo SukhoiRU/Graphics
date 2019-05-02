@@ -117,7 +117,7 @@ void	QGridTree::keyPressEvent(QKeyEvent* evnt)
 			//Копируем в буфер
 			TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
 			TreeItem::Data*	data	= item->GetData();
-			if(data->nBufIndex != -1 && data->nAccIndex != -1)
+			if(!item->childCount())
 			{
 				QString	line	= data->typeName() + "\t\t" + data->name + ";\t\t\t//" + data->comm + "\n";
 				QClipboard*	c	= QGuiApplication::clipboard();
@@ -147,18 +147,17 @@ void    QGridTree::onAccept()
     const TreeItem::Data*	data	= item->GetData();
 
 	//Собираем полный путь
-	QString	path	= data->name + '\\';
-	int		nAcc	= data->nBufIndex;
+	QString	path	= data->name + '/';
 	while(item)
 	{
 		item	= item->parent();
 		if(item)
-			path	= item->GetData()->name + "\\" + path;
+			path	= item->GetData()->name + "/" + path;
 	}
 
-    if(data->nBufIndex != -1 && data->nAccIndex != -1)
+    if(!item->childCount())
     {
-        emit onSignalAccepted(data->nBufIndex, path);
+        emit onSignalAccepted(0, path);
     }
 }
 
@@ -202,7 +201,7 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 		if(!index.isValid())	return;
 		TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
 		TreeItem::Data*	data	= item->GetData();
-		if(data->nBufIndex != -1 && data->nAccIndex != -1)
+		if(!item->childCount())
 		{
 			QString	line	= data->typeName() + "\t\t" + data->name + ";\t\t\t//" + data->comm + "\n";
 			QClipboard*	c	= QGuiApplication::clipboard();

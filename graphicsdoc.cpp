@@ -5,6 +5,7 @@
 #include "ui_graphicsdoc.h"
 #include "ui_panelselect.h"
 #include "Accumulation.h"
+#include "Orion_Accumulation.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -278,9 +279,9 @@ void	GraphicsDoc::loadOrion(QString FileName)
     if(m_bAddAcc_Mode)
     {
         //Добавляем новое накопление
-        pAcc	= new Accumulation;
-        pAcc->m_Name    = QString("Данные №%1").arg(m_BufArray.size()+1);
-        pAcc->LoadOrion(FileName);
+        pAcc	= new Orion_Accumulation;
+        pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
+        pAcc->load(FileName);
         m_BufArray.push_back(pAcc);
     }
     else
@@ -294,13 +295,13 @@ void	GraphicsDoc::loadOrion(QString FileName)
         else
         {
             //Буфер пустой, поэтому вставим хоть одно
-            pAcc	= new Accumulation;
-            pAcc->m_Name    = QString("Данные №%1").arg(m_BufArray.size()+1);
+            pAcc	= new Orion_Accumulation;
+            pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
             m_BufArray.push_back(pAcc);
         }
 
         //Загружаем данные
-        pAcc->LoadOrion(FileName);
+        pAcc->load(FileName);
     }
 	emit dataChanged(&m_BufArray);
 /*

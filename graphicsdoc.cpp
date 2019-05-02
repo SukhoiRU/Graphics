@@ -220,14 +220,14 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.setAutoFormatting(true);
 	xml.writeStartDocument();
 	xml.writeStartElement("Файл_экрана");
-	xml.writeAttribute("version", "2.0");
+	xml.writeAttribute("version", "3.0");
 	{
 		xml.writeStartElement("Ось_времени");
 		ui->oglView->saveAxeArg(xml);
 		xml.writeEndElement();	//Ось_времени
 	}
 	xml.writeStartElement("Список_панелей");
-	xml.writeTextElement("Версия", "2.0");
+	xml.writeTextElement("Версия", "3.0");
 	xml.writeTextElement("Активная_панель", QString::number(m_pPanelSelect->ui->comboBox->currentIndex()));
 	xml.writeTextElement("Текущий_цвет", "5");
 
@@ -419,31 +419,22 @@ void	GraphicsDoc::on_PanelRenamed(const QString &text)
 
 void GraphicsDoc::on_actionAddAxe_triggered()
 {
-    GraphSelect dlg(this);
+	if(!m_pActivePanel)			return;
+	if(m_BufArray.empty())		return;
+
+	GraphSelect dlg(this);
 	dlg.SetAccumulation(&m_BufArray);
 	if(!m_oldPath.isEmpty())
-		dlg.SetPath(m_oldPath, m_oldAcc);
+		dlg.SetPath(m_oldPath);
 
     if(dlg.exec() == QDialog::Accepted)
     {		
-		//Выделяем последнее имя и убираем имена накопления
 		QStringList	pathList	= dlg.m_Path.split('\\');
-		pathList.pop_back();
-		pathList.pop_front();
-		pathList.pop_front();
-
-		QString	path;
-		for(size_t i = 0; i < pathList.size(); i++)
-			path += pathList.at(i) + "\\";
-
-		if(!m_pActivePanel)			return;
-		if(m_BufArray.empty())		return;
 
 		//Добавляем ось
 		Graph::GAxe* pAxe	= new Graph::GAxe;
 		pAxe->m_Name		= pathList.back();
-		pAxe->m_Path		= path;
-		pAxe->m_nAcc		= dlg.m_nBufIndex;
+		pAxe->m_Path		= dlg.m_Path;
 		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
 		pAxe->m_nMarker		= 0;//GetNextMarker();
 		pAxe->m_AxeMin		= -10;
@@ -472,7 +463,6 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		}
 
 		//Запоминаем данные об оси
-		m_oldAcc	= dlg.m_nBufIndex;
 		m_oldPath	= pAxe->m_Path;
     }
 }
@@ -482,24 +472,15 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	GraphSelect	dlg(pDlg);
 	dlg.SetAccumulation(&m_BufArray);
 	QString	path	= pAxe->m_Path;
-	int	nAcc		= pAxe->m_nAcc;
-	dlg.SetPath(path, nAcc);
+	dlg.SetPath(path);
 	if(dlg.exec() == QDialog::Accepted)
 	{
 		//Выделяем последнее имя и убираем имена накопления
 		QStringList	pathList	= dlg.m_Path.split('\\');
-		pathList.pop_back();
-		pathList.pop_front();
-		pathList.pop_front();
-
-		QString	path;
-		for(size_t i = 0; i < pathList.size(); i++)
-			path += pathList.at(i) + "\\";
 
 		//Меняем ось
 		pAxe->m_Name	= pathList.back();
-		pAxe->m_Path	= path;
-		pAxe->m_nAcc	= dlg.m_nBufIndex;
+		pAxe->m_Path	= dlg.m_Path;
 		pAxe->updateRecord(&m_BufArray);
 		pAxe->fitToScale();
 	}

@@ -833,7 +833,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	for(size_t i = m_GraphObjects.size(); i > 0; i--)
 	{
 		Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
-		if(pGraph->HitTest(mousePos))
+		if(pGraph->hitTest(mousePos))
 		{
 			Qt::CursorShape	shape;
 			if(pGraph->getCursor(mousePos, shape))
@@ -960,7 +960,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		for(size_t i = m_GraphObjects.size(); i > 0; i--)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
-			if(pGraph->HitTest(mousePos))
+			if(pGraph->hitTest(mousePos))
 			{
 				pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
 				bFound	= true;
@@ -1021,7 +1021,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 		for(size_t i = m_GraphObjects.size(); i > 0; i--)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
-			if(pGraph->HitTest(m_clickPos))
+			if(pGraph->hitTest(m_clickPos))
 			{
 				if(!m_SelectedObjects.size())
 				{

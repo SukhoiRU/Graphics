@@ -13,7 +13,6 @@ GraphSelect::GraphSelect(QWidget *parent) :
     ui->setupUi(this);
 	ui->treeView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	ui->treeView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	m_nBufIndex = -1;
     connect(ui->treeView, &QGridTree::onSignalAccepted, this, &GraphSelect::onSignalAccepted);
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
@@ -45,16 +44,15 @@ void	GraphSelect::SetAccumulation(const vector<Accumulation*>* pBuffer)
     }
 }
 
-void    GraphSelect::onSignalAccepted(int nBufIndex, QString path)
+void    GraphSelect::onSignalAccepted(QString path)
 {
 	//Запоминаем выделенный элемент
-    m_nBufIndex = nBufIndex;
     m_Path		= path;
 
     accept();
 }
 
-void	GraphSelect::SetPath(QString path, int nAcc)
+void	GraphSelect::SetPath(QString path)
 {
-	ui->treeView->expandTo(path, nAcc);
+	ui->treeView->expandTo(path);
 }

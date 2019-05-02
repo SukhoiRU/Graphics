@@ -70,32 +70,23 @@ GLfloat	GAxe::m_interpAlias	= 0.5f;
 GAxe::GAxe()
 {
 	m_Type		= AXE;
-	m_DataType	= Double;
+	m_Data_Type	= Double;
 	m_nMarker	= 0;
-	m_nAcc		= 0;
-	m_AccName	= "Данные №1";
 
 	m_OldPoint	= {0,0};
-	m_nSubTicks	= 5;
-	m_Data_Len	= 0;
+	m_Data_Length	= 0;
 	m_bShowNum	= false;
 	m_bSRK		= false;
 	m_MaskSRK	= 0;
 	m_nBitSRK	= 0;
-	m_K_short	= 0;
-
 	m_TextFormat	= "%g";
-
-	m_pOrionData	= 0;
-	m_pOrionTime	= 0;
-
 	m_bAperiodic	= false;
 	m_bOscill		= false;
 	m_Aperiodic_T	= 0.01;
 	m_Oscill_T		= 0.01;
 	m_Oscill_Ksi	= 0.7;
 	m_bInterpol		= true;
-	m_AxeLength		= 0;
+	m_Axe_Length	= 0;
 
 	textLabel	= new GTextLabel;
 	dataVBO		= 0;
@@ -116,26 +107,24 @@ GAxe::GAxe()
 //Конструктор копирования
 GAxe::GAxe(GAxe& axe):GAxe()
 {
-	m_AccName	= axe.m_AccName;
-	m_nAcc		= axe.m_nAcc;
-	m_Name		= axe.m_Name;
-	m_Path		= axe.m_Path;
-	m_nMarker	= axe.m_nMarker;
-	m_Color		= axe.m_Color;
+	m_Name			= axe.m_Name;
+	m_Path			= axe.m_Path;
+	m_nMarker		= axe.m_nMarker;
+	m_Color			= axe.m_Color;
 	m_TextFormat	= axe.m_TextFormat;
-	m_bInterpol	= axe.m_bInterpol;
-	m_AxeMin	= axe.m_AxeMin;
-	m_AxeScale	= axe.m_AxeScale;
-	m_AxeLength	= axe.m_AxeLength;
+	m_bInterpol		= axe.m_bInterpol;
+	m_AxeMin		= axe.m_AxeMin;
+	m_AxeScale		= axe.m_AxeScale;
+	m_Axe_Length	= axe.m_Axe_Length;
 	m_BottomRight	= axe.m_BottomRight;
-	m_FrameBR	= axe.m_FrameBR;
-	m_DataType	= axe.m_DataType;
-	oldGrid		= axe.oldGrid;
-	oldAreaBL	= axe.oldAreaBL;
-	oldAreaSize	= axe.oldAreaSize;
-	oldScale	= axe.oldScale;
-	oldTime0	= axe.oldTime0;
-	oldTimeStep	= axe.oldTimeStep;
+	m_FrameBR		= axe.m_FrameBR;
+	m_Data_Type		= axe.m_Data_Type;
+	oldGrid			= axe.oldGrid;
+	oldAreaBL		= axe.oldAreaBL;
+	oldAreaSize		= axe.oldAreaSize;
+	oldScale		= axe.oldScale;
+	oldTime0		= axe.oldTime0;
+	oldTimeStep		= axe.oldTimeStep;
 //	clearGL();
 }
 
@@ -276,7 +265,7 @@ void	GAxe::initializeGL()
 	}
 
 	textLabel->initializeGL();
-	setAxeLength(m_AxeLength);
+	setAxeLength(m_Axe_Length);
 }
 
 void	GAxe::clearGL()
@@ -290,7 +279,7 @@ void	GAxe::clearGL()
 void	GAxe::setAxeLength(int len, int highlighted)
 {
 	//Установка длины оси
-	m_AxeLength	= len;
+	m_Axe_Length	= len;
 	m_FrameBR	= m_BottomRight;
 	if(!m_bOpenGL_inited)	return;
 
@@ -308,7 +297,7 @@ void	GAxe::setAxeLength(int len, int highlighted)
 	data.push_back(vec2(0.f, 1.f));
 
 	//Штрихи оси
-	for(int i = 0; i < m_AxeLength; i++)
+	for(int i = 0; i < m_Axe_Length; i++)
 	{
 		data.push_back(vec2(-1.0f, 0 + oldGrid.y*i));	data.push_back(vec2(0.f, 0 + oldGrid.y*i));
 		data.push_back(vec2(-0.5f, 1 + oldGrid.y*i));	data.push_back(vec2(0.f, 1 + oldGrid.y*i));
@@ -318,10 +307,10 @@ void	GAxe::setAxeLength(int len, int highlighted)
 	}
 
 	//Верхний штрих
-	data.push_back(vec2(-1.0f, 5.f*m_AxeLength));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
+	data.push_back(vec2(-1.0f, 5.f*m_Axe_Length));	data.push_back(vec2(0.f, 5.f*m_Axe_Length));
 
 	//Вертикальная линия
-	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_AxeLength));
+	data.push_back(vec2(0.f, 0.f));	data.push_back(vec2(0.f, 5.f*m_Axe_Length));
 	m_Axe_nCount	= data.size();
 
 	//Данные для креста
@@ -335,7 +324,7 @@ void	GAxe::setAxeLength(int len, int highlighted)
 
 	//Черточки для обрамления
 	{
-		if(m_DataType == Bool)
+		if(m_Data_Type == Bool)
 		{
 			//Координаты плюс длина по кругу
 			vec2	textSize	= textLabel->textSize(m_Name);
@@ -373,15 +362,15 @@ void	GAxe::setAxeLength(int len, int highlighted)
 			vec2	line	= vec2(-1.5f*dx, -dy);
 			data.push_back(line);	data.push_back(vec2(len));
 
-			len		= len + 2.f*dy + oldGrid.y*m_AxeLength;
-			line	= vec2(-1.5f*dx, dy + oldGrid.y*m_AxeLength);
+			len		= len + 2.f*dy + oldGrid.y*m_Axe_Length;
+			line	= vec2(-1.5f*dx, dy + oldGrid.y*m_Axe_Length);
 			data.push_back(line);	data.push_back(vec2(len));
 
 			len		= len + (2.f*dx);
-			line	= vec2(0.5*dx, dy + oldGrid.y*m_AxeLength);
+			line	= vec2(0.5*dx, dy + oldGrid.y*m_Axe_Length);
 			data.push_back(line);	data.push_back(vec2(len));
 
-			len		= len + 2.f*dy + oldGrid.y*m_AxeLength;
+			len		= len + 2.f*dy + oldGrid.y*m_Axe_Length;
 			line	= vec2(0.5*dx, -dy);
 			data.push_back(line);	data.push_back(vec2(len));
 
@@ -404,14 +393,14 @@ void	GAxe::setAxeLength(int len, int highlighted)
 	//Текстовые метки
 	vec2 grid	= oldGrid;
 
-	if(m_DataType == Bool)
+	if(m_Data_Type == Bool)
 	{
 		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x*0.5f, -textLabel->midLine());
 	}
 	else
 	{
-		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_AxeLength*grid.y + 2.0f);
-		for(int i = 0; i <= m_AxeLength; i++)
+		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x, m_Axe_Length*grid.y + 2.0f);
+		for(int i = 0; i <= m_Axe_Length; i++)
 		{
 			if(i == highlighted) 	textLabel->setFont(5.5f);
 			else 					textLabel->setFont(3.5f);
@@ -431,16 +420,14 @@ void	GAxe::save(QXmlStreamWriter& xml)
 	{
 		xml.writeAttribute("Название", m_Name);
 		xml.writeAttribute("Путь", m_Path);
-		xml.writeAttribute("Накопление", QString::number(m_nAcc));
-		xml.writeAttribute("Имя_накопления", m_AccName);
 		xml.writeAttribute("Цвет", QString("(%1, %2, %3)").arg(m_Color.r*255).arg(m_Color.g*255).arg(m_Color.b*255));
 		xml.writeAttribute("Маркер", QString::number(m_nMarker));
 		xml.writeAttribute("Минимум", QString::number(m_AxeMin));
 		xml.writeAttribute("Шаг", QString::number(m_AxeScale));
-		xml.writeAttribute("Длина", QString::number(m_AxeLength));
+		xml.writeAttribute("Длина", QString::number(m_Axe_Length));
 		xml.writeAttribute("X_мм", QString::number(m_BottomRight.x));
 		xml.writeAttribute("Y_мм", QString::number(m_BottomRight.y));
-		xml.writeAttribute("Тип", QString::number(m_DataType));
+		xml.writeAttribute("Тип", QString::number(m_Data_Type));
 		xml.writeAttribute("СРК", m_bSRK ? "true" : "false");
 		xml.writeAttribute("Бит_СРК", QString::number(m_nBitSRK));
 		xml.writeAttribute("Формат", m_TextFormat);
@@ -453,8 +440,14 @@ void	GAxe::load(QDomElement* node, double ver)
 	//Получаем набор полей
 	if(node->hasAttribute("Название"))		m_Name			= node->attribute("Название");
 	if(node->hasAttribute("Путь"))			m_Path			= node->attribute("Путь");
-	if(node->hasAttribute("Накопление"))	m_nAcc			= node->attribute("Накопление").toInt();
-	if(node->hasAttribute("Имя_накопления"))m_AccName		= node->attribute("Имя_накопления");
+	//Убираем \ в конце
+	if(m_Path.at(m_Path.length()-1) == '\\')
+		m_Path	= m_Path.left(m_Path.length()-1);
+	if(ver < 3)
+	{
+		if(node->hasAttribute("Имя_накопления"))m_Path		= node->attribute("Имя_накопления") + "\\" + m_Path;
+	}
+
 	if(node->hasAttribute("Цвет"))			
 	{
 		//Разбираем текст на компоненты
@@ -482,7 +475,7 @@ void	GAxe::load(QDomElement* node, double ver)
 	}
 	y_zad	= m_BottomRight.y;
 	ph_dX	= y_zad;
-	if(node->hasAttribute("Тип"))			m_DataType		= (DataType)node->attribute("Тип").toInt();
+	if(node->hasAttribute("Тип"))			m_Data_Type		= (DataType)node->attribute("Тип").toInt();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
 	if(node->hasAttribute("Бит_СРК"))		m_nBitSRK		= node->attribute("Бит_СРК").toInt();
 	if(node->hasAttribute("Формат"))		m_TextFormat	= node->attribute("Формат");
@@ -577,13 +570,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(oldGrid != grid)
 	{
 		oldGrid	= grid;
-		setAxeLength(m_AxeLength);
+		setAxeLength(m_Axe_Length);
 		updateIndices(t0, TimeScale, grid, areaSize);
 	}
 	if(oldScale != m_scale)
 	{
 		oldScale	= m_scale;
-		setAxeLength(m_AxeLength);
+		setAxeLength(m_Axe_Length);
 		updateIndices(t0, TimeScale, grid, areaSize);
 	}
 	oldAreaSize	= areaSize;
@@ -614,7 +607,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
-	if(m_DataType != Bool)
+	if(m_Data_Type != Bool)
 		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
 	//Рисуем обрамление шкалы
@@ -665,10 +658,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniformMatrix4fv(u_cross_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 		mat4	cross(1.0f);
-		if(m_DataType == Bool)
+		if(m_Data_Type == Bool)
 			cross	= translate(cross, vec3(m_BottomRight.x, y_zad - 0.5*textLabel->midLine(), 0.f));
 		else
-			cross	= translate(cross, vec3(m_BottomRight.x, y_zad + 0.5f*m_AxeLength*grid.y, 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, y_zad + 0.5f*m_Axe_Length*grid.y, 0.f));
 		cross	= translate(cross, vec3(areaBL, 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.x, 0.6f*grid.x, 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
@@ -693,13 +686,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//Маркер возле оси
-	if(m_DataType != Bool)
+	if(m_Data_Type != Bool)
 	{
 		m_marker_program->bind();
 
 		//Матрица проекции
 		mat4	data(1.0f);
-		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, y_zad + m_AxeLength*grid.y + 0.5*grid.y, 0.f));
+		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, y_zad + m_Axe_Length*grid.y + 0.5*grid.y, 0.f));
 		data	= translate(data, vec3(areaBL, 0.f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
@@ -780,7 +773,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
-	if(m_DataType == Bool)
+	if(m_Data_Type == Bool)
 	{
 		m_bool_program->bind();
 		glUniform3fv(u_bool_color, 1, &color.r);
@@ -801,7 +794,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 	
 		//Выставляем тип линии
-		switch(m_DataType)
+		switch(m_Data_Type)
 		{
 			case Graph::GAxe::Int:
 			{
@@ -876,10 +869,10 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-bool	GAxe::HitTest(const vec2& pt_)
+bool	GAxe::hitTest(const vec2& pt_)
 {
 	vec2 pt	= pt_ - oldAreaBL;
-	if(m_DataType == Bool)
+	if(m_Data_Type == Bool)
 	{
 		//Для Bool рамка должна быть размером надписи
 		vec2	textSize	= textLabel->textSize(m_Name);
@@ -899,7 +892,7 @@ bool	GAxe::HitTest(const vec2& pt_)
 		//Определяем попадание в ось
 		if(pt.x < m_FrameBR.x+1 &&
 		   pt.x > m_FrameBR.x-3 &&
-		   pt.y < m_FrameBR.y+oldGrid.y*m_AxeLength+1 &&
+		   pt.y < m_FrameBR.y+oldGrid.y*m_Axe_Length+1 &&
 		   pt.y > m_FrameBR.y-1)
 			return true;
 		else
@@ -939,7 +932,7 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.y;
-	if(m_DataType == Bool)		step	= 0.5f*step;
+	if(m_Data_Type == Bool)		step	= 0.5f*step;
 	if(mdf & Qt::AltModifier)	y_zad	= m_FrameBR.y;
 	else						y_zad	= int(m_FrameBR.y/step + 0.5f)*step;
 
@@ -1006,16 +999,16 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 	if(mdf & Qt::ShiftModifier)
 	{
 		//Меняем начало
-		if(m_DataType != Bool)
+		if(m_Data_Type != Bool)
 		{
 			m_AxeMin -= int(numdegrees.y/120.)*m_AxeScale;
-			setAxeLength(m_AxeLength);
+			setAxeLength(m_Axe_Length);
 		}
 	}
 	else if(mdf & Qt::ControlModifier)
 	{
 		//Проверяем, что по высоте мышь находится на оси
-		if(pt.y < m_FrameBR.y + oldAreaBL.y +oldGrid.y*m_AxeLength+1 && pt.y > m_FrameBR.y-1 && m_DataType != Bool)
+		if(pt.y < m_FrameBR.y + oldAreaBL.y +oldGrid.y*m_Axe_Length+1 && pt.y > m_FrameBR.y-1 && m_Data_Type != Bool)
 		{
 			double Power	= floor(log10(m_AxeScale));
 			double Mantiss	= m_AxeScale / pow(10., Power);
@@ -1041,7 +1034,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 			int	index	= int((pt.y - oldAreaBL.y - m_BottomRight.y)/oldGrid.y + 0.5);
 			m_AxeMin	= m_AxeMin + index*(m_AxeScale - Scale);
 			m_AxeScale	= Scale;
-			setAxeLength(m_AxeLength, index);
+			setAxeLength(m_Axe_Length, index);
 		}
 	}
 }
@@ -1187,7 +1180,7 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 		GetLimits(t0, t1, &Min, &Max);
 
 	//Зная минимум и максимум, определим диапазон
-	double Step = (Max - Min)/m_AxeLength;
+	double Step = (Max - Min)/m_Axe_Length;
 	
 	//Округлим его до нормализованного значения
 	if(Step)
@@ -1207,129 +1200,118 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	{
 		m_AxeScale	= 1;
 		m_AxeMin	= Min - m_AxeScale;
-		m_AxeLength	= 2;
+		m_Axe_Length	= 2;
 	}
-	if(m_DataType == Bool)
+	if(m_Data_Type == Bool)
 	{
 		m_AxeMin	= 0;
 		m_AxeScale	= 1;
-		m_AxeLength= 1;
+		m_Axe_Length= 1;
 	}
-	setAxeLength(m_AxeLength);
+	setAxeLength(m_Axe_Length);
 }
 
-void	GAxe::updateRecord(std::vector<Accumulation*>* pData)
+void	GAxe::updateRecord(std::vector<Accumulation*>* pBuffer)
 {
-/*	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
-	if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
+	//Ищем накопление по имени
+	QStringList	pathList	= m_Path.split('\\');
+	QString		path		= m_Path.right(m_Path.length()-1-pathList.first().length());
+	QString		accName		= pathList.first();
+
+	const Accumulation*	pAcc	= nullptr;
+	for(size_t i = 0; i < pBuffer->size(); i++)
 	{
+		const Accumulation*	acc	= pBuffer->at(i);
+		if(acc->name()	== accName)
+		{
+			pAcc	= acc;
+			break;
+		}
+	}
+	if(pAcc == nullptr)
+	{
+		//Раз не нашли, то...
 		m_data.clear();
 		return;
 	}
 
-	const Accumulation*				pBuffer		= pData->at(m_nAcc);
-	const Accumulation::HeaderList&	Head		= pBuffer->GetHeader();
+	//Получаем данные
+	const double*	pTime;
+	const char*		pData;
+	int				nType;
+	m_Data_Length	= pAcc->getData(path, &pTime, &pData, &nType);
 
-	//Перебираем все элементы заголовка накопления
-	for(size_t posHead = 0; posHead < Head.size(); posHead++)
+	if(!m_Data_Length)	return;
+
+	//Тут же уточняем тип данных
+	switch(nType)
 	{
-		const Accumulation::HeaderElement&	H	= Head[posHead];
-		
-		//Для каждого элемента собираем путь
-		QString	Path;
-		for(size_t pos = 0; pos < H.Desc.size(); pos++)
-		{
-			const Accumulation::Level& L	= H.Desc[pos];
-			Path += L.Name + "\\";
-		}
+	case 0:		m_Data_Type		= Bool;		break;
+	case 1:		m_Data_Type		= Int;		break;
+	case 2:		m_Data_Type		= Double;	break;
+	case 12:	m_Data_Type		= Float;	break;
+	case 13:	m_Data_Type		= Int;		break;
+	case 14:	m_Data_Type		= Short;	break;
+	default:	throw;
+	};
 
-		//Если нашли такой путь
-		if(m_Path == Path)
-		{
-			m_Data_Len	= H.Length;
-			m_K_short	= H.K;
-
-			//Тут же уточняем тип данных
-			switch(H.Desc.back().nIcon)
-			{
-			case 0:		m_DataType		= Bool;		break;
-			case 1:		m_DataType		= Int;		break;
-			case 2:		m_DataType		= Double;	break;
-			case 12:	m_DataType		= Float;	break;
-			case 13:	m_DataType		= Int;		break;
-			case 14:	m_DataType		= Short;	break;
-			default:	throw;
-			};
-
-			//Принудительно для СРК выставляем признак
-			if(m_bSRK)	
-			{
-				m_DataType		= Bool;
-				m_MaskSRK		= 0x1 << (m_nBitSRK-1);
+	//Принудительно для СРК выставляем признак
+	if(m_bSRK)	
+	{
+		m_Data_Type		= Bool;
+		m_MaskSRK		= 0x1 << (m_nBitSRK-1);
 				
-				//В записях КСУ смещение на 1 бит
-				if(pBuffer->GetType() == Acc_CCS)	m_MaskSRK	= m_MaskSRK << 1;
-			}
-
-			if(m_DataType == Bool)
-			{
-				setAxeLength(1);
-				m_AxeMin	= 0;
-				m_AxeScale	= 1;
-			}
-		
-			//Для Ориона подгружаем данные из большого файла
-			if(pBuffer->GetType() == Acc_Orion)
-			{
-				m_pOrionTime	= pBuffer->GetOrionTime(H);
-				m_pOrionData	= pBuffer->GetOrionData(H);
-
-				m_data.clear();
-				for(int i = 0; i < m_Data_Len; i++)
-				{
-					switch(m_DataType)
-					{
-					case Graph::GAxe::Bool:		m_data.push_back(vec2(m_pOrionTime[i], (float)(*(bool*)(m_pOrionData + i*sizeof(bool)))));break;
-					case Graph::GAxe::Int:		m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(int)))));break;
-					case Graph::GAxe::Double:	m_data.push_back(vec2(m_pOrionTime[i], (float)(*(double*)(m_pOrionData + i*sizeof(double)))));break;
-					case Graph::GAxe::Float:	m_data.push_back(vec2(m_pOrionTime[i], (float)(*(float*)(m_pOrionData + i*sizeof(float)))));break;
-					default:
-						break;
-					}
-				}
-				if(!m_bOpenGL_inited)	return;
-
-				if(dataVBO)
-				{
-					glDeleteBuffers(1, &dataVBO);
-					glDeleteBuffers(1, &markerIBO);
-				}
-
-				glGenBuffers(1, &dataVBO);
-				glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-				glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-					
-				glGenBuffers(1, &markerIBO);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-				//Обновляем VAO оси
-				setAxeLength(m_AxeLength);
-
-				//Обновляем индексы
-				oldTimeStep	= 0;
-			}
-
-			UpdateFiltering();
-			return;
-		}
+		//В записях КСУ смещение на 1 бит
+		if(pAcc->type() == Accumulation::Acc_CCS)	m_MaskSRK	= m_MaskSRK << 1;
 	}
 
-	//Раз не нашли, то...
+	if(m_Data_Type == Bool)
+	{
+		setAxeLength(1);
+		m_AxeMin	= 0;
+		m_AxeScale	= 1;
+	}
+
+	//Копируем данные
 	m_data.clear();
-*/
+	for(int i = 0; i < m_Data_Length; i++)
+	{
+		switch(m_Data_Type)
+		{
+		case Graph::GAxe::Bool:		m_data.push_back(vec2(pTime[i], (float)(*(bool*)(pData + i*sizeof(bool)))));break;
+		case Graph::GAxe::Int:		m_data.push_back(vec2(pTime[i], (float)(*(double*)(pData + i*sizeof(int)))));break;
+		case Graph::GAxe::Double:	m_data.push_back(vec2(pTime[i], (float)(*(double*)(pData + i*sizeof(double)))));break;
+		case Graph::GAxe::Float:	m_data.push_back(vec2(pTime[i], (float)(*(float*)(pData + i*sizeof(float)))));break;
+		default:
+			break;
+		}
+	}
+	if(!m_bOpenGL_inited)	return;
+
+	if(dataVBO)
+	{
+		glDeleteBuffers(1, &dataVBO);
+		glDeleteBuffers(1, &markerIBO);
+	}
+
+	glGenBuffers(1, &dataVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+					
+	glGenBuffers(1, &markerIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//Обновляем VAO оси
+	setAxeLength(m_Axe_Length);
+
+	//Обновляем индексы
+	oldTimeStep	= 0;
+
+	UpdateFiltering();
+	return;
 }
 
 double	GAxe::GetValueAtTime(const double Time) const
@@ -1356,7 +1338,7 @@ double	GAxe::GetValueAtTime(const double Time) const
 	double	f1	= m_data.at(nStartIndex).y;	double	t1	= m_data.at(nStartIndex).x;
 	double	f2	= m_data.at(nStopIndex).y;	double	t2	= m_data.at(nStopIndex).x;
 
-	if(m_bInterpol && (m_DataType == Double || m_DataType == Float))
+	if(m_bInterpol && (m_Data_Type == Double || m_Data_Type == Float))
 		return	f1+(f2-f1)/(t2-t1)*(Time-t1);
 	else			
 		return	f1;
@@ -1364,12 +1346,12 @@ double	GAxe::GetValueAtTime(const double Time) const
 
 double GAxe::GetTopPosition() const
 {
-	return m_BottomRight.y + m_AxeLength*oldGrid.y;
+	return m_BottomRight.y + m_Axe_Length*oldGrid.y;
 }
 
 bool	GAxe::IsBoolean() const
 {
-	return m_DataType	== Bool;
+	return m_Data_Type	== Bool;
 }
 
 void	GAxe::GetStatistic() const

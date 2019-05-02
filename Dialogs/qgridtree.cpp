@@ -144,20 +144,19 @@ void    QGridTree::onAccept()
 {
     QModelIndex index = currentIndex();
     TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
-    const TreeItem::Data*	data	= item->GetData();
 
-	//Собираем полный путь
-	QString	path	= data->name + '/';
-	while(item)
+	if(!item->childCount())
 	{
-		item	= item->parent();
-		if(item)
-			path	= item->GetData()->name + "/" + path;
-	}
+		//Собираем полный путь
+		QString	path	= item->GetData()->name;
+		while(item->parent()->parent())
+		{
+			item	= item->parent();
+			if(item)
+				path	= item->GetData()->name + "\\" + path;
+		}
 
-    if(!item->childCount())
-    {
-        emit onSignalAccepted(0, path);
+        emit onSignalAccepted(path);
     }
 }
 
@@ -219,10 +218,10 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 	menu->popup(viewport()->mapToGlobal(pos));
 }
 
-void	QGridTree::expandTo(QString path, int nAcc)
+void	QGridTree::expandTo(QString path)
 {
 	//Раскрываем с корня номер накопления
-	QModelIndex index	= model()->index(nAcc, 0);
+	QModelIndex index	= rootIndex();
 	TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
 	if(!item)	return;
 	expand(index);

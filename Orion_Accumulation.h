@@ -2,7 +2,6 @@
 #define ORION_ACCUMULATION_H
 
 #include "Accumulation.h"
-class QDomElement;
 
 class Orion_Accumulation : public Accumulation
 {
@@ -40,7 +39,7 @@ private:
 	struct OrionData
 	{
 		qint64	pos;	//Положение в большом файле
-		BYTE*	ptr;	//Указатель на считанные данные
+		char*	ptr;	//Указатель на считанные данные
 	};
 
 private:	
@@ -62,9 +61,7 @@ public:
 	virtual ~Orion_Accumulation();
 	
 	//Переопределяемые методы
-	virtual const double*	getTime(const QString& path) const{return nullptr;};
-	virtual const char*		getData(const QString& path) const{return nullptr;};
-
+	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
 	virtual void	load(const QString& filename);
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
 	virtual void	print(const QString& filename, bool bHead = true){};

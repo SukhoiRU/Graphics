@@ -5,10 +5,6 @@
 #include <QtWidgets>
 #include <QOpenGLWidget>
 
-#define BYTE char
-#define DWORD uint32_t
-#define LPCSTR char*
-
 #ifdef __gl_h_
 #undef __gl_h_
 #undef GLAPI

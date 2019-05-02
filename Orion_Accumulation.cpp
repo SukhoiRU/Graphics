@@ -1,9 +1,5 @@
 #include "stdafx.h"
 #include "Orion_Accumulation.h"
-#include <bitset>
-#include <QFile>
-#include <QMessageBox>
-#include <QTextCodec>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -247,76 +243,105 @@ void	Orion_Accumulation::FreeOrionData()
 
 	m_OrionData.clear();
 }
+
+size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+{
+	//Ищем путь
+	OrionSignal*	signal	= nullptr;
+	for(size_t i = 0; i < m_Header.size(); i++)
+	{
+		SignalInfo*	pInfo	= m_Header.at(i);
+		if(pInfo->path == path)
+		{
+			signal	= static_cast<OrionSignal*>(pInfo);
+			break;
+		}
+	}
+
+	//Проверка на существование
+	if(!signal)	return 0;
+
+	//Прежде всего, ищем этот элемент в уже загруженных
+	*ppTime	= nullptr;
+	*ppData	= nullptr;
+	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
+	{
+		//Ищем время
+		const OrionData&	data	= m_OrionData[pos];
+		if(signal->OrionFileTime == data.pos)
+		{
+			*ppTime	= (double*)data.ptr;
+			break;
+		}
+	}
+
+	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
+	{
+		//Ищем данные
+		const OrionData&	data	= m_OrionData[pos];
+		if(signal->OrionFilePos == data.pos)
+		{
+			*ppData	= data.ptr;
+			break;
+		}
+	}
+
+	if(*ppTime == nullptr)
+	{
+		//Раз не нашли, то загружаем
+		qint64	size	= signal->Length*sizeof(double);
+
+		//Выделяем память
+		char*	ptr	= new char[size];
+		if(!ptr)	return 0;
+
+		//Читаем из большого файла
+		if(!m_pOrionFile->seek(signal->OrionFileTime))		return 0;
+		if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
+
+		//Запоминаем указатель в списке
+		OrionData	d;
+		d.pos	= signal->OrionFileTime;
+		d.ptr	= ptr;
+
+		m_OrionData.push_back(d);
+		*ppTime	= (double*)ptr;
+	}
+
+	if(*ppData == nullptr)
+	{
+		//Раз не нашли, то загружаем
+		qint64	size;
+		switch(signal->icons.back())
+		{
+		case 2:	size	= signal->Length*sizeof(double);	break;
+		case 1:	size	= signal->Length*sizeof(int);		break;
+		case 0:	size	= signal->Length*sizeof(bool);		break;
+		}
+
+		//Выделяем память
+		char*	ptr	= new char[size];
+		if(!ptr)	return 0;
+
+		//Читаем из большого файла
+		if(!m_pOrionFile->seek(signal->OrionFilePos))		return 0;
+		if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
+
+		//Запоминаем указатель в списке
+		OrionData	d;
+		d.pos	= signal->OrionFilePos;
+		d.ptr	= ptr;
+
+		m_OrionData.push_back(d);
+		*ppData	= ptr;
+	}
+
+	//Все загружено
+	*nType	= signal->icons.back();
+	return signal->Length;
+}
+
 /*
-BYTE*	Orion_Accumulation::GetOrionData(const HeaderElement& h) const
-{
-	//Прежде всего ищем этот элемент в уже загруженных
-	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
-	{
-		const OrionData&	data	= m_OrionData[pos];
-		if(h.OrionFilePos == data.pos)
-			return data.ptr;
-	}
-
-	//Раз не нашли, то загружаем
-	Level	L	= h.Desc.back();
-    qint64	size;
-	switch(L.nIcon)
-	{
-	case 2:	size	= h.Length*sizeof(double);	break;
-	case 1:	size	= h.Length*sizeof(int);		break;
-	case 0:	size	= h.Length*sizeof(bool);	break;
-	}
-
-	//Выделяем память
-	BYTE*	ptr	= new BYTE[size];
-	if(!ptr)	return 0;
-
-	//Читаем из большого файла
-	if(!m_pOrionFile->seek(h.OrionFilePos))	return 0;
-	if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
-
-	//Запоминаем указатель в списке
-	OrionData	d;
-	d.pos	= h.OrionFilePos;
-	d.ptr	= ptr;
-
-	m_OrionData.push_back(d);
-
-	return ptr;
-}
-
-const double*	Orion_Accumulation::GetOrionTime(const HeaderElement& h) const
-{
-	//Прежде всего ищем этот элемент в уже загруженных
-	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
-	{
-		const OrionData&	data	= m_OrionData[pos];
-		if(h.OrionFileTime == data.pos)
-			return (double*)data.ptr;
-	}
-
-	//Раз не нашли, то загружаем
-    qint64	size	= h.Length*sizeof(double);
-
-	//Выделяем память
-	BYTE*	ptr	= new BYTE[size];
-	if(!ptr)	return 0;
-
-	//Читаем из большого файла
-	if(!m_pOrionFile->seek(h.OrionFileTime))	return 0;
-	if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
-
-	//Запоминаем указатель в списке
-	OrionData	d;
-	d.pos	= h.OrionFileTime;
-	d.ptr	= ptr;
-
-	m_OrionData.push_back(d);
-
-	return (double*)ptr;
-}
-
 void	Orion_Accumulation::SaveOrionPart(QFile& file, double Time0, double Time1) const
 {
 	//Копируем список пакетов
@@ -366,10 +391,8 @@ void	Orion_Accumulation::SaveOrionPart(QFile& file, double Time0, double Time1) 
 		file.write((char*)h.name.toStdString().c_str(), n);
 		file.write((char*)&h.pos, sizeof(h.pos));
 	}
+}
 
-	//Файл готов!
-}*/
-/*
 void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name, double Time0, double Time1) const
 {
 	//Ищем в заголовке элементы с именем пакета и создаем новый список

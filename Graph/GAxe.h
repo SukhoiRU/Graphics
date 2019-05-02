@@ -27,16 +27,12 @@ private:
 	vec2			m_OldPoint;		//Предыдущая точка графика
 	Direction		m_Direction;	//Направление перетаскивания объекта
 
-	DataType		m_DataType;		//Тип отображаемых данных
-	int				m_AxeLength;	//Длина оси в клетках	
+	DataType		m_Data_Type;	//Тип отображаемых данных
+	size_t			m_Data_Length;	//Длина для Орион
+	int				m_Axe_Length;	//Длина оси в клетках	
 	int				m_Axe_nCount;	//Количество точек в буфере отрисовки шкалы
 
-	int				m_Data_Len;		//Длина для Орион
 	int				m_MaskSRK;		//Маска СРК
-	double			m_K_short;		//Масштаб для записей *.mig
-
-	double*			m_pOrionTime;	//Время Ориона из большого файла
-    BYTE*			m_pOrionData;	//Данные Ориона
 
 	//Фазовые
 	double			ph_dL;	//Смещение выделения оси
@@ -119,12 +115,9 @@ public:
 	QString			m_Name;			//Название оси
 	QString			m_Path;			//Путь к элементу в накоплении
 	int				m_nMarker;		//Тип маркера
-	int				m_nAcc;			//Номер накопления
-	QString			m_AccName;		//Имя накопления
 
 	double			m_AxeMin;		//Минимальное значение на оси
 	double			m_AxeScale;		//Цена деления, физическая величина клетки
-	int				m_nSubTicks;	//Количество мелких штрихов	
 
 	vec3	  		m_Color;		//Цвет графика
 	bool			m_bShowNum;		//Признак отрисовки номера накопления
@@ -163,7 +156,7 @@ public:
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
 
 	//Мышиные дела
-	virtual bool	HitTest(const vec2& pt);//Проверка на попадание курсора
+	virtual bool	hitTest(const vec2& pt);//Проверка на попадание курсора
 	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
     virtual void	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf);	//Перемещение на заданное расстояние
     virtual void	onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees);	//Обработка колеса
@@ -193,7 +186,7 @@ public:
 	void		GetStatistic() const;					//Выдача статистической информации
 	void		ErrorsFilter() const;					//Фильтрация сбоев
 	void		UpdateFiltering();						//Фильтрация сигнала
-	int			getAxeLength() const {return m_AxeLength;}
+	int			getAxeLength() const {return m_Axe_Length;}
 	void		setAxeLength(int len, int highlighted = -1);
 };
 }

@@ -40,9 +40,7 @@ public:
 	void						setName(QString& name)	{m_Name = name;}
 
 	//Переопределяемые методы
-	virtual const double*	getTime(const QString& path) const = 0;
-	virtual const char*		getData(const QString& path) const = 0;
-
+	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const = 0;
 	virtual void	load(const QString& filename) = 0;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
 	virtual void	print(const QString& filename, bool bHead = true){};

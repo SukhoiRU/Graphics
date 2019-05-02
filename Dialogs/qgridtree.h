@@ -16,7 +16,7 @@ private:
 public:
     explicit QGridTree(QWidget *parent = 0);
 	virtual ~QGridTree();
-	void	expandTo(QString path, int nAcc);
+	void	expandTo(QString path);
 
 private:
     virtual void	drawRow(QPainter *painter, const QStyleOptionViewItem &options, const QModelIndex &index) const;
@@ -27,7 +27,7 @@ private:
 	void	onCustomMenuRequested(QPoint pos);
 
 signals:
-    void    onSignalAccepted(int nBufIndex, QString	path);
+    void    onSignalAccepted(QString	path);
 };
 
 #endif // QMYTREE_H

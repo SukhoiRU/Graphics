@@ -18,13 +18,12 @@ public:
     explicit GraphSelect(QWidget *parent = nullptr);
     ~GraphSelect();
 	void	SetAccumulation(const vector<Accumulation*>*	pBuffer);
-	void	SetPath(QString path, int nAcc);
+	void	SetPath(QString path);
 
-    int m_nBufIndex;
     QString m_Path;
 private:
     Ui::GraphSelect *ui;
-    void    onSignalAccepted(int nBufIndex, QString path);
+    void    onSignalAccepted(QString path);
 };
 
 #endif // GRAPHSELECT_H

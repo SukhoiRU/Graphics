@@ -13,7 +13,7 @@ public:
 	class SignalInfo
 	{
 	public:
-		QString		path;		//Путь к элементу с разделителем "/"
+		QString		path;		//Путь к элементу с разделителем "\"
 		QString		comment;	//Комментарий для второго столбца
 		vector<int>	icons;		//Набор иконок-описателей уровней
 

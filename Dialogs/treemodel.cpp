@@ -114,9 +114,9 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
             TreeItem* pParent	= pAccItem;
             const Accumulation::SignalInfo*	info	= header.at(i);
 
-			QStringList	names	= info->path.split("/");
+			QStringList	names	= info->path.split('\\');
 			if(names.size() != info->icons.size())	
-				return;
+				continue;
 
             for(size_t j = 0; j < names.size(); j++)
             {

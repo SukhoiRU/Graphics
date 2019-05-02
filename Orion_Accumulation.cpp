@@ -153,7 +153,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 
 			m_pOrionFile->read((char*)&LenIcons, sizeof(LenIcons));
 			m_pOrionFile->read((char*)buf, LenIcons);
-			buf[LenIcons]	= 0;
+			buf[LenIcons-1]	= 0;
 			Icons	= buf;
 		}break;
 
@@ -164,6 +164,9 @@ void	Orion_Accumulation::LoadOrionPacket()
 		//Формируем описатель сигнала
 		OrionSignal*	signal	= new OrionSignal;
 
+		//Путь
+		signal->path	= Path;
+
 		//Иконки
 		QStringList	iconsList	= Icons.split(",");
 		for(size_t i = 0; i < iconsList.size(); i++)
@@ -173,13 +176,6 @@ void	Orion_Accumulation::LoadOrionPacket()
 			signal->icons.push_back(nIcon);
 		}
 
-		//Путь
-		QStringList	pathList	= Path.split("\\");
-		for(size_t i = 0; i < pathList.size(); i++)
-		{
-			signal->path += pathList.at(i) + '/';
-		}
-
 		//Комментарий
 		int	LenComm;
 		m_pOrionFile->read((char*)&LenComm, sizeof(LenComm));
@@ -187,9 +183,9 @@ void	Orion_Accumulation::LoadOrionPacket()
 		buf[LenComm]	= 0;
 		signal->comment	= codec->toUnicode(buf);
 
+		//Количество точек в сигнале
 		if(m_nOrionVersion == 2)
 		{
-			//Количество точек в сигнале
 			m_pOrionFile->read((char*)&signal->Length, sizeof(signal->Length));
 		}
 

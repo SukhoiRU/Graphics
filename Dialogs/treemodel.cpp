@@ -90,7 +90,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
         //Создаем новый элемент в корне
         TreeItem::Data	data;
         data.type		= TreeItem::Item_Chapter;
-        data.name		= QString("Данные № %1").arg(n+1);
+        data.name		= pAcc->name();
 
         switch (pAcc->type())
         {

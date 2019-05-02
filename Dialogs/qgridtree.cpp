@@ -148,12 +148,14 @@ void    QGridTree::onAccept()
 	if(!item->childCount())
 	{
 		//Собираем полный путь
-		QString	path	= item->GetData()->name;
+		TreeItem::Data*	pData	= item->GetData();
+		QString	path	= pData->name;
 		while(item->parent()->parent())
 		{
 			item	= item->parent();
+			pData	= item->GetData();
 			if(item)
-				path	= item->GetData()->name + "\\" + path;
+				path	= pData->name + '\\' + path;
 		}
 
         emit onSignalAccepted(path);
@@ -221,25 +223,23 @@ void	QGridTree::onCustomMenuRequested(QPoint pos)
 void	QGridTree::expandTo(QString path)
 {
 	//Раскрываем с корня номер накопления
-	QModelIndex index	= rootIndex();
-	TreeItem*	item	= static_cast<TreeItem*>(index.internalPointer());
-	if(!item)	return;
-	expand(index);
+	QAbstractItemModel*	m	= model();
+	QModelIndex index;
 
 	//Ищем в дереве
 	QStringList	list	= path.split("\\");
-	for(int i = 0; i < list.size()-1; i++)
+	for(int i = 0; i < list.size(); i++)
 	{
 		QString	name	= list.at(i);
 		bool	bFound	= false;
-		for(int j = 0; j < item->childCount(); j++)
+		for(int j = 0; j < m->rowCount(index); j++)
 		{
-			TreeItem*	subItem	= item->child(j);
-			if(subItem->GetData()->name == name)
+			QModelIndex	subIndex	= m->index(j, 0, index);
+			QString		subName		= static_cast<TreeItem*>(subIndex.internalPointer())->GetData()->name;
+			if(subName == name)
 			{
 				//Нашли на этом уровне
-				index	= model()->index(j, 0, index);
-				item	= subItem;
+				index	= subIndex;
 				expand(index);
 				bFound	= true;
 				break;

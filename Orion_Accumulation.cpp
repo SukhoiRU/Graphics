@@ -120,8 +120,6 @@ void	Orion_Accumulation::LoadOrionPacket()
 	for(int i = 0; i < nCount; i++)
 	{
 		try{
-
-		OrionSignal	s;
 		int	LenPath;
 		int	LenIcons;
 		char buf[1024];
@@ -136,7 +134,8 @@ void	Orion_Accumulation::LoadOrionPacket()
 		{
 			m_pOrionFile->read((char*)&LenPath, sizeof(LenPath));
 			m_pOrionFile->read((char*)&LenIcons, sizeof(LenIcons));
-			m_pOrionFile->read((char*)&h.Offset, sizeof(h.Offset));
+			qint64	Offset;
+			m_pOrionFile->read((char*)&Offset, sizeof(Offset));
 			m_pOrionFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
 			Path	= codec->toUnicode(buf);
@@ -162,36 +161,40 @@ void	Orion_Accumulation::LoadOrionPacket()
 			break;
 		}
 		
-		//Разбиваем строки на части
-		QStringList	pathList	= Path.split("\\");
+		//Формируем описатель сигнала
+		OrionSignal*	signal	= new OrionSignal;
+
+		//Иконки
 		QStringList	iconsList	= Icons.split(",");
-		for(int i = 0; i < pathList.size(); i++)
+		for(size_t i = 0; i < iconsList.size(); i++)
 		{
-			QString	SubPath	= pathList.at(i);
-			QString	SubIcon	= iconsList.at(i);
-			Level	L;
-			L.nIcon	= SubIcon.toInt();
-			if(L.nIcon == 12) L.nIcon = 13;
-			L.Name	= SubPath;
-			h.Desc.push_back(L);
+			int nIcon	= iconsList.at(i).toInt();
+			if(nIcon == 12) nIcon = 13;
+			signal->icons.push_back(nIcon);
 		}
 
-	
+		//Путь
+		QStringList	pathList	= Path.split("\\");
+		for(size_t i = 0; i < pathList.size(); i++)
+		{
+			signal->path += pathList.at(i) + '/';
+		}
+
+		//Комментарий
 		int	LenComm;
 		m_pOrionFile->read((char*)&LenComm, sizeof(LenComm));
 		m_pOrionFile->read((char*)buf, LenComm);
 		buf[LenComm]	= 0;
-
-		Level& L	= h.Desc.back();
-		L.Comment	= codec->toUnicode(buf);
+		signal->comment	= codec->toUnicode(buf);
 
 		if(m_nOrionVersion == 2)
 		{
-			m_pOrionFile->read((char*)&h.Length, sizeof(h.Length));
+			//Количество точек в сигнале
+			m_pOrionFile->read((char*)&signal->Length, sizeof(signal->Length));
 		}
 
-		m_pOrionFile->read((char*)&h.OrionFilePos, sizeof(h.OrionFilePos));
-		m_pOrionFile->read((char*)&h.OrionFileTime, sizeof(h.OrionFileTime));
+		m_pOrionFile->read((char*)&signal->OrionFilePos, sizeof(signal->OrionFilePos));
+		m_pOrionFile->read((char*)&signal->OrionFileTime, sizeof(signal->OrionFileTime));
 
 		if(m_nOrionVersion == 2)
 		{
@@ -205,7 +208,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pOrionFile->seek(posBegin+1024);
 		}
 
-		m_Header.push_back(h);
+		m_Header.push_back(signal);
 		if(i == 0)
 		{
 			//Запоминаем положение в списке для обновления времени
@@ -227,8 +230,8 @@ void	Orion_Accumulation::LoadOrionPacket()
 		//Устанавливаем длину всем из этого пакета
 		for(size_t pos = pos_begin; pos < m_Header.size(); pos++)
 		{
-			HeaderElement&	h	= m_Header[pos];
-			h.Length			= Length;
+			OrionSignal*	s	= (OrionSignal*)m_Header.at(pos);
+			s->Length			= Length;
 		}
 	}
 }
@@ -248,7 +251,7 @@ void	Orion_Accumulation::FreeOrionData()
 
 	m_OrionData.clear();
 }
-
+/*
 BYTE*	Orion_Accumulation::GetOrionData(const HeaderElement& h) const
 {
 	//Прежде всего ищем этот элемент в уже загруженных
@@ -369,8 +372,8 @@ void	Orion_Accumulation::SaveOrionPart(QFile& file, double Time0, double Time1) 
 	}
 
 	//Файл готов!
-}
-
+}*/
+/*
 void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name, double Time0, double Time1) const
 {
 	//Ищем в заголовке элементы с именем пакета и создаем новый список
@@ -602,3 +605,4 @@ void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name
         int a = 0;
     }
 }
+*/

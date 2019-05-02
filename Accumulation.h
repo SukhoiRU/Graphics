@@ -17,8 +17,8 @@ public:
 		QString		comment;	//Комментарий для второго столбца
 		vector<int>	icons;		//Набор иконок-описателей уровней
 
-		SignalInfo(){};
-		virtual ~SignalInfo();
+		SignalInfo(){}
+		virtual ~SignalInfo(){}
 	};
 
 	//Типы накопления

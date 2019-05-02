@@ -1220,7 +1220,7 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 
 void	GAxe::updateRecord(std::vector<Accumulation*>* pData)
 {
-	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
+/*	//Необходимо уточнить номер колонки накопления в соответствии с прописанным путем
 	if(m_nAcc == -1 || m_nAcc >= (int)pData->size())
 	{
 		m_data.clear();
@@ -1329,6 +1329,7 @@ void	GAxe::updateRecord(std::vector<Accumulation*>* pData)
 
 	//Раз не нашли, то...
 	m_data.clear();
+*/
 }
 
 double	GAxe::GetValueAtTime(const double Time) const

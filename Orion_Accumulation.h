@@ -7,7 +7,6 @@ class QDomElement;
 class Orion_Accumulation : public Accumulation
 {
 private:
-
 	//Структура элементов описателя накопления
 	class OrionSignal : public Accumulation::SignalInfo
 	{
@@ -30,13 +29,11 @@ private:
 	{
 		QString			name;		//Имя пакета
 		qint64			pos;		//Начало пакета
-        QDomElement*	attr;		//Описатель пакета
 		
 		void	operator = (const OrionHead& h)
 		{
 			name	= h.name;
 			pos		= h.pos;
-			attr	= h.attr;
 		}
 	};
 
@@ -65,11 +62,11 @@ public:
 	virtual ~Orion_Accumulation();
 	
 	//Переопределяемые методы
-	virtual const double*	getTime(const QString& path) const;
-	virtual const char*		getData(const QString& path) const;
+	virtual const double*	getTime(const QString& path) const{return nullptr;};
+	virtual const char*		getData(const QString& path) const{return nullptr;};
 
 	virtual void	load(const QString& filename);
-	virtual void	savePart(const QString& filename, double Time0, double Time1) const;
+	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
 	virtual void	print(const QString& filename, bool bHead = true){};
 };
 

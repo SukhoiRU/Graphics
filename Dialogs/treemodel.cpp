@@ -128,7 +128,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
                 data.name		= name;
 				//Последнему в пути присваиваем комментарий
 				if(j == names.size()-1)	data.comm	= info->comment;
-				else					data.comm		= "";
+				else					data.comm	= "";
 
                 switch(nIcon)
                 {

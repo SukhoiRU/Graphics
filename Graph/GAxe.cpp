@@ -443,7 +443,7 @@ void	GAxe::load(QDomElement* node, double ver)
 	//Убираем \ в конце
 	if(m_Path.at(m_Path.length()-1) == '\\')
 		m_Path	= m_Path.left(m_Path.length()-1);
-	if(ver < 3)
+	if(ver < 2.1)
 	{
 		if(node->hasAttribute("Имя_накопления"))m_Path		= node->attribute("Имя_накопления") + "\\" + m_Path;
 	}

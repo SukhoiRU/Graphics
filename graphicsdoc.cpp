@@ -220,14 +220,14 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.setAutoFormatting(true);
 	xml.writeStartDocument();
 	xml.writeStartElement("Файл_экрана");
-	xml.writeAttribute("version", "3.0");
+	xml.writeAttribute("version", "2.0");
 	{
 		xml.writeStartElement("Ось_времени");
 		ui->oglView->saveAxeArg(xml);
 		xml.writeEndElement();	//Ось_времени
 	}
 	xml.writeStartElement("Список_панелей");
-	xml.writeTextElement("Версия", "3.0");
+	xml.writeTextElement("Версия", "2.1");
 	xml.writeTextElement("Активная_панель", QString::number(m_pPanelSelect->ui->comboBox->currentIndex()));
 	xml.writeTextElement("Текущий_цвет", "5");
 
@@ -276,34 +276,22 @@ void GraphicsDoc::on_action_LoadOrion_triggered()
 void	GraphicsDoc::loadOrion(QString FileName)
 {
     Accumulation*	pAcc;
-    if(m_bAddAcc_Mode)
-    {
-        //Добавляем новое накопление
-        pAcc	= new Orion_Accumulation;
-        pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
-        pAcc->load(FileName);
-        m_BufArray.push_back(pAcc);
-    }
-    else
-    {
-        //Меняем данные в последнем
-        if(m_BufArray.size())
-        {
-            pAcc	= m_BufArray.back();
-			emit dataRemoved(&m_BufArray);
-        }
-        else
-        {
-            //Буфер пустой, поэтому вставим хоть одно
-            pAcc	= new Orion_Accumulation;
-            pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
-            m_BufArray.push_back(pAcc);
-        }
+	if(!m_bAddAcc_Mode && m_BufArray.size())
+	{
+		//Меняем данные в последнем
+		pAcc	= m_BufArray.back();
+		delete	pAcc;
+		emit dataRemoved(&m_BufArray);
+	}
 
-        //Загружаем данные
-        pAcc->load(FileName);
-    }
+	//Добавляем новое накопление
+	pAcc	= new Orion_Accumulation;
+	pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
+	m_BufArray.push_back(pAcc);
+
+	pAcc->load(FileName);
 	emit dataChanged(&m_BufArray);
+
 /*
     m_DataFileName	= FileName;
     if(m_bUseFileAsText)

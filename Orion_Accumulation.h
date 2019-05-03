@@ -61,8 +61,8 @@ public:
 	virtual ~Orion_Accumulation();
 	
 	//Переопределяемые методы
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
 	virtual void	load(const QString& filename);
+	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
 	virtual void	print(const QString& filename, bool bHead = true){};
 };

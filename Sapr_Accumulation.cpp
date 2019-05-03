@@ -177,12 +177,23 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	}
 
 	//Загружаем данные в память
-	char* buf	= new char[m_nRecordSize];
 	m_pFile->seek(m_DataPos);
+
+	const int	BlockSize	= 10000;
+	char*	Block	= new char[m_nRecordSize*BlockSize];
+	qint64	recLoaded	= 0;
+	int		curRec		= 0;
 	for(int i = 0; i < m_nRecCount; i++)
 	{
-		//Считываем одну запись
-		m_pFile->read(buf, m_nRecordSize);
+		if(++curRec >= recLoaded)
+		{
+			//Считываем блок
+			recLoaded	= m_pFile->read(Block, m_nRecordSize*BlockSize)/m_nRecordSize;
+			curRec		= 0;
+		}
+		
+		//Берем одну запись
+		char*	buf	= (Block + curRec*m_nRecordSize);
 
 		//Разбираем запись
 		m_pTime[i]	= *(double*)buf;
@@ -201,7 +212,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 			}
 		}
 	}
-	delete[] buf;
+	delete[] Block;
 }
 
 size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const

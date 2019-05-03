@@ -1222,7 +1222,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 	return QOpenGLWidget::keyReleaseEvent(event);
 }
 
-void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer)
+void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, const std::vector<Accumulation*>* pBuffer)
 {
 	if(m_pPanel)
 	{

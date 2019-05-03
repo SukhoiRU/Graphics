@@ -42,18 +42,13 @@ private:
 		char*	ptr;	//Указатель на считанные данные
 	};
 
-private:	
-	int					m_nOrionVersion;	//Номер версии файла Орион
-	QFile*				m_pOrionFile;		//Указатель на единый файл Ориона
-	vector<OrionHead>	m_OrionPacketList;	//Перечень пакетов в файле Ориона
+	int							m_nOrionVersion;	//Номер версии файла Орион
+	vector<OrionHead>			m_OrionPacketList;	//Перечень пакетов в файле Ориона
 	mutable vector<OrionData>	m_OrionData;		//Перечень считанных данных
 
-	void			LoadOrionPacket();					//Чтение Орион
-	void			SaveOrionPart(QFile& file, double Time0, double Time1) const;	//Запись нужного куска
-	void			SaveOrionPart_Packet(QFile* pFile, QString& packet_name, double Time0, double Time1) const;	//Запись нужного куска пакета
-
-	//double*	GetOrionTime(const HeaderElement& h) const;
-	//BYTE*	GetOrionData(const HeaderElement& h) const;
+	void	LoadOrionPacket();					//Чтение Орион
+	void	SaveOrionPart(QFile& file, double Time0, double Time1) const;	//Запись нужного куска
+	void	SaveOrionPart_Packet(QFile* pFile, QString& packet_name, double Time0, double Time1) const;	//Запись нужного куска пакета
 	void	FreeOrionData();	//Очистка всех выделенных областей памяти под Орион
 
 public:
@@ -62,6 +57,7 @@ public:
 	
 	//Переопределяемые методы
 	virtual void	load(const QString& filename);
+	virtual void	preloadData(QStringList* pAxes){};
 	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
 	virtual void	print(const QString& filename, bool bHead = true){};

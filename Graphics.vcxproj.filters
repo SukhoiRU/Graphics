@@ -194,6 +194,9 @@
     <ClCompile Include="Orion_Accumulation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Sapr_Accumulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -239,6 +242,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="Orion_Accumulation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sapr_Accumulation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

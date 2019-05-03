@@ -33,7 +33,7 @@ class Ui_GraphicsDoc
 public:
     QAction *actionOpen;
     QAction *actionSave;
-    QAction *action_2;
+    QAction *action_LoadSapr;
     QAction *action_LoadOrion;
     QAction *actionAddAxe;
     QAction *actionPageInfo;
@@ -53,7 +53,7 @@ public:
     QMenuBar *menuBar;
     QMenu *menu;
     QMenu *menu_2;
-    QMenu *menu_3;
+    QMenu *menu_LoadData;
     QMenu *menu_4;
     QMenu *menu_5;
     QToolBar *mainToolBar;
@@ -78,8 +78,8 @@ public:
         QIcon icon2;
         icon2.addFile(QStringLiteral(":/Resources/images/save.png"), QSize(), QIcon::Normal, QIcon::Off);
         actionSave->setIcon(icon2);
-        action_2 = new QAction(GraphicsDoc);
-        action_2->setObjectName(QStringLiteral("action_2"));
+        action_LoadSapr = new QAction(GraphicsDoc);
+        action_LoadSapr->setObjectName(QStringLiteral("action_LoadSapr"));
         action_LoadOrion = new QAction(GraphicsDoc);
         action_LoadOrion->setObjectName(QStringLiteral("action_LoadOrion"));
         action_LoadOrion->setIcon(icon);
@@ -164,8 +164,8 @@ public:
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
         menu_2->setObjectName(QStringLiteral("menu_2"));
-        menu_3 = new QMenu(menu_2);
-        menu_3->setObjectName(QStringLiteral("menu_3"));
+        menu_LoadData = new QMenu(menu_2);
+        menu_LoadData->setObjectName(QStringLiteral("menu_LoadData"));
         menu_4 = new QMenu(menuBar);
         menu_4->setObjectName(QStringLiteral("menu_4"));
         menu_5 = new QMenu(menuBar);
@@ -189,9 +189,9 @@ public:
         menu->addAction(actionOpen);
         menu->addAction(actionSave);
         menu->addAction(actionSaveAs);
-        menu_2->addAction(menu_3->menuAction());
-        menu_3->addAction(action_2);
-        menu_3->addAction(action_LoadOrion);
+        menu_2->addAction(menu_LoadData->menuAction());
+        menu_LoadData->addAction(action_LoadSapr);
+        menu_LoadData->addAction(action_LoadOrion);
         menu_4->addAction(actionAddAxe);
         menu_4->addAction(actionDelAxe);
         menu_4->addAction(actionScaleUp);
@@ -218,7 +218,7 @@ public:
         GraphicsDoc->setWindowTitle(QApplication::translate("GraphicsDoc", "Graphics", Q_NULLPTR));
         actionOpen->setText(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
         actionSave->setText(QApplication::translate("GraphicsDoc", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", Q_NULLPTR));
-        action_2->setText(QApplication::translate("GraphicsDoc", "\320\241\320\220\320\237\320\240", Q_NULLPTR));
+        action_LoadSapr->setText(QApplication::translate("GraphicsDoc", "\320\241\320\220\320\237\320\240", Q_NULLPTR));
         action_LoadOrion->setText(QApplication::translate("GraphicsDoc", "\320\236\321\200\320\270\320\276\320\275", Q_NULLPTR));
         actionAddAxe->setText(QApplication::translate("GraphicsDoc", "\320\224\320\276\320\261\320\260\320\262\320\270\321\202\321\214", Q_NULLPTR));
 #ifndef QT_NO_TOOLTIP
@@ -251,7 +251,7 @@ public:
 #endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
-        menu_3->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
+        menu_LoadData->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
         menu_4->setTitle(QApplication::translate("GraphicsDoc", "&\320\223\321\200\320\260\321\204\320\270\320\272", Q_NULLPTR));
         menu_5->setTitle(QApplication::translate("GraphicsDoc", "&\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\260", Q_NULLPTR));
         toolBarPanel->setWindowTitle(QApplication::translate("GraphicsDoc", "toolBar", Q_NULLPTR));

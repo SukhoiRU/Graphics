@@ -13,17 +13,18 @@ int main(int argc, char *argv[])
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
 	QCoreApplication::setApplicationName(APPLICATION_NAME);
-	QCoreApplication::setApplicationVersion("Версия 1.0 по ветке autoframe");
+	QCoreApplication::setApplicationVersion("Версия 1.1 по ветке accumulation");
 
 	QCommandLineParser parser;
 	parser.addHelpOption();
 	parser.addVersionOption();
 
-	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "*.orion");
-//	QCommandLineOption grfOption("grf", QCoreApplication::translate("main", "Copy all source files into <directory>."), "*.grf");
 	QCommandLineOption grfOption("grf", "Загружает файл экрана <file.grf>", "*.grf");
-	parser.addOption(orionOption);
+	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "*.orion");
+	QCommandLineOption bufOption("buf", "Открывает файл <file.buf>.", "*.buf");
 	parser.addOption(grfOption);
+	parser.addOption(orionOption);
+	parser.addOption(bufOption);
 	parser.process(a);
 
 	//QColorDialog::setStandardColor(0, Qt::black);
@@ -33,12 +34,11 @@ int main(int argc, char *argv[])
 	//QColorDialog::setStandardColor(4, Qt::darkBlue);
 
 	GraphicsDoc w;
-//    if(parser.isSet(grfOption))		w.LoadScreen(parser.value(grfOption));
-//    if(parser.isSet(orionOption))	w.LoadOrion(parser.value(orionOption));
 	w.showMaximized();
 //	w.show();
-	if(parser.isSet(orionOption))	w.loadOrion(parser.value(orionOption));
 	if(parser.isSet(grfOption))		w.loadScreen(parser.value(grfOption));
+	if(parser.isSet(orionOption))	w.loadData(parser.value(orionOption), Accumulation::Acc_Orion);
+	if(parser.isSet(bufOption))		w.loadData(parser.value(bufOption), Accumulation::Acc_SAPR);
 	
     return a.exec();
 }

@@ -7,53 +7,43 @@
 Orion_Accumulation::Orion_Accumulation()
 {
 	m_Type			= Acc_Orion;
-	m_pOrionFile	= 0;
 	m_nOrionVersion	= 0;
 }
 
 Orion_Accumulation::~Orion_Accumulation()
 {
-	if(m_pOrionFile)
-	{
-		m_pOrionFile->close();
-		delete m_pOrionFile;
-		m_pOrionFile	= 0;
-	}
 	FreeOrionData();
 }
 
-void	Orion_Accumulation::load(const QString& FileName)
+void	Orion_Accumulation::load(const QString& filename)
 {
-	//Выставляем тип
-	m_Type	= Acc_Orion;
-
 	//Для начала все стираем
 	m_Header.clear();
 
-	if(m_pOrionFile)
+	if(m_pFile)
 	{
-		m_pOrionFile->close();
-		delete m_pOrionFile;
-		m_pOrionFile	= 0;
+		m_pFile->close();
+		delete m_pFile;
+		m_pFile	= nullptr;
 	}
 	FreeOrionData();
 	m_OrionPacketList.clear();
 
 	//Открываем файл
-	m_pOrionFile	= new QFile(FileName);
-	if(!m_pOrionFile)	return;
+	m_pFile	= new QFile(filename);
+	if(!m_pFile)	return;
 
-	if(!m_pOrionFile->open(QIODevice::ReadOnly))
+	if(!m_pFile->open(QIODevice::ReadOnly))
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= FileName;
+		msg	+= filename;
 		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
 
 	//Читаем количество пакетов в файле
 	int	nPackets	= 0;
-	m_pOrionFile->read((char*)&nPackets, sizeof(nPackets));
+	m_pFile->read((char*)&nPackets, sizeof(nPackets));
 
 	//Определяем номер версии файла
 	m_nOrionVersion	= (nPackets & 0xFFFF0000) >> 16;
@@ -67,13 +57,13 @@ void	Orion_Accumulation::load(const QString& FileName)
 		//Читаем очередной пакет
 		OrionHead	h;
 		int	nLen	= 0;
-		m_pOrionFile->read((char*)&nLen, sizeof(nLen));
+		m_pFile->read((char*)&nLen, sizeof(nLen));
 		char buf[1024];
-		m_pOrionFile->read((char*)buf, nLen);
+		m_pFile->read((char*)buf, nLen);
 		buf[nLen]	= 0;
 
 		h.name	= codec->toUnicode(buf);
-		m_pOrionFile->read((char*)&h.pos, sizeof(h.pos));
+		m_pFile->read((char*)&h.pos, sizeof(h.pos));
 
 		m_OrionPacketList.push_back(h);
 	}
@@ -82,7 +72,7 @@ void	Orion_Accumulation::load(const QString& FileName)
 	for(size_t pos = 0; pos < m_OrionPacketList.size(); pos++)
 	{
 		const OrionHead&	h	= m_OrionPacketList[pos];
-		m_pOrionFile->seek(h.pos);
+		m_pFile->seek(h.pos);
 		LoadOrionPacket();
 	}
 }
@@ -108,9 +98,9 @@ void	Orion_Accumulation::LoadOrionPacket()
 
 	//Читаем количество сигналов
 	int	nCount	= 0;
-	m_pOrionFile->read((char*)&nCount, sizeof(nCount));
+	m_pFile->read((char*)&nCount, sizeof(nCount));
 
-	//Запоминаем начало списка
+	//Запоминаем начало списка для старой версии
 	size_t	pos_begin;
 
 	for(int i = 0; i < nCount; i++)
@@ -122,33 +112,33 @@ void	Orion_Accumulation::LoadOrionPacket()
 		QString	Path;
 		QString	Icons;
 		
-		qint64	posBegin	= m_pOrionFile->pos();
+		qint64	posBegin	= m_pFile->pos();
 
 		switch(m_nOrionVersion)
 		{
 		case 0:
 		{
-			m_pOrionFile->read((char*)&LenPath, sizeof(LenPath));
-			m_pOrionFile->read((char*)&LenIcons, sizeof(LenIcons));
+			m_pFile->read((char*)&LenPath, sizeof(LenPath));
+			m_pFile->read((char*)&LenIcons, sizeof(LenIcons));
 			qint64	Offset;
-			m_pOrionFile->read((char*)&Offset, sizeof(Offset));
-			m_pOrionFile->read((char*)buf, LenPath);
+			m_pFile->read((char*)&Offset, sizeof(Offset));
+			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
 			Path	= codec->toUnicode(buf);
-			m_pOrionFile->read((char*)buf, LenIcons);
-			buf[LenIcons]	= 0;
+			m_pFile->read((char*)buf, LenIcons);
+			buf[LenIcons-1]	= 0;
 			Icons	= buf;
 		}break;
 
 		case 2:
 		{
-			m_pOrionFile->read((char*)&LenPath, sizeof(LenPath));
-			m_pOrionFile->read((char*)buf, LenPath);
+			m_pFile->read((char*)&LenPath, sizeof(LenPath));
+			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
 			Path	= codec->toUnicode(buf);
 
-			m_pOrionFile->read((char*)&LenIcons, sizeof(LenIcons));
-			m_pOrionFile->read((char*)buf, LenIcons);
+			m_pFile->read((char*)&LenIcons, sizeof(LenIcons));
+			m_pFile->read((char*)buf, LenIcons);
 			buf[LenIcons-1]	= 0;
 			Icons	= buf;
 		}break;
@@ -174,30 +164,30 @@ void	Orion_Accumulation::LoadOrionPacket()
 
 		//Комментарий
 		int	LenComm;
-		m_pOrionFile->read((char*)&LenComm, sizeof(LenComm));
-		m_pOrionFile->read((char*)buf, LenComm);
+		m_pFile->read((char*)&LenComm, sizeof(LenComm));
+		m_pFile->read((char*)buf, LenComm);
 		buf[LenComm]	= 0;
 		signal->comment	= codec->toUnicode(buf);
 
 		//Количество точек в сигнале
 		if(m_nOrionVersion == 2)
 		{
-			m_pOrionFile->read((char*)&signal->Length, sizeof(signal->Length));
+			m_pFile->read((char*)&signal->Length, sizeof(signal->Length));
 		}
 
-		m_pOrionFile->read((char*)&signal->OrionFilePos, sizeof(signal->OrionFilePos));
-		m_pOrionFile->read((char*)&signal->OrionFileTime, sizeof(signal->OrionFileTime));
+		m_pFile->read((char*)&signal->OrionFilePos, sizeof(signal->OrionFilePos));
+		m_pFile->read((char*)&signal->OrionFileTime, sizeof(signal->OrionFileTime));
 
 		if(m_nOrionVersion == 2)
 		{
 			//Вычитываем оригинальные путь и имя pwf
-			m_pOrionFile->read((char*)&LenPath, sizeof(LenPath));
-			m_pOrionFile->read((char*)buf, LenPath);
-			m_pOrionFile->read((char*)&LenPath, sizeof(LenPath));
-			m_pOrionFile->read((char*)buf, LenPath);
+			m_pFile->read((char*)&LenPath, sizeof(LenPath));
+			m_pFile->read((char*)buf, LenPath);
+			m_pFile->read((char*)&LenPath, sizeof(LenPath));
+			m_pFile->read((char*)buf, LenPath);
 
 			//Дочитываем до килобайта
-			m_pOrionFile->seek(posBegin+1024);
+			m_pFile->seek(posBegin+1024);
 		}
 
 		m_Header.push_back(signal);
@@ -217,7 +207,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 	{
 		//Читаем количество записей в пакете
 		int	Length;
-		m_pOrionFile->read((char*)&Length, sizeof(Length));
+		m_pFile->read((char*)&Length, sizeof(Length));
 
 		//Устанавливаем длину всем из этого пакета
 		for(size_t pos = pos_begin; pos < m_Header.size(); pos++)
@@ -296,8 +286,8 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pOrionFile->seek(signal->OrionFileTime))		return 0;
-		if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seek(signal->OrionFileTime))		return 0;
+		if(m_pFile->read((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;
@@ -324,8 +314,8 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pOrionFile->seek(signal->OrionFilePos))		return 0;
-		if(m_pOrionFile->read((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seek(signal->OrionFilePos))		return 0;
+		if(m_pFile->read((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;
@@ -463,8 +453,8 @@ void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name
 	//Получаем время этого пакета
 	const HeaderElement&	h	= packet_list.front();
 	double*	pTime	= new double[h.Length];
-	m_pOrionFile->seek(h.OrionFileTime);
-	m_pOrionFile->read((char*)pTime, h.Length*sizeof(double));
+	m_pFile->seek(h.OrionFileTime);
+	m_pFile->read((char*)pTime, h.Length*sizeof(double));
 	
 	//Ищем индексы для Time0, Time1 методом деления отрезка пополам
 	int	nTime0;
@@ -525,8 +515,8 @@ void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name
 		case 2:	
 			{
 				//Читаем нужный кусок
-				m_pOrionFile->seek(h.OrionFilePos + nTime0*sizeof(double));
-				m_pOrionFile->read((char*)pVal, nRecCount*sizeof(double));
+				m_pFile->seek(h.OrionFilePos + nTime0*sizeof(double));
+				m_pFile->read((char*)pVal, nRecCount*sizeof(double));
 
 				//И тут же пишем его
 				pFile->write((char*)pVal, nRecCount*sizeof(double));
@@ -534,8 +524,8 @@ void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name
 		case 1:	
 			{
 				//Читаем нужный кусок
-				m_pOrionFile->seek(h.OrionFilePos + nTime0*sizeof(int));
-				m_pOrionFile->read((char*)pInt, nRecCount*sizeof(int));
+				m_pFile->seek(h.OrionFilePos + nTime0*sizeof(int));
+				m_pFile->read((char*)pInt, nRecCount*sizeof(int));
 
 				//И тут же пишем его
 				pFile->write((char*)pInt, nRecCount*sizeof(int));
@@ -543,8 +533,8 @@ void	Orion_Accumulation::SaveOrionPart_Packet(QFile* pFile, QString& packet_name
 		case 0:	
 			{
 				//Читаем нужный кусок
-				m_pOrionFile->seek(h.OrionFilePos + nTime0*sizeof(bool));
-				m_pOrionFile->read((char*)pBool, nRecCount*sizeof(bool));
+				m_pFile->seek(h.OrionFilePos + nTime0*sizeof(bool));
+				m_pFile->read((char*)pBool, nRecCount*sizeof(bool));
 
 				//И тут же пишем его
 				pFile->write((char*)pBool, nRecCount*sizeof(bool));

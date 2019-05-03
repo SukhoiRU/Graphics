@@ -1,6 +1,7 @@
 #ifndef GRAPHICSDOC_H
 #define GRAPHICSDOC_H
 #include "stdafx.h"
+#include "Accumulation.h"
 #include <vector>
 using std::vector;
 
@@ -12,7 +13,6 @@ namespace Graph{
 }
 
 class PanelSelect;
-class Accumulation;
 class GraphicsView;
 
 struct	Panel
@@ -33,11 +33,11 @@ public:
 
 	void	loadScreen(QString FileName);
 	void	saveScreen(QString FileName);
-	void	loadOrion(QString FileName);
+	void	loadData(QString FileName, const Accumulation::AccType acc_type);
 
 private slots:
 	void	on_actionOpen_triggered();
-	void	on_action_LoadOrion_triggered();
+	void	on_menu_LoadData(QAction* pAction);
 	void	on_actionSave_triggered();
 	void	on_actionSaveAs_triggered();
 	void	on_actionAddAxe_triggered();
@@ -45,7 +45,7 @@ private slots:
 	void	on_deleteAxe(vector<Graph::GAxe*>* pAxes);
 
 signals:
-    void	panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+    void	panelChanged(vector<Graph::GAxe*>* axes, const std::vector<Accumulation*>* pBuffer);
 	void	panelDeleted(vector<Graph::GAxe*>* axes);
 	void	dataChanged(std::vector<Accumulation*>* pBuffer);	//Признак загрузки новых данных
 	void	dataRemoved(std::vector<Accumulation*>* pBuffer);	//Признак смены данных в том же накоплении
@@ -71,6 +71,7 @@ private:
 	void on_PanelCopy();
 	void on_PanelRenamed(const QString &text);
 	void on_PanelIndexChanged(int index);
+	void preloadPanel();
 };
 
 #endif // GRAPHICSDOC_H

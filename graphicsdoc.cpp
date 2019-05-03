@@ -6,6 +6,7 @@
 #include "ui_panelselect.h"
 #include "Accumulation.h"
 #include "Orion_Accumulation.h"
+#include "Sapr_Accumulation.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -62,6 +63,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
 	connect(ui->oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
 	connect(this, &GraphicsDoc::axeAdded, ui->oglView, &GraphicsView::on_axeAdded);
+
+	//Меню
+//	connect(ui->menu_LoadData, &QMenu::triggered, this, &GraphicsDoc::on_menu_LoadData);
+	connect(ui->action_LoadSapr, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadSapr); });
+	connect(ui->action_LoadOrion, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadOrion);});
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -250,42 +256,65 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	file.close();
 }
 
-void GraphicsDoc::on_action_LoadOrion_triggered()
+void GraphicsDoc::on_menu_LoadData(QAction* pAction)
 {
-    QString     path;
+	//Определяем тип накопления
+	Accumulation::AccType	acc_type;
+	QString	title	=  pAction->text();
+	QString	fileType;
+	if(pAction == ui->action_LoadOrion)
+	{
+		acc_type	= Accumulation::Acc_Orion;
+		fileType	= "*.orion";
+	}
+	else if(pAction == ui->action_LoadSapr)	
+	{
+		acc_type	= Accumulation::Acc_SAPR;
+		fileType	= "*.buf";
+	}
+
     QFileDialog::Options option;
 #ifdef __linux__
     option = QFileDialog::DontUseNativeDialog;
 #endif
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления Орион", path, "*.orion", nullptr, option);
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления " + title, "", fileType, nullptr, option);
     if(FileName.isEmpty())  return;
 
     // TODO: Add your dispatch handler code here
     QFile	in(FileName);
     if(!in.open(QFile::ReadOnly))
     {
-        QMessageBox::critical(this, "Ошибка чтения файла накопления Орион!", QString("Cannot read file %1: %2.").arg(FileName).arg(in.errorString()));
+        QMessageBox::critical(this, QString("Ошибка чтения файла накопления %1!").arg(title), QString("Ошибка чтения %1: %2.").arg(FileName).arg(in.errorString()));
         return;
     }
     in.close();
 
-	loadOrion(FileName);
+	loadData(FileName, acc_type);
 	ui->statusBar->showMessage(QString("Загружен файл %1").arg(FileName), 5000);
 }
 
-void	GraphicsDoc::loadOrion(QString FileName)
+void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_type)
 {
     Accumulation*	pAcc;
+
+	//Удаляем последнее накопление
 	if(!m_bAddAcc_Mode && m_BufArray.size())
 	{
-		//Меняем данные в последнем
 		pAcc	= m_BufArray.back();
 		delete	pAcc;
+		m_BufArray.pop_back();
 		emit dataRemoved(&m_BufArray);
 	}
 
 	//Добавляем новое накопление
-	pAcc	= new Orion_Accumulation;
+	switch(acc_type)
+	{
+		case Accumulation::Acc_Orion:	pAcc	= new Orion_Accumulation;	break;
+		case Accumulation::Acc_SAPR:	pAcc	= new Sapr_Accumulation;	break;
+		default:
+			break;
+	}
+	
 	pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
 	m_BufArray.push_back(pAcc);
 
@@ -309,6 +338,7 @@ void	GraphicsDoc::loadOrion(QString FileName)
         m_pArg->FitToScale();
     }
 */
+	preloadPanel();
 	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 }
 
@@ -331,6 +361,7 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
     if(index > (int)(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
 
+	preloadPanel();
     emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 }
 
@@ -416,7 +447,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		dlg.SetPath(m_oldPath);
 
     if(dlg.exec() == QDialog::Accepted)
-    {		
+    {
 		QStringList	pathList	= dlg.m_Path.split('\\');
 
 		//Добавляем ось
@@ -429,12 +460,14 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		pAxe->m_AxeScale	= 10;
 		pAxe->SetPosition(-20, 200);
 		pAxe->setAxeLength(4);
-		pAxe->updateRecord(&m_BufArray);
-		pAxe->fitToScale();
-		pAxe->initializeGL();
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);
+
+		preloadPanel();
+		pAxe->updateRecord(&m_BufArray);
+		pAxe->fitToScale();
+		pAxe->initializeGL();
 
 		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
 		emit axeAdded(pAxe);
@@ -494,4 +527,21 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 
 	//Обновляем графики и таблицу
 	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+}
+
+void	GraphicsDoc::preloadPanel()
+{
+	//Предварительная загрузка данных для текущей панели
+	QStringList	list;
+	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
+	{
+		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
+		list.push_back(pAxe->m_Path);
+	}
+
+	for(size_t i = 0; i < m_BufArray.size(); i++)
+	{
+		Accumulation*	pAcc	= m_BufArray.at(i);
+		pAcc->preloadData(&list);
+	}
 }

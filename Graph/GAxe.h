@@ -147,7 +147,7 @@ public:
 	//Запись-чтение
 	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
 	virtual void	load(QDomElement* node, double ver);		//Чтение XML
-	void			updateRecord(std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
+	void			updateRecord(const std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
 	
 	//Рисование
 	virtual void	initializeGL();

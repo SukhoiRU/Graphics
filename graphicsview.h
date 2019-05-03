@@ -50,7 +50,7 @@ public slots:
 	void	updatePage();
     void    setScale(float scale);
     void    saveSVG();
-	void	on_panelChanged(vector<Graph::GAxe*>* axes, std::vector<Accumulation*>* pBuffer);
+	void	on_panelChanged(vector<Graph::GAxe*>* axes, const std::vector<Accumulation*>* pBuffer);
     void	on_panelDeleted(vector<Graph::GAxe*>* axes);
 	void	on_graphSettings();
 	void	saveAxeArg(QXmlStreamWriter& xml);

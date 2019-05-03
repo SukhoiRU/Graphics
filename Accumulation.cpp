@@ -5,6 +5,7 @@ Accumulation::Accumulation()
 {
 	m_Type	= Acc_SAPR;
 	m_Name	= "";
+	m_pFile	= nullptr;
 }
 
 Accumulation::~Accumulation()
@@ -16,4 +17,12 @@ Accumulation::~Accumulation()
 		delete pInfo;
 	}
 	m_Header.clear();
+
+	//Закрываем файл
+	if(m_pFile)
+	{
+		m_pFile->close();
+		delete m_pFile;
+		m_pFile	= nullptr;
+	}
 }

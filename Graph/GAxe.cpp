@@ -445,7 +445,8 @@ void	GAxe::load(QDomElement* node, double ver)
 		m_Path	= m_Path.left(m_Path.length()-1);
 	if(ver < 2.1)
 	{
-		if(node->hasAttribute("Имя_накопления"))m_Path		= node->attribute("Имя_накопления") + "\\" + m_Path;
+		if(node->hasAttribute("Накопление"))
+			m_Path		= QString("Данные №%1\\").arg(node->attribute("Накопление").toInt() + 1) + m_Path;
 	}
 
 	if(node->hasAttribute("Цвет"))			
@@ -1211,7 +1212,7 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	setAxeLength(m_Axe_Length);
 }
 
-void	GAxe::updateRecord(std::vector<Accumulation*>* pBuffer)
+void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 {
 	//Ищем накопление по имени
 	QStringList	pathList	= m_Path.split('\\');
@@ -1241,9 +1242,13 @@ void	GAxe::updateRecord(std::vector<Accumulation*>* pBuffer)
 	int				nType;
 	m_Data_Length	= pAcc->getData(path, &pTime, &pData, &nType);
 
-	if(!m_Data_Length)	return;
+	if(!m_Data_Length)	
+	{
+		m_data.clear();
+		return;
+	}
 
-	//Тут же уточняем тип данных
+	//Уточняем тип данных
 	switch(nType)
 	{
 	case 0:		m_Data_Type		= Bool;		break;

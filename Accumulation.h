@@ -28,6 +28,7 @@ protected:
 	vector<SignalInfo*>	m_Header;		//Описатель данных в массиве	
 	AccType				m_Type;			//Тип накопления
 	QString				m_Name;			//Имя накопления
+	QFile*				m_pFile;		//Указатель на открытый файл
 
 public:
 	Accumulation();
@@ -40,8 +41,9 @@ public:
 	void						setName(QString& name)	{m_Name = name;}
 
 	//Переопределяемые методы
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const = 0;
 	virtual void	load(const QString& filename) = 0;
+	virtual void	preloadData(QStringList* pAxes) = 0;
+	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const = 0;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
 	virtual void	print(const QString& filename, bool bHead = true){};
 };

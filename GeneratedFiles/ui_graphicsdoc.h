@@ -43,6 +43,7 @@ public:
     QAction *actionScaleDown;
     QAction *actionFitTime;
     QAction *actionDelAxe;
+    QAction *action_LoadTRF;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -112,6 +113,8 @@ public:
         QIcon icon6;
         icon6.addFile(QStringLiteral(":/Resources/images/delete.png"), QSize(), QIcon::Normal, QIcon::Off);
         actionDelAxe->setIcon(icon6);
+        action_LoadTRF = new QAction(GraphicsDoc);
+        action_LoadTRF->setObjectName(QStringLiteral("action_LoadTRF"));
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -192,6 +195,7 @@ public:
         menu_2->addAction(menu_LoadData->menuAction());
         menu_LoadData->addAction(action_LoadSapr);
         menu_LoadData->addAction(action_LoadOrion);
+        menu_LoadData->addAction(action_LoadTRF);
         menu_4->addAction(actionAddAxe);
         menu_4->addAction(actionDelAxe);
         menu_4->addAction(actionScaleUp);
@@ -249,6 +253,7 @@ public:
 #ifndef QT_NO_SHORTCUT
         actionDelAxe->setShortcut(QApplication::translate("GraphicsDoc", "Del", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
+        action_LoadTRF->setText(QApplication::translate("GraphicsDoc", "TRF", Q_NULLPTR));
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_LoadData->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

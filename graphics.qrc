@@ -4,6 +4,7 @@
         <file>Resources/tree/icon_chapter.bmp</file>
         <file>Resources/tree/icon_context.bmp</file>
         <file>Resources/tree/icon_double.bmp</file>
+        <file>Resources/tree/icon_float.bmp</file>
         <file>Resources/tree/icon_enum.bmp</file>
         <file>Resources/tree/icon_int.bmp</file>
         <file>Resources/tree/icon_matrix2D.bmp</file>

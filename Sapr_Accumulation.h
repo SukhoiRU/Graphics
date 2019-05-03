@@ -19,7 +19,7 @@ private:
 		virtual ~SaprSignal(){}
 	};
 
-	enum DataType	{Bool, Int, Double, Float, Short};
+	enum DataType	{Bool, Int, Double, Float = 12, Short = 14};
 
 	struct SaprData
 	{

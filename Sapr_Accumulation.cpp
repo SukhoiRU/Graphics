@@ -122,13 +122,6 @@ void	Sapr_Accumulation::load(const QString& filename)
 		qint64	dwLength	= m_pFile->size();
 		m_nRecCount	= (dwLength-dwPosition)/m_nRecordSize;
 	}
-
-/*
-	//Выделяем массив данных
-	if(m_pData)	{delete[] m_pData; m_pData	= 0;}
-	m_pData	= new char[m_nRecordSize*m_nRecCount];
-	m_pFile->read((char*)m_pData, m_nRecordSize*m_nRecCount);
-*/
 }
 
 void	Sapr_Accumulation::preloadData(QStringList* pAxes)
@@ -218,13 +211,11 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем в загруженных
-	SaprData*	pData	= nullptr;
 	for(size_t i = 0; i < m_Data.size(); i++)
 	{
 		SaprData* data	= m_Data.at(i);
 		if(data->path == path)
 		{
-			pData	= data;
 			*ppTime	= m_pTime;
 			*ppData	= data->ptr;
 			*nType	= data->type;
@@ -233,7 +224,6 @@ size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, co
 		}
 	}
 
-	//Данные не найдены в списке предварительно загруженных. Такого быть не должно!
-	//QMessageBox::critical(nullptr, "Загрузка САПР", QString("Данные %1 \nне найдены в списке предварительно загруженных.\nТакого быть не должно!").arg(path));
+	//Данные не найдены в списке предварительно загруженных.
 	return 0;
 }

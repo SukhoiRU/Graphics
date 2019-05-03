@@ -22,9 +22,11 @@ int main(int argc, char *argv[])
 	QCommandLineOption grfOption("grf", "Загружает файл экрана <file.grf>", "*.grf");
 	QCommandLineOption orionOption("orion", "Открывает файл <file.orion>.", "*.orion");
 	QCommandLineOption bufOption("buf", "Открывает файл <file.buf>.", "*.buf");
+	QCommandLineOption trfOption("trf", "Открывает файл <file.trf>.", "*.trf");
 	parser.addOption(grfOption);
 	parser.addOption(orionOption);
 	parser.addOption(bufOption);
+	parser.addOption(trfOption);
 	parser.process(a);
 
 	//QColorDialog::setStandardColor(0, Qt::black);
@@ -39,6 +41,7 @@ int main(int argc, char *argv[])
 	if(parser.isSet(grfOption))		w.loadScreen(parser.value(grfOption));
 	if(parser.isSet(orionOption))	w.loadData(parser.value(orionOption), Accumulation::Acc_Orion);
 	if(parser.isSet(bufOption))		w.loadData(parser.value(bufOption), Accumulation::Acc_SAPR);
+	if(parser.isSet(trfOption))		w.loadData(parser.value(trfOption), Accumulation::Acc_TRF);
 	
     return a.exec();
 }

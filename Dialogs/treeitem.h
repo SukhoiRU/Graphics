@@ -15,6 +15,7 @@ public:
 		Item_Bool, 
 		Item_Int, 
 		Item_Double, 
+		Item_Float,
 		Item_Vector2D,
 		Item_Vector3D,
 		Item_Matrix2D,

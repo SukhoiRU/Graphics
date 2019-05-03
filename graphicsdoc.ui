@@ -127,6 +127,7 @@
      </property>
      <addaction name="action_LoadSapr"/>
      <addaction name="action_LoadOrion"/>
+     <addaction name="action_LoadTRF"/>
     </widget>
     <addaction name="menu_LoadData"/>
    </widget>
@@ -294,6 +295,11 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
+   </property>
+  </action>
+  <action name="action_LoadTRF">
+   <property name="text">
+    <string>TRF</string>
    </property>
   </action>
  </widget>

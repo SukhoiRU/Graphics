@@ -66,6 +66,7 @@ QString	TreeItem::Data::typeName() const
 	case Item_Bool:		return "bool";
 	case Item_Int:		return "int";
 	case Item_Double:	return "double";
+	case Item_Float:	return "float";
 	case Item_System:	return "System";
 	case Item_Context:	return "Context";
 	case Item_Struct:	return "Struct";

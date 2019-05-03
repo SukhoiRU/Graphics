@@ -46,6 +46,7 @@ protected:
     QIcon		m_IconBool;
     QIcon		m_IconInt;
     QIcon		m_IconDouble;
+	QIcon		m_IconFloat;
     QIcon		m_IconVector2D;
     QIcon		m_IconVector3D;
     QIcon		m_IconMatrix2D;

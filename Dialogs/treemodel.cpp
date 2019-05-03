@@ -23,6 +23,7 @@ QAbstractItemModel(parent)
 	QPixmap		IconBool;
 	QPixmap		IconInt;
 	QPixmap		IconDouble;
+	QPixmap		IconFloat;
 	QPixmap		IconVector2D;
 	QPixmap		IconVector3D;
 	QPixmap		IconMatrix2D;
@@ -39,6 +40,7 @@ QAbstractItemModel(parent)
     IconBool.load(":/Resources/tree/icon_bool.bmp");
     IconInt.load(":/Resources/tree/icon_int.bmp");
     IconDouble.load(":/Resources/tree/icon_double.bmp");
+	IconFloat.load(":/Resources/tree/icon_float.bmp");
     IconVector2D.load(":/Resources/tree/icon_vector2D.bmp");
     IconVector3D.load(":/Resources/tree/icon_vector3D.bmp");
     IconMatrix2D.load(":/Resources/tree/icon_matrix2D.bmp");
@@ -53,6 +55,7 @@ QAbstractItemModel(parent)
 	IconBool		= IconBool.scaled(16,16);		IconBool.setMask(IconBool.createHeuristicMask());
 	IconInt			= IconInt.scaled(16,16);		IconInt.setMask(IconInt.createHeuristicMask());
 	IconDouble		= IconDouble.scaled(16,16);		IconDouble.setMask(IconDouble.createHeuristicMask());
+	IconFloat		= IconFloat.scaled(16, 16);		IconFloat.setMask(IconFloat.createHeuristicMask());
 	IconVector2D	= IconVector2D.scaled(16,16);	IconVector2D.setMask(IconVector2D.createHeuristicMask());
 	IconVector3D	= IconVector3D.scaled(16,16);	IconVector3D.setMask(IconVector3D.createHeuristicMask());
 	IconMatrix2D	= IconMatrix2D.scaled(16,16);	IconMatrix2D.setMask(IconMatrix2D.createHeuristicMask());
@@ -67,6 +70,7 @@ QAbstractItemModel(parent)
 	m_IconBool				= QIcon(IconBool);
 	m_IconInt				= QIcon(IconInt);
 	m_IconDouble			= QIcon(IconDouble);
+	m_IconFloat				= QIcon(IconFloat);
 	m_IconVector2D			= QIcon(IconVector2D);
 	m_IconVector3D			= QIcon(IconVector3D);
 	m_IconMatrix2D			= QIcon(IconMatrix2D);
@@ -142,7 +146,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
                 case 7: data.type	= TreeItem::Item_Struct; break;
                 case 8: data.type	= TreeItem::Item_Context; break;
                 case 9: data.type	= TreeItem::Item_System; break;
-    //            case 12: data.type	= TreeItem::Item_Fl; break;
+                case 12: data.type	= TreeItem::Item_Float; break;
                 case 13: data.type	= TreeItem::Item_Enum; break;
                 case 14: data.type	= TreeItem::Item_Chapter; break;
                 default:
@@ -197,6 +201,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 				case TreeItem::Item_Bool:		return m_IconBool;
 				case TreeItem::Item_Int:		return m_IconInt;
 				case TreeItem::Item_Double:		return m_IconDouble;
+				case TreeItem::Item_Float:		return m_IconFloat;
 				case TreeItem::Item_Vector2D:	return m_IconVector2D;
 				case TreeItem::Item_Vector3D:	return m_IconVector3D;
 				case TreeItem::Item_Matrix2D:	return m_IconMatrix2D;

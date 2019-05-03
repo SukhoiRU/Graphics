@@ -7,6 +7,7 @@
 #include "Accumulation.h"
 #include "Orion_Accumulation.h"
 #include "Sapr_Accumulation.h"
+#include "TRF_Accumulation.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -68,6 +69,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 //	connect(ui->menu_LoadData, &QMenu::triggered, this, &GraphicsDoc::on_menu_LoadData);
 	connect(ui->action_LoadSapr, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadSapr); });
 	connect(ui->action_LoadOrion, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadOrion);});
+	connect(ui->action_LoadTRF, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadTRF); });
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -272,6 +274,12 @@ void GraphicsDoc::on_menu_LoadData(QAction* pAction)
 		acc_type	= Accumulation::Acc_SAPR;
 		fileType	= "*.buf";
 	}
+	else if(pAction == ui->action_LoadTRF)
+	{
+		acc_type	= Accumulation::Acc_TRF;
+		fileType	= "*.trf";
+	}
+
 
     QFileDialog::Options option;
 #ifdef __linux__
@@ -311,6 +319,7 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
 	{
 		case Accumulation::Acc_Orion:	pAcc	= new Orion_Accumulation;	break;
 		case Accumulation::Acc_SAPR:	pAcc	= new Sapr_Accumulation;	break;
+		case Accumulation::Acc_TRF:		pAcc	= new TRF_Accumulation;		break;
 		default:
 			break;
 	}

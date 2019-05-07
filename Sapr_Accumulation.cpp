@@ -91,10 +91,17 @@ void	Sapr_Accumulation::load(const QString& filename)
 		char	buf[1024];
 		m_pFile->read(buf, nPathLength);
 		buf[nPathLength]	= 0;
-		Path	= codec->toUnicode(buf);
+		//Удаляем лидирующий слеш
+		if(buf[0] == '\\')	Path	= codec->toUnicode(buf+1);
+		else				Path	= codec->toUnicode(buf);
+		
 		m_pFile->read(buf, nIconLength);
-		buf[nIconLength-1]	= 0;
-		Icons	= buf;
+		buf[nIconLength]	= 0;
+		//Убираем запятую в конце
+		string	strIcons(buf);
+		while(!isdigit(strIcons.back()))
+			strIcons.pop_back();
+		Icons	= QString::fromStdString(strIcons);
 
 		//Путь
 		signal->path	= Path;

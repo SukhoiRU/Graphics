@@ -405,7 +405,9 @@ void	GAxe::setAxeLength(int len, int highlighted)
 			if(i == highlighted) 	textLabel->setFont(5.5f);
 			else 					textLabel->setFont(3.5f);
 
-			QString	txt		= QString("%1").arg(m_AxeMin + i*m_AxeScale);
+			double	val		= m_AxeMin + i*m_AxeScale;
+			if(abs(val) < 1e-10)	val	= 0.0;
+			QString	txt		= QString("%1").arg(val);
 			vec2	size	= textLabel->textSize(txt);
 			textLabel->addString(txt, -size.x - 2., i*grid.y - textLabel->midLine());
 		}

@@ -23,7 +23,7 @@ private:
 
 	struct SaprData
 	{
-		QString		path;	//Путь к сигналу
+		string		path;	//Путь к сигналу
 		char*		ptr;	//Указатель на считанные данные
 		DataType	type;	//Тип данных
 		int			offset;	//Смещение сигнала в записи
@@ -31,7 +31,7 @@ private:
 
 	int				m_nRecordSize;	//Длина вектора
 	int				m_nRecCount;	//Количество записей
-	qint64			m_DataPos;		//Положение начала данных в файле
+	streampos		m_DataPos;		//Положение начала данных в файле
 
 	vector<SaprData*>	m_Data;		//Считанные данные
 	double*				m_pTime;	//Общее время
@@ -42,11 +42,11 @@ public:
 	virtual ~Sapr_Accumulation();
 
 	//Переопределяемые методы
-	virtual void	load(const QString& filename);
+	virtual void	load(const char* filename);
 	virtual void	preloadData(QStringList* pAxes);
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
-	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
-	virtual void	print(const QString& filename, bool bHead = true){};
+	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const;
+	virtual void	savePart(const string& filename, double Time0, double Time1) const{};
+	virtual void	print(const string& filename, bool bHead = true){};
 };
 
 #endif // SAPR_ACCUMULATION_H

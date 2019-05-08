@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Orion_Accumulation.h"
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -15,7 +16,7 @@ Orion_Accumulation::~Orion_Accumulation()
 	FreeOrionData();
 }
 
-void	Orion_Accumulation::load(const string& filename)
+void	Orion_Accumulation::load(const char* filename)
 {
 	//Для начала все стираем
 	m_Header.clear();
@@ -31,14 +32,14 @@ void	Orion_Accumulation::load(const string& filename)
 
 	//Открываем файл
 	m_pFile	= new ifstream();
-	m_pFile->open(filename.c_str(), ifstream::in | ifstream::binary);
-	if(m_pFile->fail())
-	{
-		QString	msg = "Не удалось открыть файл\n";
-		msg	+= QString::fromStdString(filename);
-		QMessageBox::critical(0, "Чтение Орион", msg);
-		return;
-	}
+	m_pFile->open(filename, ifstream::in | ifstream::binary);
+ 	if(m_pFile->fail())
+ 	{
+ 		QString	msg = "Не удалось открыть файл\n";
+ 		msg	+= QString::fromStdString(filename);
+ 		QMessageBox::critical(0, "Чтение Орион", msg);
+ 		return;
+ 	}
 
 	//Читаем количество пакетов в файле
 	int	nPackets	= 0;
@@ -152,11 +153,17 @@ void	Orion_Accumulation::LoadOrionPacket()
 		//Путь
 		signal->path	= Path;
 
+		//Убираем запятую в конце
+		string	strIcons(buf);
+		while(!isdigit(strIcons.back()) && !strIcons.empty())
+			strIcons.pop_back();
+
 		//Иконки
-		QStringList	iconsList	= Icons.split(",");
-		for(size_t i = 0; i < iconsList.size(); i++)
+		stringstream	ss(strIcons);
+		string	icon;
+		while(getline(ss, icon, ','))
 		{
-			int nIcon	= iconsList.at(i).toInt();
+			int nIcon	= atoi(icon.c_str());
 			if(nIcon == 12) nIcon = 13;
 			signal->icons.push_back(nIcon);
 		}
@@ -186,7 +193,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pFile->read((char*)buf, LenPath);
 
 			//Дочитываем до килобайта
-			m_pFile->seekg(posBegin+1024);
+			m_pFile->seekg(posBegin+(streampos)1024);
 		}
 
 		m_Header.push_back(signal);
@@ -285,8 +292,8 @@ size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, co
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFileTime))		return 0;
-		if(m_pFile->read((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seekg(signal->OrionFileTime))		return 0;
+		if(m_pFile->readsome((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;
@@ -313,8 +320,8 @@ size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, co
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFilePos))		return 0;
-		if(m_pFile->read((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seekg(signal->OrionFilePos))		return 0;
+		if(m_pFile->readsome((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;

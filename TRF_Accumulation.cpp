@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TRF_Accumulation.h"
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -44,10 +45,9 @@ void	TRF_Accumulation::clearData()
 }
 
 //Чтение из файла TRF
-void	TRF_Accumulation::load(const QString& filename)
+void	TRF_Accumulation::load(const char* filename)
 {
 	QTextCodec* codec	= QTextCodec::codecForName("CP866");
-	QByteArrayList	cc	= QTextCodec::availableCodecs();
 
 	//Для начала все стираем
 	m_Header.clear();
@@ -61,14 +61,13 @@ void	TRF_Accumulation::load(const QString& filename)
 	}
 
 	//Открываем файл
-	m_pFile	= new QFile(filename);
-	if(!m_pFile)	return;
-
-	if(!m_pFile->open(QIODevice::ReadOnly))
+	m_pFile	= new ifstream();
+	m_pFile->open(filename, ifstream::in | ifstream::binary);
+	if(m_pFile->fail())
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= filename;
-		QMessageBox::critical(0, "Чтение САПР", msg);
+		msg	+= QString::fromStdString(filename);
+		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
 
@@ -76,7 +75,7 @@ void	TRF_Accumulation::load(const QString& filename)
 	TrfHead		header;
 	TrfParm		param;
 
-	if(m_pFile->read((char*)&header, 512) != 512)	return;
+	if(m_pFile->readsome((char*)&header, 512) != 512)	return;
 
 	m_nRecCount		= header.rec_numb;
 	m_nRecordSize	= header.rec_leng;
@@ -85,7 +84,7 @@ void	TRF_Accumulation::load(const QString& filename)
 	QStringList	names;
 	for(int i = 0; i < header.parm_numb; i++)
 	{
-		m_pFile->seek(512*(i+1));
+		m_pFile->seekg(512*(i+1));
 		m_pFile->read((char*)&param, sizeof(param));
 
 		QString	Name	= codec->toUnicode(param.buf);	
@@ -105,8 +104,8 @@ void	TRF_Accumulation::load(const QString& filename)
 
 		//Описатель
 		TrfSignal*		signal	= new TrfSignal;
-		signal->path	= Name;
-		signal->comment	= Comm;
+		signal->path	= Name.toStdString();
+		signal->comment	= Comm.toStdString();
 		signal->icons.push_back(12);
 		signal->Offset	= param.offset;
 		
@@ -118,11 +117,11 @@ void	TRF_Accumulation::load(const QString& filename)
 	m_nTRF_Hsize	= 512*(header.parm_numb + 1);
 	if(m_pTRF_Head)	{ delete[] m_pTRF_Head;	m_pTRF_Head	= 0; }
 	m_pTRF_Head		= new char[m_nTRF_Hsize];
-	m_pFile->seek(0);
+	m_pFile->seekg(0);
 	m_pFile->read(m_pTRF_Head, m_nTRF_Hsize);
 
 	//Сохраняем положение в файле
-	m_DataPos	= m_pFile->pos();
+	m_DataPos	= m_pFile->tellg();
 }
 
 void	TRF_Accumulation::preloadData(QStringList* pAxes)
@@ -145,7 +144,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 		for(size_t i = 0; i < m_Header.size(); i++)
 		{
 			SignalInfo*	pInfo	= m_Header.at(i);
-			if(m_Name + '\\' + pInfo->path == path)
+			if(m_Name + '\\' + pInfo->path == path.toStdString())
 			{
 				signal	= static_cast<TrfSignal*>(pInfo);
 
@@ -163,7 +162,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 	}
 
 	//Загружаем данные в память
-	m_pFile->seek(m_DataPos);
+	m_pFile->seekg(m_DataPos);
 
 	const int	BlockSize	= 10000;
 	char*	Block	= new char[m_nRecordSize*BlockSize];
@@ -174,7 +173,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 		if(++curRec >= recLoaded)
 		{
 			//Считываем блок
-			recLoaded	= m_pFile->read(Block, m_nRecordSize*BlockSize)/m_nRecordSize;
+			recLoaded	= m_pFile->readsome(Block, m_nRecordSize*BlockSize)/m_nRecordSize;
 			curRec		= 0;
 		}
 		
@@ -192,7 +191,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	TRF_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	TRF_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)

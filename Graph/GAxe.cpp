@@ -1242,7 +1242,7 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 	const double*	pTime;
 	const char*		pData;
 	int				nType;
-	m_Data_Length	= pAcc->getData(path, &pTime, &pData, &nType);
+	m_Data_Length	= pAcc->getData(path.toStdString(), &pTime, &pData, &nType);
 
 	if(!m_Data_Length)	
 	{

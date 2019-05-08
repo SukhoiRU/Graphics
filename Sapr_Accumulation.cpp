@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Sapr_Accumulation.h"
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -36,7 +37,7 @@ void	Sapr_Accumulation::clearData()
 }
 
 //Чтение из файла САПР
-void	Sapr_Accumulation::load(const QString& filename)
+void	Sapr_Accumulation::load(const char* filename)
 {
 	struct Head
 	{
@@ -59,14 +60,13 @@ void	Sapr_Accumulation::load(const QString& filename)
 	}
 
 	//Открываем файл
-	m_pFile	= new QFile(filename);
-	if(!m_pFile)	return;
-
-	if(!m_pFile->open(QIODevice::ReadOnly))
+	m_pFile	= new ifstream();
+	m_pFile->open(filename, ifstream::in | ifstream::binary);
+	if(m_pFile->fail())
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= filename;
-		QMessageBox::critical(0, "Чтение САПР", msg);
+		msg	+= QString::fromStdString(filename);
+		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
 
@@ -79,8 +79,8 @@ void	Sapr_Accumulation::load(const QString& filename)
 	for(int i = 0; i < H.nParams; i++)
 	{
 		SaprSignal*		signal	= new SaprSignal;
-		QString			Path;
-		QString			Icons;
+		string			Path;
+		string			Icons;
 
 		//Сначала длину строк
 		int	nPathLength;	m_pFile->read((char*)&nPathLength, sizeof(int));
@@ -93,25 +93,26 @@ void	Sapr_Accumulation::load(const QString& filename)
 		buf[nPathLength]	= 0;
 		
 		//Удаляем лидирующий слеш
-		if(buf[0] == '\\')	Path	= codec->toUnicode(buf+1);
-		else				Path	= codec->toUnicode(buf);
+		if(buf[0] == '\\')	Path	= codec->toUnicode(buf+1).toStdString();
+		else				Path	= codec->toUnicode(buf).toStdString();
 		
 		m_pFile->read(buf, nIconLength);
 		buf[nIconLength]	= 0;
+
 		//Убираем запятую в конце
 		string	strIcons(buf);
 		while(!isdigit(strIcons.back()) && !strIcons.empty())
 			strIcons.pop_back();
-		Icons	= QString::fromStdString(strIcons);
 
 		//Путь
 		signal->path	= Path;
 
 		//Иконки
-		QStringList	iconsList	= Icons.split(",");
-		for(size_t i = 0; i < iconsList.size(); i++)
+		stringstream	ss(strIcons);
+		string	icon;
+		while(getline(ss, icon, ','))
 		{
-			int nIcon	= iconsList.at(i).toInt();
+			int nIcon	= atoi(icon.c_str());
 			if(nIcon == 12) nIcon = 13;
 			signal->icons.push_back(nIcon);
 		}
@@ -121,13 +122,13 @@ void	Sapr_Accumulation::load(const QString& filename)
 	}
 
 	//Сохраняем положение в файле
-	m_DataPos	= m_pFile->pos();
+	m_DataPos	= m_pFile->tellg();
 
 	//Восстанавливаем количество записей при ошибке заголовка
 	if(!m_nRecCount && m_nRecordSize)
 	{
-		qint64	dwPosition	= m_pFile->pos();
-		qint64	dwLength	= m_pFile->size();
+		qint64	dwPosition	= m_pFile->tellg();
+		qint64	dwLength	= m_pFile->tellg();
 		m_nRecCount	= (dwLength-dwPosition)/m_nRecordSize;
 	}
 }
@@ -152,7 +153,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 		for(size_t i = 0; i < m_Header.size(); i++)
 		{
 			SignalInfo*	pInfo	= m_Header.at(i);
-			if(m_Name + '\\' + pInfo->path == path)
+			if(m_Name + '\\' + pInfo->path == path.toStdString())
 			{
 				signal	= static_cast<SaprSignal*>(pInfo);
 
@@ -178,7 +179,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	}
 
 	//Загружаем данные в память
-	m_pFile->seek(m_DataPos);
+	m_pFile->seekg(m_DataPos);
 
 	const int	BlockSize	= 10000;
 	char*	Block	= new char[m_nRecordSize*BlockSize];
@@ -189,7 +190,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 		if(++curRec >= recLoaded)
 		{
 			//Считываем блок
-			recLoaded	= m_pFile->read(Block, m_nRecordSize*BlockSize)/m_nRecordSize;
+			recLoaded	= m_pFile->readsome(Block, m_nRecordSize*BlockSize)/m_nRecordSize;
 			curRec		= 0;
 		}
 		
@@ -216,7 +217,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	Sapr_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)

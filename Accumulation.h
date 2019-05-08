@@ -42,7 +42,7 @@ public:
 	void						setName(string& name)	{m_Name = name;}
 
 	//Переопределяемые методы
-	virtual void	load(const string& filename) = 0;
+	virtual void	load(const char* filename) = 0;
 	virtual void	preloadData(QStringList* pAxes) = 0;
 	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const = 0;
 	virtual void	savePart(const string& filename, double Time0, double Time1) const = 0;

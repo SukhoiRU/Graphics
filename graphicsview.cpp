@@ -1222,7 +1222,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 	return QOpenGLWidget::keyReleaseEvent(event);
 }
 
-void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, const std::vector<Accumulation*>* pBuffer)
+void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 {
 	if(m_pPanel)
 	{
@@ -1246,7 +1246,6 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes, const std::vector
 	{
 		Graph::GAxe*	pAxe	= axes->at(i);
 		pAxe->initializeGL();
-		pAxe->updateRecord(pBuffer);
 		m_GraphObjects.push_back(pAxe);
 	}
 

@@ -5,7 +5,6 @@
 
 class QCursor;
 class QDomElement;
-class Accumulation;
 class QOpenGLShaderProgram;
 using glm::ivec2;
 
@@ -14,7 +13,6 @@ namespace Graph{
 
 class GAxe : public GraphObject  //Класс оси графика
 {
-	enum Direction	{TOP, BOTTOM, ALL};
 	enum DataType	{Bool, Int, Double, Float, Short};
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -23,15 +21,10 @@ class GAxe : public GraphObject  //Класс оси графика
 private:
 	vec2			m_BottomRight;	//Положение нижнего правого угла, мм
 	vec2			m_FrameBR;		//Положение нижнего правого угла рамки, мм
-
-	vec2			m_OldPoint;		//Предыдущая точка графика
-	Direction		m_Direction;	//Направление перетаскивания объекта
-
 	DataType		m_Data_Type;	//Тип отображаемых данных
 	size_t			m_Data_Length;	//Длина для Орион
 	int				m_Axe_Length;	//Длина оси в клетках	
 	int				m_Axe_nCount;	//Количество точек в буфере отрисовки шкалы
-
 	int				m_MaskSRK;		//Маска СРК
 
 	//Фазовые
@@ -147,7 +140,7 @@ public:
 	//Запись-чтение
 	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
 	virtual void	load(QDomElement* node, double ver);		//Чтение XML
-	void			updateRecord(const std::vector<Accumulation*>* pBuffer);//Обновление данных о массиве
+	void			uploadData(size_t size, const double* pTime, const char* pData, const int nType);
 	
 	//Рисование
 	virtual void	initializeGL();

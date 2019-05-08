@@ -34,7 +34,6 @@ GAxeArg::~GAxeArg()
 void	GAxeArg::initializeGL()
 {
 	if(m_bOpenGL_inited)	return;
-//	initializeOpenGLFunctions();
 	m_bOpenGL_inited	= true;
 
 	m_program	= new QOpenGLShaderProgram;

@@ -73,7 +73,6 @@ GAxe::GAxe()
 	m_Data_Type	= Double;
 	m_nMarker	= 0;
 
-	m_OldPoint	= {0,0};
 	m_Data_Length	= 0;
 	m_bShowNum	= false;
 	m_bSRK		= false;
@@ -265,7 +264,28 @@ void	GAxe::initializeGL()
 	}
 
 	textLabel->initializeGL();
+
+	if(dataVBO)
+	{
+		glDeleteBuffers(1, &dataVBO);
+		glDeleteBuffers(1, &markerIBO);
+	}
+
+	glGenBuffers(1, &dataVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
+	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &markerIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//Обновляем VAO оси
 	setAxeLength(m_Axe_Length);
+
+	//Обновляем индексы
+	oldTimeStep	= 0;
 }
 
 void	GAxe::clearGL()
@@ -1214,41 +1234,15 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	setAxeLength(m_Axe_Length);
 }
 
-void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
+void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const int nType)
 {
-	//Ищем накопление по имени
-	QStringList	pathList	= m_Path.split('\\');
-	QString		path		= m_Path.right(m_Path.length()-1-pathList.first().length());
-	QString		accName		= pathList.first();
-
-	const Accumulation*	pAcc	= nullptr;
-	for(size_t i = 0; i < pBuffer->size(); i++)
-	{
-		const Accumulation*	acc	= pBuffer->at(i);
-		if(acc->name()	== accName)
-		{
-			pAcc	= acc;
-			break;
-		}
-	}
-	if(pAcc == nullptr)
-	{
-		//Раз не нашли, то...
-		m_data.clear();
-		return;
-	}
-
-	//Получаем данные
-	const double*	pTime;
-	const char*		pData;
-	int				nType;
-	m_Data_Length	= pAcc->getData(path, &pTime, &pData, &nType);
-
-	if(!m_Data_Length)	
+	if(!size)	
 	{
 		m_data.clear();
 		return;
 	}
+
+	m_Data_Length	= size;
 
 	//Уточняем тип данных
 	switch(nType)
@@ -1266,10 +1260,7 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 	if(m_bSRK)	
 	{
 		m_Data_Type		= Bool;
-		m_MaskSRK		= 0x1 << (m_nBitSRK-1);
-				
-		//В записях КСУ смещение на 1 бит
-		if(pAcc->type() == Accumulation::Acc_CCS)	m_MaskSRK	= m_MaskSRK << 1;
+		m_MaskSRK		= 0x1 << (m_nBitSRK-1);				
 	}
 
 	if(m_Data_Type == Bool)
@@ -1293,29 +1284,6 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 			break;
 		}
 	}
-	if(!m_bOpenGL_inited)	return;
-
-	if(dataVBO)
-	{
-		glDeleteBuffers(1, &dataVBO);
-		glDeleteBuffers(1, &markerIBO);
-	}
-
-	glGenBuffers(1, &dataVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-	glBufferData(GL_ARRAY_BUFFER, m_data.size()*sizeof(vec2), m_data.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-					
-	glGenBuffers(1, &markerIBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, markerIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 10*sizeof(GLuint), nullptr, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	//Обновляем VAO оси
-	setAxeLength(m_Axe_Length);
-
-	//Обновляем индексы
-	oldTimeStep	= 0;
 
 	UpdateFiltering();
 	return;

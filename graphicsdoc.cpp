@@ -348,7 +348,7 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
     }
 */
 	preloadPanel();
-	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+	emit panelChanged(&m_pActivePanel->Axes);
 }
 
 void	GraphicsDoc::on_PanelListChanged()
@@ -371,7 +371,7 @@ void	GraphicsDoc::on_PanelIndexChanged(int index)
 	m_pActivePanel	= m_PanelList.at(index);
 
 	preloadPanel();
-    emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+    emit panelChanged(&m_pActivePanel->Axes);
 }
 
 void	GraphicsDoc::on_PanelAdd()
@@ -474,11 +474,10 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		m_pActivePanel->Axes.push_back(pAxe);
 
 		preloadPanel();
-		pAxe->updateRecord(&m_BufArray);
 		pAxe->fitToScale();
 		pAxe->initializeGL();
 
-		emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+		emit panelChanged(&m_pActivePanel->Axes);
 		emit axeAdded(pAxe);
 
 		//Вызовем диалог параметров оси
@@ -511,7 +510,7 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 		//Меняем ось
 		pAxe->m_Name	= pathList.back();
 		pAxe->m_Path	= dlg.m_Path;
-		pAxe->updateRecord(&m_BufArray);
+		preloadPanel();
 		pAxe->fitToScale();
 	}
 }
@@ -535,7 +534,7 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 	}
 
 	//Обновляем графики и таблицу
-	emit panelChanged(&m_pActivePanel->Axes, &m_BufArray);
+	emit panelChanged(&m_pActivePanel->Axes);
 }
 
 void	GraphicsDoc::preloadPanel()
@@ -544,13 +543,52 @@ void	GraphicsDoc::preloadPanel()
 	QStringList	list;
 	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
 	{
+		//Формируем перечень путей к графикам
 		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
 		list.push_back(pAxe->m_Path);
 	}
 
+	//Загружаем данные в набор накоплений
 	for(size_t i = 0; i < m_BufArray.size(); i++)
 	{
 		Accumulation*	pAcc	= m_BufArray.at(i);
 		pAcc->preloadData(&list);
 	}
+
+	//Перекидываем данные в графики
+	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
+	{
+		GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
+
+		//Ищем нужное для графика накопление по имени
+		QStringList	pathList	= pAxe->m_Path.split('\\');
+		QString		path		= pAxe->m_Path.right(pAxe->m_Path.length()-1-pathList.first().length());
+		QString		accName		= pathList.first();
+
+		const Accumulation*	pAcc	= nullptr;
+		for(size_t j = 0; j < m_BufArray.size(); j++)
+		{
+			const Accumulation*	acc	= m_BufArray.at(j);
+			if(acc->name()	== accName)
+			{
+				pAcc	= acc;
+				break;
+			}
+		}
+		if(pAcc == nullptr)
+		{
+			//Раз не нашли, то...
+			pAxe->uploadData(0, nullptr, nullptr, 0);
+			return;
+		}
+
+		//Получаем данные
+		size_t			len;
+		const double*	pTime;
+		const char*		pData;
+		int				nType;
+		len	= pAcc->getData(path, &pTime, &pData, &nType);
+		pAxe->uploadData(len, pTime, pData, nType);
+	}
+
 }

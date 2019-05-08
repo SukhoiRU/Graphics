@@ -1225,7 +1225,7 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 	for(size_t i = 0; i < pBuffer->size(); i++)
 	{
 		const Accumulation*	acc	= pBuffer->at(i);
-		if(acc->name()	== accName)
+		if(acc->name()	== accName.toStdString())
 		{
 			pAcc	= acc;
 			break;

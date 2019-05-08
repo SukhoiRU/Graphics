@@ -15,7 +15,7 @@ Orion_Accumulation::~Orion_Accumulation()
 	FreeOrionData();
 }
 
-void	Orion_Accumulation::load(const QString& filename)
+void	Orion_Accumulation::load(const string& filename)
 {
 	//Для начала все стираем
 	m_Header.clear();
@@ -30,13 +30,12 @@ void	Orion_Accumulation::load(const QString& filename)
 	m_OrionPacketList.clear();
 
 	//Открываем файл
-	m_pFile	= new QFile(filename);
-	if(!m_pFile)	return;
-
-	if(!m_pFile->open(QIODevice::ReadOnly))
+	m_pFile	= new ifstream();
+	m_pFile->open(filename.c_str(), ifstream::in | ifstream::binary);
+	if(m_pFile->fail())
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= filename;
+		msg	+= QString::fromStdString(filename);
 		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
@@ -62,7 +61,7 @@ void	Orion_Accumulation::load(const QString& filename)
 		m_pFile->read((char*)buf, nLen);
 		buf[nLen]	= 0;
 
-		h.name	= codec->toUnicode(buf);
+		h.name	= codec->toUnicode(buf).toStdString();
 		m_pFile->read((char*)&h.pos, sizeof(h.pos));
 
 		m_OrionPacketList.push_back(h);
@@ -72,7 +71,7 @@ void	Orion_Accumulation::load(const QString& filename)
 	for(size_t pos = 0; pos < m_OrionPacketList.size(); pos++)
 	{
 		const OrionHead&	h	= m_OrionPacketList[pos];
-		m_pFile->seek(h.pos);
+		m_pFile->seekg(h.pos);
 		LoadOrionPacket();
 	}
 }
@@ -109,10 +108,10 @@ void	Orion_Accumulation::LoadOrionPacket()
 		int	LenPath;
 		int	LenIcons;
 		char buf[1024];
-		QString	Path;
-		QString	Icons;
+		string	Path;
+		string	Icons;
 		
-		qint64	posBegin	= m_pFile->pos();
+		streampos	posBegin	= m_pFile->tellg();
 
 		switch(m_nOrionVersion)
 		{
@@ -124,7 +123,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pFile->read((char*)&Offset, sizeof(Offset));
 			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
-			Path	= codec->toUnicode(buf);
+			Path	= codec->toUnicode(buf).toStdString();
 			m_pFile->read((char*)buf, LenIcons);
 			buf[LenIcons-1]	= 0;
 			Icons	= buf;
@@ -135,7 +134,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pFile->read((char*)&LenPath, sizeof(LenPath));
 			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
-			Path	= codec->toUnicode(buf);
+			Path	= codec->toUnicode(buf).toStdString();
 
 			m_pFile->read((char*)&LenIcons, sizeof(LenIcons));
 			m_pFile->read((char*)buf, LenIcons);
@@ -167,7 +166,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 		m_pFile->read((char*)&LenComm, sizeof(LenComm));
 		m_pFile->read((char*)buf, LenComm);
 		buf[LenComm]	= 0;
-		signal->comment	= codec->toUnicode(buf);
+		signal->comment	= codec->toUnicode(buf).toStdString();
 
 		//Количество точек в сигнале
 		if(m_nOrionVersion == 2)
@@ -187,7 +186,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pFile->read((char*)buf, LenPath);
 
 			//Дочитываем до килобайта
-			m_pFile->seek(posBegin+1024);
+			m_pFile->seekg(posBegin+1024);
 		}
 
 		m_Header.push_back(signal);
@@ -234,7 +233,7 @@ void	Orion_Accumulation::FreeOrionData()
 	m_OrionData.clear();
 }
 
-size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем путь
 	OrionSignal*	signal	= nullptr;

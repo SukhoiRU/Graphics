@@ -1,8 +1,9 @@
 #ifndef ACCUMULATION_H
 #define ACCUMULATION_H
 
-#include <QString>
 #include <vector>
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 //Базовый класс накопления
@@ -13,8 +14,8 @@ public:
 	class SignalInfo
 	{
 	public:
-		QString		path;		//Путь к элементу с разделителем "\"
-		QString		comment;	//Комментарий для второго столбца
+		string		path;		//Путь к элементу с разделителем "\"
+		string		comment;	//Комментарий для второго столбца
 		vector<int>	icons;		//Набор иконок-описателей уровней
 
 		SignalInfo(){}
@@ -27,8 +28,8 @@ public:
 protected:
 	vector<SignalInfo*>	m_Header;		//Описатель данных в массиве	
 	AccType				m_Type;			//Тип накопления
-	QString				m_Name;			//Имя накопления
-	QFile*				m_pFile;		//Указатель на открытый файл
+	string				m_Name;			//Имя накопления
+	ifstream*			m_pFile;		//Указатель на открытый файл
 
 public:
 	Accumulation();
@@ -37,15 +38,15 @@ public:
 	//Константный доступ
 	const vector<SignalInfo*>&	header()	const	{return m_Header;}
 	const AccType				type()		const	{return m_Type;}
-	const QString&				name()		const	{return m_Name;}
-	void						setName(QString& name)	{m_Name = name;}
+	const string&				name()		const	{return m_Name;}
+	void						setName(string& name)	{m_Name = name;}
 
 	//Переопределяемые методы
-	virtual void	load(const QString& filename) = 0;
+	virtual void	load(const string& filename) = 0;
 	virtual void	preloadData(QStringList* pAxes) = 0;
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const = 0;
-	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
-	virtual void	print(const QString& filename, bool bHead = true){};
+	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const = 0;
+	virtual void	savePart(const string& filename, double Time0, double Time1) const = 0;
+	virtual void	print(const string& filename, bool bHead = true){};
 };
 
 #endif // ACCUMULATION_H

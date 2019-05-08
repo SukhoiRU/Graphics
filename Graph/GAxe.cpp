@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "GAxe.h"
 #include <QDomElement>
-#include "../Accumulation.h"
 #include "GTextLabel.h"
+using std::min;
+using std::max;
 
 QColor	GetColor(int n);
 int		GetMarker(int n);

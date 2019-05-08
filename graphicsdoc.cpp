@@ -324,7 +324,7 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
 			break;
 	}
 	
-	pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1).toStdString());
+	pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1).toLocal8Bit());
 	m_BufArray.push_back(pAcc);
 
 	pAcc->load(FileName.toLocal8Bit());

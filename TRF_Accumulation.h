@@ -88,9 +88,9 @@ public:
 	//Переопределяемые методы
 	virtual void	load(const char* filename);
 	virtual void	preloadData(QStringList* pAxes);
-	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const;
-	virtual void	savePart(const string& filename, double Time0, double Time1) const{};
-	virtual void	print(const string& filename, bool bHead = true){};
+	virtual size_t	getData(const char* path, const double** ppTime, const char** ppData, int* nType) const;
+	virtual void	savePart(const char* filename, double Time0, double Time1) const{};
+	virtual void	print(const char* filename, bool bHead = true){};
 };
 
 #endif // TRF_ACCUMULATION_H

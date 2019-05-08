@@ -66,7 +66,7 @@ void	TRF_Accumulation::load(const char* filename)
 	if(m_pFile->fail())
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= QString::fromStdString(filename);
+		msg	+= QString::fromLocal8Bit(filename);
 		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
@@ -75,7 +75,7 @@ void	TRF_Accumulation::load(const char* filename)
 	TrfHead		header;
 	TrfParm		param;
 
-	if(m_pFile->readsome((char*)&header, 512) != 512)	return;
+	if(!m_pFile->read((char*)&header, 512))	return;
 
 	m_nRecCount		= header.rec_numb;
 	m_nRecordSize	= header.rec_leng;
@@ -191,7 +191,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	TRF_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	TRF_Accumulation::getData(const char* path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)

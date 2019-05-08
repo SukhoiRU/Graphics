@@ -65,7 +65,7 @@ void	Sapr_Accumulation::load(const char* filename)
 	if(m_pFile->fail())
 	{
 		QString	msg = "Не удалось открыть файл\n";
-		msg	+= QString::fromStdString(filename);
+		msg	+= QString::fromLocal8Bit(filename);
 		QMessageBox::critical(0, "Чтение Орион", msg);
 		return;
 	}
@@ -217,7 +217,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	Sapr_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	Sapr_Accumulation::getData(const char* path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)

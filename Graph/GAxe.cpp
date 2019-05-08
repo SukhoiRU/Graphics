@@ -1225,7 +1225,7 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 	for(size_t i = 0; i < pBuffer->size(); i++)
 	{
 		const Accumulation*	acc	= pBuffer->at(i);
-		if(acc->name()	== accName.toStdString())
+		if(acc->name()	== accName.toLocal8Bit())
 		{
 			pAcc	= acc;
 			break;
@@ -1242,7 +1242,7 @@ void	GAxe::updateRecord(const std::vector<Accumulation*>* pBuffer)
 	const double*	pTime;
 	const char*		pData;
 	int				nType;
-	m_Data_Length	= pAcc->getData(path.toStdString(), &pTime, &pData, &nType);
+	m_Data_Length	= pAcc->getData(path.toLocal8Bit(), &pTime, &pData, &nType);
 
 	if(!m_Data_Length)	
 	{

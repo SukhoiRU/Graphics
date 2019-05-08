@@ -10,8 +10,8 @@ private:
 	class OrionSignal : public Accumulation::SignalInfo
 	{
 	public:
-		streampos	OrionFilePos;	//Начало данных в общем файле
-		streampos	OrionFileTime;	//Начало времени в общем файле
+		int64_t		OrionFilePos;	//Начало данных в общем файле
+		int64_t		OrionFileTime;	//Начало времени в общем файле
 		uint		Length;			//Количество точек
 
 		OrionSignal()
@@ -26,8 +26,8 @@ private:
 	//Структура для большого файла Орион
 	struct OrionHead
 	{
-		string			name;		//Имя пакета
-		streampos		pos;		//Начало пакета
+		string		name;		//Имя пакета
+		int64_t		pos;		//Начало пакета
 		
 		void	operator = (const OrionHead& h)
 		{
@@ -38,8 +38,8 @@ private:
 
 	struct OrionData
 	{
-		streampos	pos;	//Положение в большом файле
-		char*		ptr;	//Указатель на считанные данные
+		int64_t	pos;	//Положение в большом файле
+		char*	ptr;	//Указатель на считанные данные
 	};
 
 	int							m_nOrionVersion;	//Номер версии файла Орион
@@ -58,9 +58,9 @@ public:
 	//Переопределяемые методы
 	virtual void	load(const char* filename);
 	virtual void	preloadData(QStringList* pAxes){};
-	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const;
-	virtual void	savePart(const string& filename, double Time0, double Time1) const{};
-	virtual void	print(const string& filename, bool bHead = true){};
+	virtual size_t	getData(const char* path, const double** ppTime, const char** ppData, int* nType) const;
+	virtual void	savePart(const char* filename, double Time0, double Time1) const{};
+	virtual void	print(const char* filename, bool bHead = true){};
 };
 
 #endif // ORION_ACCUMULATION_H

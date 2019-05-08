@@ -36,7 +36,7 @@ void	Orion_Accumulation::load(const char* filename)
  	if(m_pFile->fail())
  	{
  		QString	msg = "Не удалось открыть файл\n";
- 		msg	+= QString::fromStdString(filename);
+ 		msg	+= QString::fromLocal8Bit(filename);
  		QMessageBox::critical(0, "Чтение Орион", msg);
  		return;
  	}
@@ -49,8 +49,6 @@ void	Orion_Accumulation::load(const char* filename)
 	m_nOrionVersion	= (nPackets & 0xFFFF0000) >> 16;
 	nPackets		= nPackets & 0x0000FFFF;
 
-	QTextCodec* codec	= QTextCodec::codecForName("CP1251");
-
 	//Читаем их список
 	for(int i = 0; i < nPackets; i++)
 	{
@@ -62,7 +60,7 @@ void	Orion_Accumulation::load(const char* filename)
 		m_pFile->read((char*)buf, nLen);
 		buf[nLen]	= 0;
 
-		h.name	= codec->toUnicode(buf).toStdString();
+		h.name	= buf;
 		m_pFile->read((char*)&h.pos, sizeof(h.pos));
 
 		m_OrionPacketList.push_back(h);
@@ -94,8 +92,6 @@ void	Orion_Accumulation::savePart(QFile& file, double Time0, double Time1, TempF
 
 void	Orion_Accumulation::LoadOrionPacket()
 {
-	QTextCodec* codec	= QTextCodec::codecForName("CP1251");
-
 	//Читаем количество сигналов
 	int	nCount	= 0;
 	m_pFile->read((char*)&nCount, sizeof(nCount));
@@ -109,10 +105,11 @@ void	Orion_Accumulation::LoadOrionPacket()
 		int	LenPath;
 		int	LenIcons;
 		char buf[1024];
-		string	Path;
-		string	Icons;
 		
 		streampos	posBegin	= m_pFile->tellg();
+
+		//Формируем описатель сигнала
+		OrionSignal*	signal	= new OrionSignal;
 
 		switch(m_nOrionVersion)
 		{
@@ -120,14 +117,14 @@ void	Orion_Accumulation::LoadOrionPacket()
 		{
 			m_pFile->read((char*)&LenPath, sizeof(LenPath));
 			m_pFile->read((char*)&LenIcons, sizeof(LenIcons));
-			qint64	Offset;
+			int64_t	Offset;
 			m_pFile->read((char*)&Offset, sizeof(Offset));
 			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
-			Path	= codec->toUnicode(buf).toStdString();
+			signal->path	= buf;
+
 			m_pFile->read((char*)buf, LenIcons);
 			buf[LenIcons-1]	= 0;
-			Icons	= buf;
 		}break;
 
 		case 2:
@@ -135,23 +132,16 @@ void	Orion_Accumulation::LoadOrionPacket()
 			m_pFile->read((char*)&LenPath, sizeof(LenPath));
 			m_pFile->read((char*)buf, LenPath);
 			buf[LenPath]	= 0;
-			Path	= codec->toUnicode(buf).toStdString();
+			signal->path	= buf;
 
 			m_pFile->read((char*)&LenIcons, sizeof(LenIcons));
 			m_pFile->read((char*)buf, LenIcons);
 			buf[LenIcons-1]	= 0;
-			Icons	= buf;
 		}break;
 
 		default:
 			break;
 		}
-		
-		//Формируем описатель сигнала
-		OrionSignal*	signal	= new OrionSignal;
-
-		//Путь
-		signal->path	= Path;
 
 		//Убираем запятую в конце
 		string	strIcons(buf);
@@ -173,7 +163,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 		m_pFile->read((char*)&LenComm, sizeof(LenComm));
 		m_pFile->read((char*)buf, LenComm);
 		buf[LenComm]	= 0;
-		signal->comment	= codec->toUnicode(buf).toStdString();
+		signal->comment	= buf;//codec->toUnicode(buf).toStdString();
 
 		//Количество точек в сигнале
 		if(m_nOrionVersion == 2)
@@ -240,7 +230,7 @@ void	Orion_Accumulation::FreeOrionData()
 	m_OrionData.clear();
 }
 
-size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, const char** ppData, int* nType) const
+size_t	Orion_Accumulation::getData(const char* path, const double** ppTime, const char** ppData, int* nType) const
 {
 	//Ищем путь
 	OrionSignal*	signal	= nullptr;
@@ -292,8 +282,8 @@ size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, co
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seekg(signal->OrionFileTime))		return 0;
-		if(m_pFile->readsome((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seekg(signal->OrionFileTime))	return 0;
+		if(!m_pFile->read((char*)ptr, size))		return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;
@@ -320,8 +310,8 @@ size_t	Orion_Accumulation::getData(const string& path, const double** ppTime, co
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seekg(signal->OrionFilePos))		return 0;
-		if(m_pFile->readsome((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seekg(signal->OrionFilePos))	return 0;
+		if(!m_pFile->read((char*)ptr, size))		return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;

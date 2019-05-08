@@ -38,15 +38,15 @@ public:
 	//Константный доступ
 	const vector<SignalInfo*>&	header()	const	{return m_Header;}
 	const AccType				type()		const	{return m_Type;}
-	const string&				name()		const	{return m_Name;}
-	void						setName(string& name)	{m_Name = name;}
+	const char*					name()		const	{return m_Name.c_str();}
+	void						setName(const char* name)	{m_Name = name;}
 
 	//Переопределяемые методы
 	virtual void	load(const char* filename) = 0;
 	virtual void	preloadData(QStringList* pAxes) = 0;
-	virtual size_t	getData(const string& path, const double** ppTime, const char** ppData, int* nType) const = 0;
-	virtual void	savePart(const string& filename, double Time0, double Time1) const = 0;
-	virtual void	print(const string& filename, bool bHead = true){};
+	virtual size_t	getData(const char* path, const double** ppTime, const char** ppData, int* nType) const = 0;
+	virtual void	savePart(const char* filename, double Time0, double Time1) const = 0;
+	virtual void	print(const char* filename, bool bHead = true){};
 };
 
 #endif // ACCUMULATION_H

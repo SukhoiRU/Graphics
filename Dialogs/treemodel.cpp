@@ -93,8 +93,8 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
 
         //Создаем новый элемент в корне
         TreeItem::Data	data;
-        data.type		= TreeItem::Item_Chapter;
-        data.name.fromStdString(pAcc->name());
+        data.type	= TreeItem::Item_Chapter;
+        data.name	= QString::fromLocal8Bit(pAcc->name());
 
         switch (pAcc->type())
         {
@@ -118,7 +118,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
             TreeItem* pParent	= pAccItem;
             const Accumulation::SignalInfo*	info	= header.at(i);
 
-			QStringList	names	= QString::fromStdString(info->path).split('\\');
+			QStringList	names	= QString::fromLocal8Bit(info->path.c_str()).split('\\');
 			if(names.size() != info->icons.size())	
 				continue;
 
@@ -131,7 +131,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
 				TreeItem::Data	data;
                 data.name		= name;
 				//Последнему в пути присваиваем комментарий
-				if(j == names.size()-1)	data.comm.fromStdString(info->comment);
+				if(j == names.size()-1)	data.comm	= QString::fromLocal8Bit(info->comment.c_str());
 				else					data.comm	= "";
 
                 switch(nIcon)

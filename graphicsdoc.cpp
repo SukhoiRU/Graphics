@@ -546,6 +546,8 @@ void	GraphicsDoc::preloadPanel()
 		//Формируем перечень путей к графикам
 		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
 		list.push_back(pAxe->m_Path);
+		if(!pAxe->m_DeltaPath.isEmpty())
+			list.push_back(pAxe->m_DeltaPath);
 	}
 
 	//Загружаем данные в набор накоплений
@@ -561,9 +563,19 @@ void	GraphicsDoc::preloadPanel()
 		GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
 
 		//Ищем нужное для графика накопление по имени
-		QStringList	pathList	= pAxe->m_Path.split('\\');
-		QString		path		= pAxe->m_Path.right(pAxe->m_Path.length()-1-pathList.first().length());
-		QString		accName		= pathList.first();
+		int	nSlash	= pAxe->m_Path.indexOf('\\');
+		if(nSlash == -1)	continue;
+		QString		path		= pAxe->m_Path.mid(nSlash+1);
+		QString		accName		= pAxe->m_Path.left(nSlash);
+		QString		path_delta;
+
+		//Путь для дельты
+		if(!pAxe->m_DeltaPath.isEmpty())
+		{
+			int nSlash	= pAxe->m_DeltaPath.indexOf('\\');
+			if(nSlash == -1)	continue;
+			path_delta	= pAxe->m_DeltaPath.mid(nSlash+1);
+		}
 
 		const Accumulation*	pAcc	= nullptr;
 		for(size_t j = 0; j < m_BufArray.size(); j++)
@@ -577,8 +589,8 @@ void	GraphicsDoc::preloadPanel()
 		}
 		if(pAcc == nullptr)
 		{
-			//Раз не нашли, то...
-			pAxe->uploadData(0, nullptr, nullptr, 0);
+			//Раз не нашли, то чистим
+			pAxe->clearData();
 			return;
 		}
 
@@ -588,7 +600,33 @@ void	GraphicsDoc::preloadPanel()
 		const char*		pData;
 		int				nType;
 		len	= pAcc->getData(path, &pTime, &pData, &nType);
-		pAxe->uploadData(len, pTime, pData, nType);
+		
+		if(pAxe->m_DeltaPath.isEmpty())
+		{
+			//Просто загружаем данные в ось
+			pAxe->uploadData(len, pTime, pData, nType);
+		}
+		else
+		{
+			//Считаем дельту
+			size_t			delta_len;
+			const double*	delta_pTime;
+			const char*		delta_pData;
+			int				delta_nType;
+			delta_len	= pAcc->getData(path_delta, &delta_pTime, &delta_pData, &delta_nType);
+
+			//Простейший вариант
+			if(delta_len == len && delta_nType == 2)
+			{
+				double*	pDelta	= new double[len];
+				for(int i = 0; i < len; i++)
+				{
+					*(pDelta + i)	= *((double*)pData + i) - *((double*)delta_pData + i);
+				}
+				pAxe->uploadData(len, pTime, (const char*)pDelta, nType);
+				delete[] pDelta;
+			}
+		}
 	}
 
 }

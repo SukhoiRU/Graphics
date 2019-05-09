@@ -107,6 +107,7 @@ public:
 public:
 	QString			m_Name;			//Название оси
 	QString			m_Path;			//Путь к элементу в накоплении
+	QString			m_DeltaPath;	//Путь к уменьшаемому для дельты
 	int				m_nMarker;		//Тип маркера
 
 	double			m_AxeMin;		//Минимальное значение на оси
@@ -141,6 +142,7 @@ public:
 	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
 	virtual void	load(QDomElement* node, double ver);		//Чтение XML
 	void			uploadData(size_t size, const double* pTime, const char* pData, const int nType);
+	void			clearData();
 	
 	//Рисование
 	virtual void	initializeGL();

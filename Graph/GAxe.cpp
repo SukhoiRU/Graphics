@@ -109,6 +109,7 @@ GAxe::GAxe(GAxe& axe):GAxe()
 {
 	m_Name			= axe.m_Name;
 	m_Path			= axe.m_Path;
+	m_DeltaPath		= axe.m_DeltaPath;
 	m_nMarker		= axe.m_nMarker;
 	m_Color			= axe.m_Color;
 	m_TextFormat	= axe.m_TextFormat;
@@ -455,6 +456,8 @@ void	GAxe::save(QXmlStreamWriter& xml)
 		xml.writeAttribute("Бит_СРК", QString::number(m_nBitSRK));
 		xml.writeAttribute("Формат", m_TextFormat);
 		xml.writeAttribute("Интерполяция", m_bInterpol ? "true" : "false");
+		if(!m_DeltaPath.isEmpty())
+			xml.writeAttribute("Путь_дельты", m_DeltaPath);
 	}
 	xml.writeEndElement();	//График
 }
@@ -466,6 +469,8 @@ void	GAxe::load(QDomElement* node, double ver)
 	//Убираем \ в конце
 	if(m_Path.at(m_Path.length()-1) == '\\')
 		m_Path	= m_Path.left(m_Path.length()-1);
+	if(node->hasAttribute("Путь_дельты"))	m_DeltaPath		= node->attribute("Путь_дельты");
+
 	if(ver < 2.1)
 	{
 		if(node->hasAttribute("Накопление"))
@@ -607,7 +612,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaBL	= areaBL;
 
 //	m_BottomRight.y	= Strip(ph_dX, 0.4, 0.5)[y_zad];
-	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.45)[y_zad];
+//	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.45)[y_zad];
+	m_BottomRight.y	= y_zad;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -1288,6 +1294,11 @@ void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const
 
 	UpdateFiltering();
 	return;
+}
+
+void	GAxe::clearData()
+{
+	m_data.clear();
 }
 
 double	GAxe::GetValueAtTime(const double Time) const

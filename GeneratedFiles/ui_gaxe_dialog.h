@@ -51,6 +51,7 @@ public:
     QSpacerItem *verticalSpacer_2;
     QVBoxLayout *verticalLayout_3;
     QPushButton *pushButton_Replace;
+    QPushButton *pushButton_Substract;
     QPushButton *pushButton_Stat;
     QSpacerItem *verticalSpacer;
     QGroupBox *groupBox;
@@ -157,6 +158,11 @@ public:
         pushButton_Replace->setMinimumSize(QSize(0, 80));
 
         verticalLayout_3->addWidget(pushButton_Replace);
+
+        pushButton_Substract = new QPushButton(GAxe_dialog);
+        pushButton_Substract->setObjectName(QStringLiteral("pushButton_Substract"));
+
+        verticalLayout_3->addWidget(pushButton_Substract);
 
         pushButton_Stat = new QPushButton(GAxe_dialog);
         pushButton_Stat->setObjectName(QStringLiteral("pushButton_Stat"));
@@ -282,6 +288,7 @@ public:
         label_Min->setText(QApplication::translate("GAxe_dialog", "\320\234\320\270\320\275\320\270\320\274\321\203\320\274:", Q_NULLPTR));
         label_Max->setText(QApplication::translate("GAxe_dialog", "\320\234\320\260\320\272\321\201\320\270\320\274\321\203\320\274:", Q_NULLPTR));
         pushButton_Replace->setText(QApplication::translate("GAxe_dialog", "\320\227\320\260\320\274\320\265\320\275\320\260", Q_NULLPTR));
+        pushButton_Substract->setText(QApplication::translate("GAxe_dialog", "\320\222\321\213\321\207\320\265\321\201\321\202\321\214", Q_NULLPTR));
         pushButton_Stat->setText(QApplication::translate("GAxe_dialog", "\320\241\321\202\320\260\321\202\320\270\321\201\321\202\320\270\320\272\320\260", Q_NULLPTR));
         groupBox->setTitle(QApplication::translate("GAxe_dialog", "\320\236\321\201\321\214", Q_NULLPTR));
         label_7->setText(QApplication::translate("GAxe_dialog", "\320\246\320\262\320\265\321\202", Q_NULLPTR));

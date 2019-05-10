@@ -150,6 +150,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_Substract">
+       <property name="text">
+        <string>Вычесть</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_Stat">
        <property name="text">
         <string>Статистика</string>

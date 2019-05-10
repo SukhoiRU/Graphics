@@ -63,6 +63,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
 	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
 	connect(ui->oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
+	connect(ui->oglView, &GraphicsView::substract_axe, this, &GraphicsDoc::on_substractAxe);
 	connect(this, &GraphicsDoc::axeAdded, ui->oglView, &GraphicsView::on_axeAdded);
 
 	//Меню
@@ -504,14 +505,21 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	dlg.SetPath(path);
 	if(dlg.exec() == QDialog::Accepted)
 	{
-		//Выделяем последнее имя и убираем имена накопления
+		//Выделяем последнее имя
 		QStringList	pathList	= dlg.m_Path.split('\\');
+		QString	name	= pathList.back();
+		if(name == "x" || name == "y" || name == "z")
+			name	= pathList.at(pathList.size()-2) + "." + pathList.back();
 
 		//Меняем ось
-		pAxe->m_Name	= pathList.back();
+		pAxe->m_Name	= name;
 		pAxe->m_Path	= dlg.m_Path;
+		pAxe->m_DeltaPath.clear();
 		preloadPanel();
 		pAxe->fitToScale();
+		
+		//Обновляем графики и таблицу
+		emit panelChanged(&m_pActivePanel->Axes);
 	}
 }
 
@@ -535,6 +543,28 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 
 	//Обновляем графики и таблицу
 	emit panelChanged(&m_pActivePanel->Axes);
+}
+
+void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
+{
+	GraphSelect	dlg(pDlg);
+	dlg.SetAccumulation(&m_BufArray);
+	if(pAxe->m_DeltaPath.isEmpty())	dlg.SetPath(pAxe->m_Path);
+	else							dlg.SetPath(pAxe->m_DeltaPath);
+	if(dlg.exec() == QDialog::Accepted)
+	{
+		//Выделяем последнее имя
+		QStringList	pathList	= dlg.m_Path.split('\\');
+
+		//Меняем ось
+		pAxe->m_Name		= pAxe->m_Name + " - " + pathList.back();
+		pAxe->m_DeltaPath	= dlg.m_Path;
+		preloadPanel();
+		pAxe->fitToScale();
+
+		//Обновляем графики и таблицу
+		emit panelChanged(&m_pActivePanel->Axes);
+	}
 }
 
 void	GraphicsDoc::preloadPanel()
@@ -614,6 +644,8 @@ void	GraphicsDoc::preloadPanel()
 			const char*		delta_pData;
 			int				delta_nType;
 			delta_len	= pAcc->getData(path_delta, &delta_pTime, &delta_pData, &delta_nType);
+			GAxe	axe;
+			axe.uploadData(delta_len, delta_pTime, delta_pData, delta_nType);
 
 			//Простейший вариант
 			if(delta_len == len && delta_nType == 2)
@@ -626,6 +658,14 @@ void	GraphicsDoc::preloadPanel()
 				pAxe->uploadData(len, pTime, (const char*)pDelta, nType);
 				delete[] pDelta;
 			}
+
+			//double*	pDelta	= new double[len];
+			//for(int i = 0; i < len; i++)
+			//{
+			//	*(pDelta + i)	= pAxe->GetValueAtTime(pTime[i]) - axe.GetValueAtTime(pTime[i]);
+			//}
+			//pAxe->uploadData(len, pTime, (const char*)pDelta, nType);
+			//delete[] pDelta;
 		}
 	}
 

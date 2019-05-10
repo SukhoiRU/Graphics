@@ -1106,8 +1106,8 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		if(axes.size())
 		{
 			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
-			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){
-				emit change_axe(pAxe, dlg);});
+			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){emit change_axe(pAxe, dlg); });
+			connect(dlg, &GAxe_dialog::substract_axe, [=](GAxe* pAxe){emit substract_axe(pAxe, dlg);});
 			dlg->exec();
 			emit axesRenamed();
 			delete	dlg;

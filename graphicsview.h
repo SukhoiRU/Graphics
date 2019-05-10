@@ -71,6 +71,7 @@ signals:
 	void	axesRenamed();
 	void	change_axe(Graph::GAxe* pAxe, QWidget* pDlg);
 	void	delete_axe(vector<Graph::GAxe*>* pAxes);
+	void	substract_axe(Graph::GAxe* pAxe, QWidget* pDlg);
 
 protected:
 	//Обработка мыши и клавиатуры

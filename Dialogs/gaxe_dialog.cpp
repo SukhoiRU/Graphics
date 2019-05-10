@@ -15,6 +15,7 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
 	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);
+	connect(ui->pushButton_Substract, &QPushButton::clicked, this, &GAxe_dialog::on_substract);
 	axes		= *pAxes;
 
 	//Заполняем поля
@@ -198,6 +199,24 @@ void	GAxe_dialog::on_replace()
 
 	GAxe*	pAxe	= axes.front();
 	emit	change_axe(pAxe);
+
+	//Меняем диалог
+	ui->lineEdit_Name->setText(pAxe->m_Name);
+	double	Min, Max;
+	pAxe->GetLimits(&Min, &Max);
+	ui->label_Min->setText(QString("[%1]").arg(Min));
+	ui->label_Max->setText(QString("[%1]").arg(Max));
+	ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
+	ui->lineEdit_Scale->setText(QString("%1").arg(pAxe->m_AxeScale));
+}
+
+void	GAxe_dialog::on_substract()
+{
+	if(axes.empty())	return;
+	if(axes.size() > 1)	return;
+
+	GAxe*	pAxe	= axes.front();
+	emit	substract_axe(pAxe);
 
 	//Меняем диалог
 	ui->lineEdit_Name->setText(pAxe->m_Name);

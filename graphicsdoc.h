@@ -43,6 +43,7 @@ private slots:
 	void	on_actionAddAxe_triggered();
 	void	on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg);
 	void	on_deleteAxe(vector<Graph::GAxe*>* pAxes);
+	void	on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg);
 
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes);

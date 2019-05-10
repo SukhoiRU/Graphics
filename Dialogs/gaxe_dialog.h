@@ -25,9 +25,11 @@ public:
 private slots:
     void	on_accept(QAbstractButton* pButton);
 	void	on_replace();
+	void	on_substract();
 
 signals:
 	void	change_axe(Graph::GAxe* pAxe);
+	void	substract_axe(Graph::GAxe* pAxe);
 
 private:
     Ui::GAxe_dialog *ui;

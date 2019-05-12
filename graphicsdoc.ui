@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
+    <width>574</width>
     <height>649</height>
    </rect>
   </property>
@@ -105,7 +105,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>449</width>
+     <width>574</width>
      <height>21</height>
     </rect>
    </property>
@@ -171,6 +171,8 @@
    <addaction name="separator"/>
    <addaction name="action_LoadOrion"/>
    <addaction name="actionGraphSettings"/>
+   <addaction name="actionPageInfo"/>
+   <addaction name="actionZoom"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="toolBarPanel">
@@ -300,6 +302,18 @@
   <action name="action_LoadTRF">
    <property name="text">
     <string>TRF</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="graphics.qrc">
+     <normaloff>:/Resources/images/open_gl.png</normaloff>:/Resources/images/open_gl.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom</string>
    </property>
   </action>
  </widget>

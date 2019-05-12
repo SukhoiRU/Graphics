@@ -65,6 +65,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	setMouseTracking(true);    
     pPageSetup	= nullptr;
     m_pPanel	= nullptr;
+	m_bZoomMode	= false;
 
 	Time0		= 200;
 	TimeScale	= 20;
@@ -145,6 +146,7 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
 	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
+	connect(ui->actionZoom, &QAction::triggered, this, &GraphicsView::onZoomMode);
 }
 
 void GraphicsView::teardownGL()
@@ -416,7 +418,7 @@ void GraphicsView::paintGL()
 	}
 
 	//Отрисовка мыши
-	if(m_bOnMouse)
+	if(m_bOnMouse && !m_bZoomMode)
 	{
 		m_program->bind();
 
@@ -672,7 +674,7 @@ void GraphicsView::update()
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
 	{
-		float angle	= 90.;
+		float angle	= 10.;
 		GLfloat	anglez	= glm::radians(angle)*sin(0.1*modelTime*6.28);
 		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*modelTime*6.28);
 		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*modelTime*6.28);
@@ -828,6 +830,21 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 	vec2	mousePos(world.x, world.y);
 
+	//Отдельные действия в режиме перетаскивания
+	if(m_bZoomMode)
+	{
+		if(buttons & Qt::LeftButton)
+		{
+			vec2	delta	= mousePos - m_mousePos;
+//			ui->horizontalScrollBar->setSliderPosition(ui->horizontalScrollBar->value() + delta.x);
+//			ui->verticalScrollBar->setSliderPosition(ui->verticalScrollBar->value() + delta.y);
+		}
+
+		//Сохраняем в классе положение мыши
+		m_mousePos	= mousePos;
+		return;
+	}
+
 	//Определим объект, на который попала мышь
 	bool	bFound	= false;
 	for(size_t i = m_GraphObjects.size(); i > 0; i--)
@@ -944,6 +961,21 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 //	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	vec2	mousePos(world.x, world.y);
 
+	if(m_bZoomMode)
+	{
+		if(mdf.testFlag(Qt::ControlModifier))
+		{
+			if(numDegrees.y() > 0)	setScale(m_scale*1.01);
+			else					setScale(m_scale/1.01);
+		}
+		else
+		{
+
+		}
+		event->accept();
+		return;
+	}
+
 	if(m_SelectedObjects.size())
 	{
 		//Есть выделенные объекты
@@ -962,7 +994,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
 			if(pGraph->hitTest(mousePos))
 			{
-				pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
+				//pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
 				bFound	= true;
 				break;
 			}
@@ -1011,6 +1043,11 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 {
 	Qt::MouseButtons		buttons		= event->buttons();
 	Qt::KeyboardModifiers	modifiers	= event->modifiers();
+	if(m_bZoomMode)
+	{
+		return;
+	}
+
 	if(buttons & Qt::LeftButton)
 	{
 		//Запомним эту точку
@@ -1323,4 +1360,13 @@ void	GraphicsView::fitTime()
 	else if(Mantiss <= 2)	TimeScale	= 2*pow(10., Power);
 	else if(Mantiss <= 5)	TimeScale	= 5*pow(10., Power);
 	else					TimeScale	= 10*pow(10., Power);
+}
+
+void	GraphicsView::onZoomMode()
+{
+	//Переключение режимов работы мыши
+	m_bZoomMode	= !m_bZoomMode;
+	ui->actionZoom->setChecked(m_bZoomMode);
+	if(m_bZoomMode)	setCursor(Qt::SizeAllCursor);
+	else			setCursor(Qt::ArrowCursor);
 }

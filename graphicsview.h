@@ -86,6 +86,7 @@ protected:
 	virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 	void	onCustomMenuRequested(QPoint pos);
+	void	onZoomMode();
 
 	void	paintOverGL(QPainter* p);
 
@@ -109,6 +110,8 @@ private:
 	vector<Graph::GraphObject*>	m_SelectedObjects;
 	Graph::GTextLabel*			m_pLabel;
 	graphSettings*				m_pGraphSettings;
+
+	bool		m_bZoomMode;	//Признак управления страницей
 
 	//Начальное время и масштаб
 	double		Time0;
@@ -139,7 +142,6 @@ private:
 	QOpenGLShaderProgram*	m_fbo_program;
 	GLuint	fboVBO;
 	GLuint	fbo, fboTexture[2];
-
 };
 
 #endif // GRAPHICS_VIEW_H

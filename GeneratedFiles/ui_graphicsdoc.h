@@ -44,6 +44,7 @@ public:
     QAction *actionFitTime;
     QAction *actionDelAxe;
     QAction *action_LoadTRF;
+    QAction *actionZoom;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -65,7 +66,7 @@ public:
     {
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
-        GraphicsDoc->resize(449, 649);
+        GraphicsDoc->resize(574, 649);
         QIcon icon;
         icon.addFile(QStringLiteral(":/Resources/images/line.png"), QSize(), QIcon::Normal, QIcon::Off);
         GraphicsDoc->setWindowIcon(icon);
@@ -115,6 +116,12 @@ public:
         actionDelAxe->setIcon(icon6);
         action_LoadTRF = new QAction(GraphicsDoc);
         action_LoadTRF->setObjectName(QStringLiteral("action_LoadTRF"));
+        actionZoom = new QAction(GraphicsDoc);
+        actionZoom->setObjectName(QStringLiteral("actionZoom"));
+        actionZoom->setCheckable(true);
+        QIcon icon7;
+        icon7.addFile(QStringLiteral(":/Resources/images/open_gl.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionZoom->setIcon(icon7);
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -162,7 +169,7 @@ public:
         GraphicsDoc->setCentralWidget(splitter);
         menuBar = new QMenuBar(GraphicsDoc);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 449, 21));
+        menuBar->setGeometry(QRect(0, 0, 574, 21));
         menu = new QMenu(menuBar);
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
@@ -211,6 +218,8 @@ public:
         mainToolBar->addSeparator();
         mainToolBar->addAction(action_LoadOrion);
         mainToolBar->addAction(actionGraphSettings);
+        mainToolBar->addAction(actionPageInfo);
+        mainToolBar->addAction(actionZoom);
 
         retranslateUi(GraphicsDoc);
 
@@ -254,6 +263,7 @@ public:
         actionDelAxe->setShortcut(QApplication::translate("GraphicsDoc", "Del", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
         action_LoadTRF->setText(QApplication::translate("GraphicsDoc", "TRF", Q_NULLPTR));
+        actionZoom->setText(QApplication::translate("GraphicsDoc", "Zoom", Q_NULLPTR));
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_LoadData->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

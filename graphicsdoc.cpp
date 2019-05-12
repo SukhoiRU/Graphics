@@ -33,6 +33,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	ui->oglView->setFocus();
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
+	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
 
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);

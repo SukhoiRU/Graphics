@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 Orion_Accumulation::Orion_Accumulation()
 {
-	m_Type			= Acc_Orion;
+    m_Type			= AccType::Acc_Orion;
 	m_nOrionVersion	= 0;
 }
 

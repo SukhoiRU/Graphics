@@ -22,7 +22,7 @@ public:
 	};
 
 	//Типы накопления
-	enum	AccType{Acc_SAPR, Acc_TRF, Acc_CCS, Acc_Excell, Acc_KARP, Acc_MIG, Acc_MIG_4, Acc_Orion};
+    enum class	AccType{Acc_SAPR, Acc_TRF, Acc_CCS, Acc_Excell, Acc_KARP, Acc_MIG, Acc_MIG_4, Acc_Orion};
 
 	//Типы данных
 	enum class	DataType{Bool, Int, Double, Float, Short};
@@ -39,16 +39,16 @@ public:
 
 	//Константный доступ
 	const vector<SignalInfo*>&	header()	const	{return m_Header;}
-	const AccType				type()		const	{return m_Type;}
+    AccType                     type()		const	{return m_Type;}
 	const QString&				name()		const	{return m_Name;}
-	void						setName(QString& name)	{m_Name = name;}
+    void						setName(const QString& name)	{m_Name = name;}
 
 	//Переопределяемые методы
 	virtual void	load(const QString& filename) = 0;
 	virtual void	preloadData(QStringList* pAxes) = 0;
 	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const = 0;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
-	virtual void	print(const QString& filename, bool bHead = true){};
+    virtual void	print(const QString& /*filename*/, bool /*bHead = true*/){};
 };
 
 #endif // ACCUMULATION_H

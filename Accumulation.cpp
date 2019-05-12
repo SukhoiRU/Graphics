@@ -3,7 +3,7 @@
 
 Accumulation::Accumulation()
 {
-	m_Type	= Acc_SAPR;
+    m_Type	= AccType::Acc_SAPR;
 	m_Name	= "";
 	m_pFile	= nullptr;
 }

@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
 	w.showMaximized();
 //	w.show();
 	if(parser.isSet(grfOption))		w.loadScreen(parser.value(grfOption));
-	if(parser.isSet(orionOption))	w.loadData(parser.value(orionOption), Accumulation::Acc_Orion);
-	if(parser.isSet(bufOption))		w.loadData(parser.value(bufOption), Accumulation::Acc_SAPR);
-	if(parser.isSet(trfOption))		w.loadData(parser.value(trfOption), Accumulation::Acc_TRF);
+    if(parser.isSet(orionOption))	w.loadData(parser.value(orionOption), Accumulation::AccType::Acc_Orion);
+    if(parser.isSet(bufOption))		w.loadData(parser.value(bufOption), Accumulation::AccType::Acc_SAPR);
+    if(parser.isSet(trfOption))		w.loadData(parser.value(trfOption), Accumulation::AccType::Acc_TRF);
 	
     return a.exec();
 }

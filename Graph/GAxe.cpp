@@ -930,7 +930,7 @@ bool	GAxe::hitTest(const vec2& pt_)
 	}
 }
 
-bool	GAxe::getCursor(const vec2& pt, Qt::CursorShape& shape)
+bool	GAxe::getCursor(const vec2& /*pt*/, Qt::CursorShape& shape)
 {
 	shape	= Qt::CursorShape::SizeAllCursor;
 /*
@@ -1269,7 +1269,7 @@ void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const
 
 	//Копируем данные
 	m_data.clear();
-	for(int i = 0; i < m_Data_Length; i++)
+    for(size_t i = 0; i < m_Data_Length; i++)
 	{
 		switch(m_Data_Type)
 		{

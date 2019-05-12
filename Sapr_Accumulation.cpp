@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 Sapr_Accumulation::Sapr_Accumulation()
 {
-	m_Type			= Acc_SAPR;
+    m_Type			= AccType::Acc_SAPR;
 	m_nRecordSize	= 0;
 	m_nRecCount		= 0;
 	m_DataPos		= 0;

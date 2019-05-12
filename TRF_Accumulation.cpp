@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 TRF_Accumulation::TRF_Accumulation()
 {
-	m_Type			= Acc_TRF;
+    m_Type			= AccType::Acc_TRF;
 	m_nRecordSize	= 0;
 	m_nRecCount		= 0;
 	m_DataPos		= 0;

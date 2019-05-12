@@ -267,17 +267,17 @@ void GraphicsDoc::on_menu_LoadData(QAction* pAction)
 	QString	fileType;
 	if(pAction == ui->action_LoadOrion)
 	{
-		acc_type	= Accumulation::Acc_Orion;
+        acc_type	= Accumulation::AccType::Acc_Orion;
 		fileType	= "*.orion";
 	}
 	else if(pAction == ui->action_LoadSapr)	
 	{
-		acc_type	= Accumulation::Acc_SAPR;
+        acc_type	= Accumulation::AccType::Acc_SAPR;
 		fileType	= "*.buf";
 	}
 	else if(pAction == ui->action_LoadTRF)
 	{
-		acc_type	= Accumulation::Acc_TRF;
+        acc_type	= Accumulation::AccType::Acc_TRF;
 		fileType	= "*.trf";
 	}
 
@@ -318,14 +318,14 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
 	//Добавляем новое накопление
 	switch(acc_type)
 	{
-		case Accumulation::Acc_Orion:	pAcc	= new Orion_Accumulation;	break;
-		case Accumulation::Acc_SAPR:	pAcc	= new Sapr_Accumulation;	break;
-		case Accumulation::Acc_TRF:		pAcc	= new TRF_Accumulation;		break;
+        case Accumulation::AccType::Acc_Orion:	pAcc	= new Orion_Accumulation;	break;
+        case Accumulation::AccType::Acc_SAPR:	pAcc	= new Sapr_Accumulation;	break;
+        case Accumulation::AccType::Acc_TRF:	pAcc	= new TRF_Accumulation;		break;
 		default:
 			break;
 	}
 	
-	pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
+    pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
 	m_BufArray.push_back(pAcc);
 
 	pAcc->load(FileName);
@@ -577,7 +577,8 @@ GAxe::DataType	toGAxe(const Accumulation::DataType nType)
 		case Accumulation::DataType::Bool:		return GAxe::DataType::Bool;
 		case Accumulation::DataType::Int:		return GAxe::DataType::Int;
 		case Accumulation::DataType::Double:	return GAxe::DataType::Double;
-		case Accumulation::DataType::Short:		return GAxe::DataType::Short;
+        case Accumulation::DataType::Float:		return GAxe::DataType::Float;
+        case Accumulation::DataType::Short:		return GAxe::DataType::Short;
 		default:
 			throw;
 	}
@@ -676,7 +677,7 @@ void	GraphicsDoc::preloadPanel()
 			axe.uploadData(delta_len, delta_pTime, delta_pData, toGAxe(delta_nType));
 
 			double*	pDelta	= new double[len];
-			for(int i = 0; i < len; i++)
+            for(size_t i = 0; i < len; i++)
 			{
 				*(pDelta + i)	= pAxe->GetValueAtTime(pTime[i]) - axe.GetValueAtTime(pTime[i]);
 			}

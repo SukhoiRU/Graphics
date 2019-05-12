@@ -113,6 +113,7 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnablePREfast>false</EnablePREfast>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

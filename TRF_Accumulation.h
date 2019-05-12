@@ -42,9 +42,9 @@ private:
 
 	struct TrfParm
 	{
-		BYTE		parm_type;
-		BYTE		parm_type2;
-		BYTE		gpanel, gcol, tpanel, tcol;
+        char		parm_type;
+        char		parm_type2;
+        char		gpanel, gcol, tpanel, tcol;
 		float   	dv;
 		short   	offset;
 		float   	min, max;
@@ -87,8 +87,8 @@ public:
 	virtual void	load(const QString& filename);
 	virtual void	preloadData(QStringList* pAxes);
 	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const;
-	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
-	virtual void	print(const QString& filename, bool bHead = true){};
+    virtual void	savePart(const QString& /*filename*/, double /*Time0*/, double /*Time1*/) const{};
+    virtual void	print(const QString& /*filename*/, bool /*bHead = true*/){};
 };
 
 #endif // TRF_ACCUMULATION_H

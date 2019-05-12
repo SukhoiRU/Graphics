@@ -287,13 +287,13 @@ bool	GAxeArg::hitTest(const vec2& pt_)
 		return false;
 }
 
-bool	GAxeArg::getCursor(const vec2& pt, Qt::CursorShape& shape)
+bool	GAxeArg::getCursor(const vec2& /*pt*/, Qt::CursorShape& shape)
 {
 	shape	= Qt::CursorShape::SizeVerCursor;
 	return	true;
 }
 
-void	GAxeArg::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
+void	GAxeArg::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/)
 {
 	//Переместим рамку
 	m_y		+= delta.y;

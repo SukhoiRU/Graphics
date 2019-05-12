@@ -235,7 +235,7 @@ void GraphicsView::initializeGL()
 	m_pLabel->setFont(10);
 //	m_pLabel->addString("A", pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 5.*gridStep.height());
 	m_pLabel->addString("AV/.Wpi$¡", 0, 0);
-	m_pLabel->setFont(5.7);
+	m_pLabel->setFont(5.7f);
 	m_pLabel->addString("(И ещё «по-русски» можно)", 10, -10);
 	m_pLabel->prepare();
 }
@@ -939,9 +939,9 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
 	//Получаем мышь в поле графиков
-	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
-	glm::vec4	graph	= glm::inverse(graphM)*world;
-	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
+//	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+//	glm::vec4	graph	= glm::inverse(graphM)*world;
+//	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	vec2	mousePos(world.x, world.y);
 
 	if(m_SelectedObjects.size())
@@ -1140,7 +1140,7 @@ void	GraphicsView::on_deleteAxes()
 
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
-	Qt::KeyboardModifiers	mdf		= event->modifiers();
+//	Qt::KeyboardModifiers	mdf		= event->modifiers();
 
 	switch(event->key())
 	{
@@ -1302,7 +1302,7 @@ void	GraphicsView::fitTime()
 	for(size_t i = 0; i < m_pPanel->size(); i++)
 	{
 		GAxe*	pAxe	= m_pPanel->at(i);
-		double t0, t1;
+        double t0 = 0, t1 = 0;
 		if(tMin == 0 && tMax == 0)	pAxe->getTime(tMin, tMax);
 		else		pAxe->getTime(t0, t1);
 

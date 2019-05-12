@@ -33,9 +33,10 @@ public:
 class	LimIntegral
 {
 	double& x;
-	double	Min;
+    double	K;
+    double	Min;
 	double	Max;
-	double	K;
+
 public:
 	LimIntegral(double& x, double Min, double Max, double K = 1):x(x), K(K), Min(Min), Max(Max){};
 	double operator [] (const double& u)

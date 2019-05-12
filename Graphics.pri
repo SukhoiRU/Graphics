@@ -20,9 +20,13 @@ HEADERS += \
     $$PWD/Graph/GraphObject.h \
     $$PWD/Graph/GTextLabel.h \
     $$PWD/Accumulation.h \
+    $$PWD/Sapr_Accumulation.h \
+    $$PWD/Orion_Accumulation.h \
+    $$PWD/Trf_Accumulation.h \
     $$PWD/graphicsdoc.h \
     $$PWD/graphicsview.h \
     $$PWD/stdafx.h
+
 SOURCES += \
     $$PWD/Dialogs/graphselect.cpp \
     $$PWD/Dialogs/pageSetup.cpp \
@@ -41,11 +45,15 @@ SOURCES += \
     $$PWD/Graph/GraphObject.cpp \
     $$PWD/Graph/GTextLabel.cpp \
     $$PWD/Accumulation.cpp \
+    $$PWD/Sapr_Accumulation.cpp \
+    $$PWD/Orion_Accumulation.cpp \
+    $$PWD/Trf_Accumulation.cpp \
     $$PWD/glad.cpp \
     $$PWD/graphicsdoc.cpp \
     $$PWD/graphicsview.cpp \
     $$PWD/main.cpp \
     $$PWD/stdafx.cpp
+
 FORMS += $$PWD/Dialogs/graphselect.ui \
     $$PWD/Dialogs/panelselect.ui \
     $$PWD/graphicsdoc.ui \

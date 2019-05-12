@@ -52,7 +52,7 @@ public:
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
 
 	//Мышиные дела
-	virtual bool	HitTest(const vec2& /*pt*/);//Проверка на попадание курсора
+	virtual bool	hitTest(const vec2& /*pt*/);//Проверка на попадание курсора
 	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
 	virtual void	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/);	//Перемещение на заданное расстояние
 	virtual void	OnDoubleClick(){};				//Реакция на щелчок мышью

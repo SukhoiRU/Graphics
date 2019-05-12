@@ -273,7 +273,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	textLabel->renderText(vec3(0.f), 1);
 }
 
-bool	GAxeArg::HitTest(const vec2& pt_)
+bool	GAxeArg::hitTest(const vec2& pt_)
 {
 	vec2 pt	= pt_ - oldAreaBL;
 

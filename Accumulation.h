@@ -24,6 +24,9 @@ public:
 	//Типы накопления
 	enum	AccType{Acc_SAPR, Acc_TRF, Acc_CCS, Acc_Excell, Acc_KARP, Acc_MIG, Acc_MIG_4, Acc_Orion};
 
+	//Типы данных
+	enum class	DataType{Bool, Int, Double, Float, Short};
+
 protected:
 	vector<SignalInfo*>	m_Header;		//Описатель данных в массиве	
 	AccType				m_Type;			//Тип накопления
@@ -43,7 +46,7 @@ public:
 	//Переопределяемые методы
 	virtual void	load(const QString& filename) = 0;
 	virtual void	preloadData(QStringList* pAxes) = 0;
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const = 0;
+	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const = 0;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
 	virtual void	print(const QString& filename, bool bHead = true){};
 };

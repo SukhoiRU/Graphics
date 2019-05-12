@@ -234,7 +234,7 @@ void	Orion_Accumulation::FreeOrionData()
 	m_OrionData.clear();
 }
 
-size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const
 {
 	//Ищем путь
 	OrionSignal*	signal	= nullptr;
@@ -249,7 +249,7 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 	}
 
 	//Проверка на существование
-	if(!signal)	return 0;
+	if(!signal)	return false;
 
 	//Прежде всего, ищем этот элемент в уже загруженных
 	*ppTime	= nullptr;
@@ -286,7 +286,7 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFileTime))		return 0;
+		if(!m_pFile->seek(signal->OrionFileTime))	return 0;
 		if(m_pFile->read((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
@@ -304,9 +304,13 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 		qint64	size;
 		switch(signal->icons.back())
 		{
-		case 2:	size	= signal->Length*sizeof(double);	break;
-		case 1:	size	= signal->Length*sizeof(int);		break;
-		case 0:	size	= signal->Length*sizeof(bool);		break;
+		case 0:		{size	= signal->Length*sizeof(bool);		*nType	= DataType::Bool;}		break;
+		case 1:		{size	= signal->Length*sizeof(int);		*nType	= DataType::Int;}		break;
+		case 2:		{size	= signal->Length*sizeof(double);	*nType	= DataType::Double;}	break;
+		case 12:	{size	= signal->Length*sizeof(float);		*nType	= DataType::Float;}		break;
+		case 13:	{size	= signal->Length*sizeof(int);		*nType	= DataType::Int;}		break;
+		default:
+			return false;
 		}
 
 		//Выделяем память
@@ -314,7 +318,7 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 		if(!ptr)	return 0;
 
 		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFilePos))		return 0;
+		if(!m_pFile->seek(signal->OrionFilePos))	return 0;
 		if(m_pFile->read((char*)ptr, size) != size)	return 0;
 
 		//Запоминаем указатель в списке
@@ -327,8 +331,8 @@ size_t	Orion_Accumulation::getData(const QString& path, const double** ppTime, c
 	}
 
 	//Все загружено
-	*nType	= signal->icons.back();
-	return signal->Length;
+	*len	= signal->Length;
+	return true;
 }
 
 /*

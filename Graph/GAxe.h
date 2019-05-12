@@ -13,7 +13,8 @@ namespace Graph{
 
 class GAxe : public GraphObject  //Класс оси графика
 {
-	enum DataType	{Bool, Int, Double, Float, Short};
+public:
+	enum class DataType	{Bool, Int, Double, Float, Short};
 
 //////////////////////////////////////////////////////////////////////////////////
 //		Данные
@@ -141,7 +142,7 @@ public:
 	//Запись-чтение
 	virtual void	save(QXmlStreamWriter& xml);		//Сохранение XML
 	virtual void	load(QDomElement* node, double ver);		//Чтение XML
-	void			uploadData(size_t size, const double* pTime, const char* pData, const int nType);
+	void			uploadData(size_t size, const double* pTime, const char* pData, const DataType nType);
 	void			clearData();
 	
 	//Рисование

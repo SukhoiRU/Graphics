@@ -555,9 +555,12 @@ void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	{
 		//Выделяем последнее имя
 		QStringList	pathList	= dlg.m_Path.split('\\');
+		QString	name	= pathList.back();
+		if(name == "x" || name == "y" || name == "z")
+			name	= pathList.at(pathList.size()-2) + "." + pathList.back();
 
 		//Меняем ось
-		pAxe->m_Name		= pAxe->m_Name + " - " + pathList.back();
+		pAxe->m_Name		= pAxe->m_Name + " - " + name;
 		pAxe->m_DeltaPath	= dlg.m_Path;
 		preloadPanel();
 		pAxe->fitToScale();
@@ -567,15 +570,32 @@ void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	}
 }
 
+GAxe::DataType	toGAxe(const Accumulation::DataType nType)
+{
+	switch(nType)
+	{
+		case Accumulation::DataType::Bool:		return GAxe::DataType::Bool;
+		case Accumulation::DataType::Int:		return GAxe::DataType::Int;
+		case Accumulation::DataType::Double:	return GAxe::DataType::Double;
+		case Accumulation::DataType::Short:		return GAxe::DataType::Short;
+		default:
+			throw;
+	}
+}
+
 void	GraphicsDoc::preloadPanel()
 {
+	//////////////////////////////////////////////////////////////////////////
 	//Предварительная загрузка данных для текущей панели
+
+	//Перечень путей для загрузки
 	QStringList	list;
 	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
 	{
-		//Формируем перечень путей к графикам
 		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
 		list.push_back(pAxe->m_Path);
+
+		//Для дельт добавляем дополнительный путь
 		if(!pAxe->m_DeltaPath.isEmpty())
 			list.push_back(pAxe->m_DeltaPath);
 	}
@@ -621,52 +641,49 @@ void	GraphicsDoc::preloadPanel()
 		{
 			//Раз не нашли, то чистим
 			pAxe->clearData();
-			return;
+			continue;
 		}
 
 		//Получаем данные
 		size_t			len;
 		const double*	pTime;
 		const char*		pData;
-		int				nType;
-		len	= pAcc->getData(path, &pTime, &pData, &nType);
-		
-		if(pAxe->m_DeltaPath.isEmpty())
+		Accumulation::DataType	nType;
+		if(!pAcc->getData(path, &len, &pTime, &pData, &nType))
 		{
-			//Просто загружаем данные в ось
-			pAxe->uploadData(len, pTime, pData, nType);
+			//Раз не нашли, то чистим
+			pAxe->clearData();
+			continue;
 		}
-		else
+
+		//Загружаем данные в ось
+		pAxe->uploadData(len, pTime, pData, toGAxe(nType));
+
+		if(!pAxe->m_DeltaPath.isEmpty())
 		{
 			//Считаем дельту
 			size_t			delta_len;
 			const double*	delta_pTime;
 			const char*		delta_pData;
-			int				delta_nType;
-			delta_len	= pAcc->getData(path_delta, &delta_pTime, &delta_pData, &delta_nType);
-			GAxe	axe;
-			axe.uploadData(delta_len, delta_pTime, delta_pData, delta_nType);
-
-			//Простейший вариант
-			if(delta_len == len && delta_nType == 2)
+			Accumulation::DataType	delta_nType;
+			if(!pAcc->getData(path_delta, &delta_len, &delta_pTime, &delta_pData, &delta_nType))
 			{
-				double*	pDelta	= new double[len];
-				for(int i = 0; i < len; i++)
-				{
-					*(pDelta + i)	= *((double*)pData + i) - *((double*)delta_pData + i);
-				}
-				pAxe->uploadData(len, pTime, (const char*)pDelta, nType);
-				delete[] pDelta;
+				continue;
 			}
+			
+			GAxe	axe;
+			axe.m_bInterpol	= pAxe->m_bInterpol;
+			axe.uploadData(delta_len, delta_pTime, delta_pData, toGAxe(delta_nType));
 
-			//double*	pDelta	= new double[len];
-			//for(int i = 0; i < len; i++)
-			//{
-			//	*(pDelta + i)	= pAxe->GetValueAtTime(pTime[i]) - axe.GetValueAtTime(pTime[i]);
-			//}
-			//pAxe->uploadData(len, pTime, (const char*)pDelta, nType);
-			//delete[] pDelta;
+			double*	pDelta	= new double[len];
+			for(int i = 0; i < len; i++)
+			{
+				*(pDelta + i)	= pAxe->GetValueAtTime(pTime[i]) - axe.GetValueAtTime(pTime[i]);
+			}
+			
+			//Принудительно выставляем тип Double
+			pAxe->uploadData(len, pTime, (const char*)pDelta, Graph::GAxe::DataType::Double);
+			delete[] pDelta;
 		}
 	}
-
 }

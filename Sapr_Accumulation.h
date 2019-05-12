@@ -19,8 +19,6 @@ private:
 		virtual ~SaprSignal(){}
 	};
 
-	enum DataType	{Bool, Int, Double, Float = 12, Short = 14};
-
 	struct SaprData
 	{
 		QString		path;	//Путь к сигналу
@@ -44,7 +42,7 @@ public:
 	//Переопределяемые методы
 	virtual void	load(const QString& filename);
 	virtual void	preloadData(QStringList* pAxes);
-	virtual size_t	getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const;
+	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const{};
 	virtual void	print(const QString& filename, bool bHead = true){};
 };

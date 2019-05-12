@@ -162,12 +162,12 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 				//Уточняем тип данных
 				switch(signal->icons.back())
 				{
-					case 0:		{data->type	= Bool;		data->ptr	= (char*)new bool[m_nRecCount];}	break;
-					case 1:		{data->type	= Int;		data->ptr	= (char*)new int[m_nRecCount];}		break;
-					case 2:		{data->type	= Double;	data->ptr	= (char*)new double[m_nRecCount];}	break;
-					case 12:	{data->type	= Float;	data->ptr	= (char*)new float[m_nRecCount];}	break;
-					case 13:	{data->type	= Int;		data->ptr	= (char*)new int[m_nRecCount];}		break;
-					case 14:	{data->type	= Short;	data->ptr	= (char*)new short[m_nRecCount];}	break;
+					case 0:		{data->type	= DataType::Bool;	data->ptr	= (char*)new bool[m_nRecCount];}	break;
+					case 1:		{data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount];}		break;
+					case 2:		{data->type	= DataType::Double;	data->ptr	= (char*)new double[m_nRecCount];}	break;
+					case 12:	{data->type	= DataType::Float;	data->ptr	= (char*)new float[m_nRecCount];}	break;
+					case 13:	{data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount];}		break;
+					case 14:	{data->type	= DataType::Short;	data->ptr	= (char*)new short[m_nRecCount];}	break;
 					default:	throw;
 				};
 				m_Data.push_back(data);
@@ -202,11 +202,11 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 			SaprData*	data	= m_Data.at(j);
 			switch(data->type)
 			{
-				case Bool:		*((bool*)data->ptr + i)		= *(bool*)(buf + data->offset); 	break;
-				case Int:		*((int*)data->ptr + i)		= *(int*)(buf + data->offset); 		break;
-				case Double:	*((double*)data->ptr + i)	= *(double*)(buf + data->offset); 	break;
-				case Float:		*((float*)data->ptr + i)	= *(float*)(buf + data->offset);	break;
-				case Short:		*((short*)data->ptr + i)	= *(short*)(buf + data->offset);	break;
+				case DataType::Bool:	*((bool*)data->ptr + i)		= *(bool*)(buf + data->offset); 	break;
+				case DataType::Int:		*((int*)data->ptr + i)		= *(int*)(buf + data->offset); 		break;
+				case DataType::Double:	*((double*)data->ptr + i)	= *(double*)(buf + data->offset); 	break;
+				case DataType::Float:	*((float*)data->ptr + i)	= *(float*)(buf + data->offset);	break;
+				case DataType::Short:	*((short*)data->ptr + i)	= *(short*)(buf + data->offset);	break;
 				default:
 					break;
 			}
@@ -215,7 +215,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+bool	Sapr_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)
@@ -225,12 +225,13 @@ size_t	Sapr_Accumulation::getData(const QString& path, const double** ppTime, co
 		{
 			*ppTime	= m_pTime;
 			*ppData	= data->ptr;
+			*len	= m_nRecCount;
 			*nType	= data->type;
 			
-			return	m_nRecCount;
+			return	true;
 		}
 	}
 
 	//Данные не найдены в списке предварительно загруженных.
-	return 0;
+	return false;
 }

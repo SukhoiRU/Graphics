@@ -47,7 +47,6 @@ void	TRF_Accumulation::clearData()
 void	TRF_Accumulation::load(const QString& filename)
 {
 	QTextCodec* codec	= QTextCodec::codecForName("CP866");
-	QByteArrayList	cc	= QTextCodec::availableCodecs();
 
 	//Для начала все стираем
 	m_Header.clear();
@@ -154,7 +153,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 				data->offset	= signal->Offset;
 
 				//Уточняем тип данных
-				data->type	= Float;	
+				data->type	= DataType::Float;	
 				data->ptr	= (char*)new float[m_nRecCount];
 				m_Data.push_back(data);
 				break;
@@ -192,7 +191,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 	delete[] Block;
 }
 
-size_t	TRF_Accumulation::getData(const QString& path, const double** ppTime, const char** ppData, int* nType) const
+bool	TRF_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const
 {
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)
@@ -202,12 +201,13 @@ size_t	TRF_Accumulation::getData(const QString& path, const double** ppTime, con
 		{
 			*ppTime	= m_pTime;
 			*ppData	= data->ptr;
+			*len	= m_nRecCount;
 			*nType	= data->type;
 			
-			return	m_nRecCount;
+			return	true;
 		}
 	}
 
 	//Данные не найдены в списке предварительно загруженных.
-	return 0;
+	return false;
 }

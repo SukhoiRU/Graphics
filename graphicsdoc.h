@@ -56,6 +56,7 @@ private:
     Ui::GraphicsDoc *ui;
     PanelSelect*    m_pPanelSelect;
 	QString			m_screenFileName;
+	QString			m_dataFileName;
 
 private:
     vector<Accumulation*>   m_BufArray;	//Набор накоплений

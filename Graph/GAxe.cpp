@@ -71,7 +71,7 @@ GLfloat	GAxe::m_interpAlias	= 0.5f;
 GAxe::GAxe()
 {
 	m_Type		= AXE;
-	m_Data_Type	= Double;
+	m_Data_Type	= DataType::Double;
 	m_nMarker	= 0;
 
 	m_Data_Length	= 0;
@@ -346,7 +346,7 @@ void	GAxe::setAxeLength(int len, int highlighted)
 
 	//Черточки для обрамления
 	{
-		if(m_Data_Type == Bool)
+		if(m_Data_Type == DataType::Bool)
 		{
 			//Координаты плюс длина по кругу
 			vec2	textSize	= textLabel->textSize(m_Name);
@@ -415,7 +415,7 @@ void	GAxe::setAxeLength(int len, int highlighted)
 	//Текстовые метки
 	vec2 grid	= oldGrid;
 
-	if(m_Data_Type == Bool)
+	if(m_Data_Type == DataType::Bool)
 	{
 		textLabel->addString(m_Name, -textLabel->textSize(m_Name).x*0.5f, -textLabel->midLine());
 	}
@@ -451,7 +451,7 @@ void	GAxe::save(QXmlStreamWriter& xml)
 		xml.writeAttribute("Длина", QString::number(m_Axe_Length));
 		xml.writeAttribute("X_мм", QString::number(m_BottomRight.x));
 		xml.writeAttribute("Y_мм", QString::number(m_BottomRight.y));
-		xml.writeAttribute("Тип", QString::number(m_Data_Type));
+		xml.writeAttribute("Тип", QString::number(static_cast<int>(m_Data_Type)));
 		xml.writeAttribute("СРК", m_bSRK ? "true" : "false");
 		xml.writeAttribute("Бит_СРК", QString::number(m_nBitSRK));
 		xml.writeAttribute("Формат", m_TextFormat);
@@ -637,7 +637,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
-	if(m_Data_Type != Bool)
+	if(m_Data_Type != DataType::Bool)
 		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
 
 	//Рисуем обрамление шкалы
@@ -688,7 +688,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniformMatrix4fv(u_cross_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 		mat4	cross(1.0f);
-		if(m_Data_Type == Bool)
+		if(m_Data_Type == DataType::Bool)
 			cross	= translate(cross, vec3(m_BottomRight.x, y_zad - 0.5*textLabel->midLine(), 0.f));
 		else
 			cross	= translate(cross, vec3(m_BottomRight.x, y_zad + 0.5f*m_Axe_Length*grid.y, 0.f));
@@ -716,7 +716,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//Маркер возле оси
-	if(m_Data_Type != Bool)
+	if(m_Data_Type != DataType::Bool)
 	{
 		m_marker_program->bind();
 
@@ -803,7 +803,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
-	if(m_Data_Type == Bool)
+	if(m_Data_Type == DataType::Bool)
 	{
 		m_bool_program->bind();
 		glUniform3fv(u_bool_color, 1, &color.r);
@@ -826,7 +826,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		//Выставляем тип линии
 		switch(m_Data_Type)
 		{
-			case Graph::GAxe::Int:
+			case DataType::Int:
 			{
 				glUniform1i(u_data_lineType, 1);
 			}break;
@@ -902,7 +902,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 bool	GAxe::hitTest(const vec2& pt_)
 {
 	vec2 pt	= pt_ - oldAreaBL;
-	if(m_Data_Type == Bool)
+	if(m_Data_Type == DataType::Bool)
 	{
 		//Для Bool рамка должна быть размером надписи
 		vec2	textSize	= textLabel->textSize(m_Name);
@@ -962,9 +962,9 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.y;
-	if(m_Data_Type == Bool)		step	= 0.5f*step;
-	if(mdf & Qt::AltModifier)	y_zad	= m_FrameBR.y;
-	else						y_zad	= int(m_FrameBR.y/step + 0.5f)*step;
+	if(m_Data_Type == DataType::Bool)	step	= 0.5f*step;
+	if(mdf & Qt::AltModifier)			y_zad	= m_FrameBR.y;
+	else								y_zad	= int(m_FrameBR.y/step + 0.5f)*step;
 
 	return;
 /*
@@ -1029,7 +1029,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 	if(mdf & Qt::ShiftModifier)
 	{
 		//Меняем начало
-		if(m_Data_Type != Bool)
+		if(m_Data_Type != DataType::Bool)
 		{
 			m_AxeMin -= int(numdegrees.y/120.)*m_AxeScale;
 			setAxeLength(m_Axe_Length);
@@ -1038,7 +1038,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 	else if(mdf & Qt::ControlModifier)
 	{
 		//Проверяем, что по высоте мышь находится на оси
-		if(pt.y < m_FrameBR.y + oldAreaBL.y +oldGrid.y*m_Axe_Length+1 && pt.y > m_FrameBR.y-1 && m_Data_Type != Bool)
+		if(pt.y < m_FrameBR.y + oldAreaBL.y +oldGrid.y*m_Axe_Length+1 && pt.y > m_FrameBR.y-1 && m_Data_Type != DataType::Bool)
 		{
 			double Power	= floor(log10(m_AxeScale));
 			double Mantiss	= m_AxeScale / pow(10., Power);
@@ -1232,7 +1232,8 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 		m_AxeMin	= Min - m_AxeScale;
 		m_Axe_Length	= 2;
 	}
-	if(m_Data_Type == Bool)
+
+	if(m_Data_Type == DataType::Bool)
 	{
 		m_AxeMin	= 0;
 		m_AxeScale	= 1;
@@ -1241,7 +1242,7 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	setAxeLength(m_Axe_Length);
 }
 
-void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const int nType)
+void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const DataType nType)
 {
 	if(!size)	
 	{
@@ -1250,27 +1251,16 @@ void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const
 	}
 
 	m_Data_Length	= size;
-
-	//Уточняем тип данных
-	switch(nType)
-	{
-	case 0:		m_Data_Type		= Bool;		break;
-	case 1:		m_Data_Type		= Int;		break;
-	case 2:		m_Data_Type		= Double;	break;
-	case 12:	m_Data_Type		= Float;	break;
-	case 13:	m_Data_Type		= Int;		break;
-	case 14:	m_Data_Type		= Short;	break;
-	default:	throw;
-	};
+	m_Data_Type		= nType;
 
 	//Принудительно для СРК выставляем признак
 	if(m_bSRK)	
 	{
-		m_Data_Type		= Bool;
+		m_Data_Type		= DataType::Bool;
 		m_MaskSRK		= 0x1 << (m_nBitSRK-1);				
 	}
 
-	if(m_Data_Type == Bool)
+	if(m_Data_Type == DataType::Bool)
 	{
 		setAxeLength(1);
 		m_AxeMin	= 0;
@@ -1283,10 +1273,10 @@ void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const
 	{
 		switch(m_Data_Type)
 		{
-		case Graph::GAxe::Bool:		m_data.push_back(vec2(pTime[i], (float)(*(bool*)(pData + i*sizeof(bool)))));break;
-		case Graph::GAxe::Int:		m_data.push_back(vec2(pTime[i], (float)(*(double*)(pData + i*sizeof(int)))));break;
-		case Graph::GAxe::Double:	m_data.push_back(vec2(pTime[i], (float)(*(double*)(pData + i*sizeof(double)))));break;
-		case Graph::GAxe::Float:	m_data.push_back(vec2(pTime[i], (float)(*(float*)(pData + i*sizeof(float)))));break;
+		case DataType::Bool:	m_data.push_back(vec2(pTime[i], (float)(*((bool*)pData + i))));break;
+		case DataType::Int:		m_data.push_back(vec2(pTime[i], (float)(*((int*)pData + i))));break;
+		case DataType::Double:	m_data.push_back(vec2(pTime[i], (float)(*((double*)pData + i))));break;
+		case DataType::Float:	m_data.push_back(vec2(pTime[i], (float)(*((float*)pData + i))));break;
 		default:
 			break;
 		}
@@ -1325,7 +1315,7 @@ double	GAxe::GetValueAtTime(const double Time) const
 	double	f1	= m_data.at(nStartIndex).y;	double	t1	= m_data.at(nStartIndex).x;
 	double	f2	= m_data.at(nStopIndex).y;	double	t2	= m_data.at(nStopIndex).x;
 
-	if(m_bInterpol && (m_Data_Type == Double || m_Data_Type == Float))
+	if(m_bInterpol && (m_Data_Type == DataType::Double || m_Data_Type == DataType::Float))
 		return	f1+(f2-f1)/(t2-t1)*(Time-t1);
 	else			
 		return	f1;
@@ -1338,7 +1328,7 @@ double GAxe::GetTopPosition() const
 
 bool	GAxe::IsBoolean() const
 {
-	return m_Data_Type	== Bool;
+	return m_Data_Type	== DataType::Bool;
 }
 
 void	GAxe::GetStatistic() const

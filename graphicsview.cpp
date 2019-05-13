@@ -66,6 +66,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     pPageSetup	= nullptr;
     m_pPanel	= nullptr;
 	m_bZoomMode	= false;
+	ui			= nullptr;
 
 	Time0		= 200;
 	TimeScale	= 20;
@@ -147,6 +148,9 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
 	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
 	connect(ui->actionZoom, &QAction::triggered, this, &GraphicsView::onZoomMode);
+
+	ui->scrollArea->verticalScrollBar()->setSingleStep(1);
+	ui->scrollArea->horizontalScrollBar()->setSingleStep(1);
 }
 
 void GraphicsView::teardownGL()
@@ -360,22 +364,6 @@ void GraphicsView::resizeGL(int width, int height)
 
 	drawScene();
 #endif // USE_FBO
-
-	//Меняем полосы прокрутки
-    ui->verticalScrollBar->setMinimum(0);
-    ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
-    ui->verticalScrollBar->setPageStep(pageSize.height());
-    ui->verticalScrollBar->setSingleStep(1);
-
-    ui->horizontalScrollBar->setMinimum(0);
-    ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
-    ui->horizontalScrollBar->setPageStep(pageSize.width());
-    ui->horizontalScrollBar->setSingleStep(1);
-
-    if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
-    else										ui->verticalScrollBar->show();
-    if(ui->horizontalScrollBar->maximum() == 0)	ui->horizontalScrollBar->hide();
-    else										ui->horizontalScrollBar->show();
 }
 
 void GraphicsView::paintGL()
@@ -646,18 +634,24 @@ void GraphicsView::saveSVG()
 
 void GraphicsView::setScale(float scale)
 {
+	if(!ui)	return;
+	//Ограничиваем масштаб
+	int	w	= ui->scrollArea->viewport()->width();
+	int	w2	= pageSize.width();
+	if(pageSize.width()*scale < w)	
+	{
+		m_scale	= w/pageSize.width();
+		setMinimumSize(pageSize.width()*m_scale, pageSize.height()*m_scale);
+		setMaximumSize(pageSize.width()*m_scale, pageSize.height()*m_scale);
+		return;
+	}
+
     if(scale != m_scale)
     {
         m_scale = scale;
 		Graph::GraphObject::m_scale	= m_scale;
-
-        ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
-		ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
-
-        if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
-        else										ui->verticalScrollBar->show();
-        if(ui->horizontalScrollBar->maximum() == 0) ui->horizontalScrollBar->hide();
-        else										ui->horizontalScrollBar->show();
+		setMinimumSize(pageSize.width()*m_scale, pageSize.height()*m_scale);
+		setMaximumSize(pageSize.width()*m_scale, pageSize.height()*m_scale);
     }
 }
 
@@ -669,7 +663,6 @@ void GraphicsView::update()
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
     m_view	= translate(m_view, -vec3(0.f, pageSize.height(), dist));
-    m_view	= translate(m_view, -vec3(ui->horizontalScrollBar->value(), -ui->verticalScrollBar->value(), 0.f));
 
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
@@ -833,15 +826,16 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	//Отдельные действия в режиме перетаскивания
 	if(m_bZoomMode)
 	{
+		QPoint	mouse	= event->globalPos();
 		if(buttons & Qt::LeftButton)
 		{
-			vec2	delta	= mousePos - m_mousePos;
-//			ui->horizontalScrollBar->setSliderPosition(ui->horizontalScrollBar->value() + delta.x);
-//			ui->verticalScrollBar->setSliderPosition(ui->verticalScrollBar->value() + delta.y);
+			QPoint	delta	= mouse - m_oldMouse;
+			ui->scrollArea->verticalScrollBar()->setValue(ui->scrollArea->verticalScrollBar()->value() - delta.y());
+			ui->scrollArea->horizontalScrollBar()->setValue(ui->scrollArea->horizontalScrollBar()->value() - delta.x());
 		}
 
 		//Сохраняем в классе положение мыши
-		m_mousePos	= mousePos;
+		m_oldMouse	= mouse;
 		return;
 	}
 
@@ -972,7 +966,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		{
 
 		}
-		event->accept();
+//		event->accept();
 		return;
 	}
 

@@ -272,6 +272,7 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 		if(signal->OrionFilePos == data.pos)
 		{
 			*ppData	= data.ptr;
+			*nType	= data.type;
 			break;
 		}
 	}
@@ -287,12 +288,13 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 
 		//Читаем из большого файла
 		if(!m_pFile->seek(signal->OrionFileTime))	return 0;
-		if(m_pFile->read((char*)ptr, size) != size)	return 0;
+		if(m_pFile->read(ptr, size) != size)		return 0;
 
 		//Запоминаем указатель в списке
 		OrionData	d;
 		d.pos	= signal->OrionFileTime;
 		d.ptr	= ptr;
+		d.type	= DataType::Double;
 
 		m_OrionData.push_back(d);
 		*ppTime	= (double*)ptr;
@@ -325,6 +327,7 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 		OrionData	d;
 		d.pos	= signal->OrionFilePos;
 		d.ptr	= ptr;
+		d.type	= *nType;
 
 		m_OrionData.push_back(d);
 		*ppData	= ptr;

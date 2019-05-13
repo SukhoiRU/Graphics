@@ -13,16 +13,15 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QScrollArea>
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QWidget>
 #include "Dialogs/locator_view.h"
 #include "graphicsview.h"
 
@@ -46,11 +45,9 @@ public:
     QAction *action_LoadTRF;
     QAction *actionZoom;
     QSplitter *splitter;
-    QWidget *centralwidget;
-    QGridLayout *gridLayout;
-    QScrollBar *verticalScrollBar;
-    QScrollBar *horizontalScrollBar;
+    QScrollArea *scrollArea;
     GraphicsView *oglView;
+    QHBoxLayout *horizontalLayout;
     LocatorView *locator;
     QMenuBar *menuBar;
     QMenu *menu;
@@ -66,7 +63,7 @@ public:
     {
         if (GraphicsDoc->objectName().isEmpty())
             GraphicsDoc->setObjectName(QStringLiteral("GraphicsDoc"));
-        GraphicsDoc->resize(574, 649);
+        GraphicsDoc->resize(904, 691);
         QIcon icon;
         icon.addFile(QStringLiteral(":/Resources/images/line.png"), QSize(), QIcon::Normal, QIcon::Off);
         GraphicsDoc->setWindowIcon(icon);
@@ -125,40 +122,22 @@ public:
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
-        centralwidget = new QWidget(splitter);
-        centralwidget->setObjectName(QStringLiteral("centralwidget"));
-        gridLayout = new QGridLayout(centralwidget);
-        gridLayout->setSpacing(0);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
-        gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(0, 0, 0, 0);
-        verticalScrollBar = new QScrollBar(centralwidget);
-        verticalScrollBar->setObjectName(QStringLiteral("verticalScrollBar"));
-        verticalScrollBar->setMaximum(297);
-        verticalScrollBar->setSingleStep(5);
-        verticalScrollBar->setPageStep(50);
-        verticalScrollBar->setOrientation(Qt::Vertical);
-
-        gridLayout->addWidget(verticalScrollBar, 0, 2, 1, 1);
-
-        horizontalScrollBar = new QScrollBar(centralwidget);
-        horizontalScrollBar->setObjectName(QStringLiteral("horizontalScrollBar"));
-        horizontalScrollBar->setMaximum(210);
-        horizontalScrollBar->setSingleStep(5);
-        horizontalScrollBar->setPageStep(50);
-        horizontalScrollBar->setOrientation(Qt::Horizontal);
-        horizontalScrollBar->setInvertedControls(false);
-
-        gridLayout->addWidget(horizontalScrollBar, 1, 0, 1, 1);
-
-        oglView = new GraphicsView(centralwidget);
+        scrollArea = new QScrollArea(splitter);
+        scrollArea->setObjectName(QStringLiteral("scrollArea"));
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setAlignment(Qt::AlignCenter);
+        oglView = new GraphicsView();
         oglView->setObjectName(QStringLiteral("oglView"));
+        oglView->setGeometry(QRect(0, 0, 1920, 1200));
+        oglView->setMinimumSize(QSize(1920, 1200));
         oglView->setMouseTracking(true);
         oglView->setFocusPolicy(Qt::ClickFocus);
-
-        gridLayout->addWidget(oglView, 0, 0, 1, 1);
-
-        splitter->addWidget(centralwidget);
+        horizontalLayout = new QHBoxLayout(oglView);
+        horizontalLayout->setSpacing(6);
+        horizontalLayout->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        scrollArea->setWidget(oglView);
+        splitter->addWidget(scrollArea);
         locator = new LocatorView(splitter);
         locator->setObjectName(QStringLiteral("locator"));
         locator->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -169,7 +148,7 @@ public:
         GraphicsDoc->setCentralWidget(splitter);
         menuBar = new QMenuBar(GraphicsDoc);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 574, 21));
+        menuBar->setGeometry(QRect(0, 0, 904, 21));
         menu = new QMenu(menuBar);
         menu->setObjectName(QStringLiteral("menu"));
         menu_2 = new QMenu(menuBar);
@@ -264,6 +243,9 @@ public:
 #endif // QT_NO_SHORTCUT
         action_LoadTRF->setText(QApplication::translate("GraphicsDoc", "TRF", Q_NULLPTR));
         actionZoom->setText(QApplication::translate("GraphicsDoc", "Zoom", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionZoom->setShortcut(QApplication::translate("GraphicsDoc", "Z", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_LoadData->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

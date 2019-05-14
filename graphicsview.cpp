@@ -53,12 +53,14 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     m_scale = 4.0f;
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	pageSize	= settings.value("GraphicsView/pageSize", pageSize).toSize();
-	pageBorders	= settings.value("GraphicsView/pageBorders", pageBorders).toRectF();
-	graphBorders	= settings.value("GraphicsView/graphBorders", graphBorders).toRectF();
-	QSizeF	gS	= settings.value("GraphicsView/gridStep", QSizeF(5.,5.)).toSizeF();
-	gridStep	= vec2(gS.width(), gS.height());
-	m_scale		= settings.value("GraphicsView/m_scale", m_scale).toFloat();
+	settings.beginGroup("GraphicsView");
+	pageSize		= settings.value("pageSize", pageSize).toSize();
+	pageBorders		= settings.value("pageBorders", pageBorders).toRectF();
+	graphBorders	= settings.value("graphBorders", graphBorders).toRectF();
+	QSizeF	gS		= settings.value("gridStep", QSizeF(5., 5.)).toSizeF();
+	gridStep		= vec2(gS.width(), gS.height());
+	m_scale			= settings.value("m_scale", m_scale).toFloat();
+	settings.endGroup();
 
 	bdWidth	= 0.1f;
 
@@ -93,11 +95,13 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 GraphicsView::~GraphicsView()
 {
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	settings.setValue("GraphicsView/pageSize", pageSize);
-	settings.setValue("GraphicsView/pageBorders", pageBorders);
-	settings.setValue("GraphicsView/graphBorders", graphBorders);
-	settings.setValue("GraphicsView/gridStep", QSizeF(gridStep.x, gridStep.y));
-	settings.setValue("GraphicsView/m_scale", m_scale);
+	settings.beginGroup("GraphicsView");
+	settings.setValue("pageSize", pageSize);
+	settings.setValue("pageBorders", pageBorders);
+	settings.setValue("graphBorders", graphBorders);
+	settings.setValue("gridStep", QSizeF(gridStep.x, gridStep.y));
+	settings.setValue("m_scale", m_scale);
+	settings.endGroup();
 	settings.sync();
 
 	if(axeArg)	{delete	axeArg; axeArg = 0;}
@@ -145,6 +149,7 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	});
 
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
+	connect(ui->actionFitPage, &QAction::triggered, this, &GraphicsView::fitPage);
 	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
 	connect(ui->actionZoom, &QAction::triggered, this, &GraphicsView::onZoomMode);
 }
@@ -362,13 +367,13 @@ void GraphicsView::resizeGL(int width, int height)
 #endif // USE_FBO
 
 	//Меняем полосы прокрутки
-    ui->verticalScrollBar->setMinimum(-0*int(pageSize.height()*m_scale-height));
-    ui->verticalScrollBar->setMaximum(max(0, int(3.*pageSize.height()*m_scale-height)));
+    ui->verticalScrollBar->setMinimum(-pageSize.height()*m_scale);
+    ui->verticalScrollBar->setMaximum(max(0, int(2.*pageSize.height()*m_scale-height)));
     ui->verticalScrollBar->setPageStep(pageSize.height());
     ui->verticalScrollBar->setSingleStep(1);
 
-    ui->horizontalScrollBar->setMinimum(-0*int(pageSize.width()*m_scale-width));
-    ui->horizontalScrollBar->setMaximum(max(0, int(3.*pageSize.width()*m_scale-width)));
+    ui->horizontalScrollBar->setMinimum(-pageSize.width()*m_scale);
+    ui->horizontalScrollBar->setMaximum(max(0, int(2.*pageSize.width()*m_scale-width)));
     ui->horizontalScrollBar->setPageStep(pageSize.width());
     ui->horizontalScrollBar->setSingleStep(1);
 
@@ -648,21 +653,26 @@ void GraphicsView::setScale(float scale)
 {
     if(scale != m_scale)
     {
-		ui->verticalScrollBar->setMinimum(-0*int(pageSize.height()*scale-height()));
-        ui->verticalScrollBar->setMaximum(max(0, int(3.*pageSize.height()*scale-height())));
-		ui->horizontalScrollBar->setMinimum(-0*int(pageSize.width()*scale-width()));
-		ui->horizontalScrollBar->setMaximum(max(0, int(3.*pageSize.width()*scale-width())));
-		//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value()*scale/m_scale);
-		//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value()*scale/m_scale);
+		ui->verticalScrollBar->setMinimum(-pageSize.height()*scale);
+        ui->verticalScrollBar->setMaximum(max(0, int(2.*pageSize.height()*scale-height())));
+		ui->horizontalScrollBar->setMinimum(-pageSize.width()*scale);
+		ui->horizontalScrollBar->setMaximum(max(0, int(2.*pageSize.width()*scale-width())));
 
         if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
         else										ui->verticalScrollBar->show();
         if(ui->horizontalScrollBar->maximum() == 0) ui->horizontalScrollBar->hide();
         else										ui->horizontalScrollBar->show();
 
+		//Расстояние от мыши до верхнего левого угла в миллиметрах
+		//vec2	delta		= vec2(m_mousePos.x, pageSize.height() - m_mousePos.y);
+		//float	oldScale	= m_scale;
+
 		m_scale = scale;
 		Graph::GraphObject::m_scale	= m_scale;
 
+		//Сдвигаем прокрутку, чтобы точка осталась на месте
+		//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
+		//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
     }
 }
 
@@ -960,11 +970,6 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
-
-	//Получаем мышь в поле графиков
-//	glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
-//	glm::vec4	graph	= glm::inverse(graphM)*world;
-//	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	vec2	mousePos(world.x, world.y);
 
 	//Отдельные действия в режиме перетаскивания
@@ -982,7 +987,6 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			//Сдвигаем прокрутку, чтобы точка осталась на месте
 			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
 			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
-
 		}
 		else if(mdf.testFlag(Qt::ShiftModifier))
 		{
@@ -1200,6 +1204,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
+	if(m_bZoomMode)	QOpenGLWidget::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1382,6 +1387,9 @@ void	GraphicsView::fitTime()
 	else if(Mantiss <= 2)	TimeScale	= 2*pow(10., Power);
 	else if(Mantiss <= 5)	TimeScale	= 5*pow(10., Power);
 	else					TimeScale	= 10*pow(10., Power);
+
+	//Центруем время
+	Time0 -= 0.5*(Time0 + nGrids*TimeScale - tMax);
 }
 
 void	GraphicsView::onZoomMode()
@@ -1391,4 +1399,16 @@ void	GraphicsView::onZoomMode()
 	ui->actionZoom->setChecked(m_bZoomMode);
 	if(m_bZoomMode)	setCursor(Qt::SizeAllCursor);
 	else			setCursor(Qt::ArrowCursor);
+}
+
+void	GraphicsView::fitPage()
+{
+	//Подстраиваем лист под окно
+	ui->horizontalScrollBar->setValue(0);
+	ui->verticalScrollBar->setValue(0);
+	int	w	= width();
+	int	h	= height();
+	float	scaleW	= w/pageSize.width();
+	float	scaleH	= h/pageSize.height();
+	setScale(std::min(scaleW, scaleH));
 }

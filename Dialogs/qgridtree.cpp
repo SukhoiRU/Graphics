@@ -18,11 +18,13 @@ QGridTree::QGridTree(QWidget *parent) :
 	m_bAnimated	= true;
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	m_bHeader	= settings.value("QGridTree/m_bHeader", false).toBool();
-	m_bAutoSize	= settings.value("QGridTree/m_bAutoSize", true).toBool();
-	m_bGrid		= settings.value("QGridTree/m_bGrid", false).toBool();
-	m_bAnimated	= settings.value("QGridTree/m_bAnimated", true).toBool();
-	m_bAlternate	= settings.value("QGridTree/m_bAlternate", true).toBool();
+	settings.beginGroup("QGridTree");
+	m_bHeader		= settings.value("m_bHeader", false).toBool();
+	m_bAutoSize		= settings.value("m_bAutoSize", true).toBool();
+	m_bGrid			= settings.value("m_bGrid", false).toBool();
+	m_bAnimated		= settings.value("m_bAnimated", true).toBool();
+	m_bAlternate	= settings.value("m_bAlternate", true).toBool();
+	settings.endGroup();
 
 	QHeaderView*	h	= header();
 	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -42,11 +44,12 @@ QGridTree::QGridTree(QWidget *parent) :
 QGridTree::~QGridTree()
 {
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	settings.setValue("QGridTree/m_bHeader", m_bHeader);
-	settings.setValue("QGridTree/m_bAutoSize", m_bAutoSize);
-	settings.setValue("QGridTree/m_bGrid", m_bGrid);
-	settings.setValue("QGridTree/m_bAnimated", m_bAnimated);
-
+	settings.beginGroup("QGridTree");
+	settings.setValue("m_bHeader", m_bHeader);
+	settings.setValue("m_bAutoSize", m_bAutoSize);
+	settings.setValue("m_bGrid", m_bGrid);
+	settings.setValue("m_bAnimated", m_bAnimated);
+	settings.endGroup();
 	settings.sync();
 }
 

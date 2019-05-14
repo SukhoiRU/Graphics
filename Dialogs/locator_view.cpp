@@ -14,13 +14,15 @@
 LocatorView::LocatorView(QWidget *parent) : QTreeView(parent)
 {
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	m_bHeader	= settings.value("LocatorView/m_bHeader", false).toBool();
-	m_bAutoSize	= settings.value("LocatorView/m_bAutoSize", true).toBool();
-	m_bGrid		= settings.value("LocatorView/m_bGrid", false).toBool();
-	m_bAnimated	= settings.value("LocatorView/m_bAnimated", true).toBool();
-	m_bAlternate	= settings.value("LocatorView/m_bAlternate", true).toBool();
-	m_bUseBool	= settings.value("LocatorView/m_bUseBool", true).toBool();
-	m_bUseEmpty	= settings.value("LocatorView/m_bUseEmpty", true).toBool();
+	settings.beginGroup("LocatorView");
+	m_bHeader	= settings.value("m_bHeader", false).toBool();
+	m_bAutoSize	= settings.value("m_bAutoSize", true).toBool();
+	m_bGrid		= settings.value("m_bGrid", false).toBool();
+	m_bAnimated	= settings.value("m_bAnimated", true).toBool();
+	m_bAlternate	= settings.value("m_bAlternate", true).toBool();
+	m_bUseBool	= settings.value("m_bUseBool", true).toBool();
+	m_bUseEmpty	= settings.value("m_bUseEmpty", true).toBool();
+	settings.endGroup();
 
 	QHeaderView*	h	= header();
 	if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -44,14 +46,15 @@ LocatorView::LocatorView(QWidget *parent) : QTreeView(parent)
 LocatorView::~LocatorView()
 {
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
-	settings.setValue("LocatorView/m_bHeader", m_bHeader);
-	settings.setValue("LocatorView/m_bAutoSize", m_bAutoSize);
-	settings.setValue("LocatorView/m_bGrid", m_bGrid);
-	settings.setValue("LocatorView/m_bAnimated", m_bAnimated);
-	settings.setValue("LocatorView/m_bAlternate", m_bAlternate);
-	settings.setValue("LocatorView/m_bUseBool", m_bUseBool);
-	settings.setValue("LocatorView/m_bUseEmpty", m_bUseEmpty);
-
+	settings.beginGroup("LocatorView");
+	settings.setValue("m_bHeader", m_bHeader);
+	settings.setValue("m_bAutoSize", m_bAutoSize);
+	settings.setValue("m_bGrid", m_bGrid);
+	settings.setValue("m_bAnimated", m_bAnimated);
+	settings.setValue("m_bAlternate", m_bAlternate);
+	settings.setValue("m_bUseBool", m_bUseBool);
+	settings.setValue("m_bUseEmpty", m_bUseEmpty);
+	settings.endGroup();
 	settings.sync();
 
 	if(m_model)	delete m_model;

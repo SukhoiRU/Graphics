@@ -45,6 +45,7 @@ public:
     QAction *actionDelAxe;
     QAction *action_LoadTRF;
     QAction *actionZoom;
+    QAction *actionFitPage;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -122,6 +123,8 @@ public:
         QIcon icon7;
         icon7.addFile(QStringLiteral(":/Resources/images/open_gl.png"), QSize(), QIcon::Normal, QIcon::Off);
         actionZoom->setIcon(icon7);
+        actionFitPage = new QAction(GraphicsDoc);
+        actionFitPage->setObjectName(QStringLiteral("actionFitPage"));
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -139,7 +142,7 @@ public:
         verticalScrollBar->setPageStep(50);
         verticalScrollBar->setOrientation(Qt::Vertical);
 
-        gridLayout->addWidget(verticalScrollBar, 0, 2, 1, 1);
+        gridLayout->addWidget(verticalScrollBar, 0, 1, 1, 1);
 
         horizontalScrollBar = new QScrollBar(centralwidget);
         horizontalScrollBar->setObjectName(QStringLiteral("horizontalScrollBar"));
@@ -208,6 +211,7 @@ public:
         menu_4->addAction(actionScaleUp);
         menu_4->addAction(actionScaleDown);
         menu_4->addAction(actionFitTime);
+        menu_4->addAction(actionFitPage);
         menu_5->addAction(actionPageInfo);
         menu_5->addAction(actionGraphSettings);
         mainToolBar->addSeparator();
@@ -231,6 +235,9 @@ public:
         GraphicsDoc->setWindowTitle(QApplication::translate("GraphicsDoc", "Graphics", Q_NULLPTR));
         actionOpen->setText(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
         actionSave->setText(QApplication::translate("GraphicsDoc", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionSave->setShortcut(QApplication::translate("GraphicsDoc", "Ctrl+S", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
         action_LoadSapr->setText(QApplication::translate("GraphicsDoc", "\320\241\320\220\320\237\320\240", Q_NULLPTR));
         action_LoadOrion->setText(QApplication::translate("GraphicsDoc", "\320\236\321\200\320\270\320\276\320\275", Q_NULLPTR));
         actionAddAxe->setText(QApplication::translate("GraphicsDoc", "\320\224\320\276\320\261\320\260\320\262\320\270\321\202\321\214", Q_NULLPTR));
@@ -266,6 +273,10 @@ public:
         actionZoom->setText(QApplication::translate("GraphicsDoc", "Zoom", Q_NULLPTR));
 #ifndef QT_NO_SHORTCUT
         actionZoom->setShortcut(QApplication::translate("GraphicsDoc", "Z", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        actionFitPage->setText(QApplication::translate("GraphicsDoc", "\320\222\320\265\321\201\321\214 \320\273\320\270\321\201\321\202", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionFitPage->setShortcut(QApplication::translate("GraphicsDoc", "/", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));

@@ -35,6 +35,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	ui->splitter->setStretchFactor(1, 0);
 	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
 
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.beginGroup("GraphicsDoc");
+	ui->splitter->restoreState(settings.value("splitter", ui->splitter->saveState()).toByteArray());
+	settings.endGroup();
+
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
@@ -76,6 +81,13 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 
 GraphicsDoc::~GraphicsDoc()
 {
+	//Сохраняем сплиттер
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.beginGroup("GraphicsDoc");
+	settings.setValue("splitter", ui->splitter->saveState());
+	settings.endGroup();
+	settings.sync();
+
 	//Очищаем список панелей
     for(size_t i = 0; i < m_PanelList.size(); i++)
 	{

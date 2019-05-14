@@ -300,7 +300,6 @@ void GraphicsDoc::on_menu_LoadData(QAction* pAction)
     in.close();
 
 	loadData(FileName, acc_type);
-	ui->statusBar->showMessage(QString("Загружен файл %1").arg(FileName), 5000);
 }
 
 void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_type)
@@ -351,6 +350,7 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
 */
 	preloadPanel();
 	emit panelChanged(&m_pActivePanel->Axes);
+	ui->statusBar->showMessage(QString("Загружен файл %1").arg(FileName), 5000);
 }
 
 void	GraphicsDoc::on_PanelListChanged()

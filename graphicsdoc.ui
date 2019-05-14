@@ -44,7 +44,7 @@
         <number>297</number>
        </property>
        <property name="singleStep">
-        <number>5</number>
+        <number>1</number>
        </property>
        <property name="pageStep">
         <number>50</number>
@@ -60,7 +60,7 @@
         <number>210</number>
        </property>
        <property name="singleStep">
-        <number>5</number>
+        <number>1</number>
        </property>
        <property name="pageStep">
         <number>50</number>
@@ -314,6 +314,9 @@
    </property>
    <property name="text">
     <string>Zoom</string>
+   </property>
+   <property name="shortcut">
+    <string>Z</string>
    </property>
   </action>
  </widget>

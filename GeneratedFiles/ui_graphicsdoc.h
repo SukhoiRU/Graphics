@@ -135,7 +135,7 @@ public:
         verticalScrollBar = new QScrollBar(centralwidget);
         verticalScrollBar->setObjectName(QStringLiteral("verticalScrollBar"));
         verticalScrollBar->setMaximum(297);
-        verticalScrollBar->setSingleStep(5);
+        verticalScrollBar->setSingleStep(1);
         verticalScrollBar->setPageStep(50);
         verticalScrollBar->setOrientation(Qt::Vertical);
 
@@ -144,7 +144,7 @@ public:
         horizontalScrollBar = new QScrollBar(centralwidget);
         horizontalScrollBar->setObjectName(QStringLiteral("horizontalScrollBar"));
         horizontalScrollBar->setMaximum(210);
-        horizontalScrollBar->setSingleStep(5);
+        horizontalScrollBar->setSingleStep(1);
         horizontalScrollBar->setPageStep(50);
         horizontalScrollBar->setOrientation(Qt::Horizontal);
         horizontalScrollBar->setInvertedControls(false);
@@ -264,6 +264,9 @@ public:
 #endif // QT_NO_SHORTCUT
         action_LoadTRF->setText(QApplication::translate("GraphicsDoc", "TRF", Q_NULLPTR));
         actionZoom->setText(QApplication::translate("GraphicsDoc", "Zoom", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionZoom->setShortcut(QApplication::translate("GraphicsDoc", "Z", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));
         menu_LoadData->setTitle(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));

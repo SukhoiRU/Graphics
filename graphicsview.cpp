@@ -362,13 +362,13 @@ void GraphicsView::resizeGL(int width, int height)
 #endif // USE_FBO
 
 	//Меняем полосы прокрутки
-    ui->verticalScrollBar->setMinimum(0);
-    ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height/m_scale)));
+    ui->verticalScrollBar->setMinimum(-0*int(pageSize.height()*m_scale-height));
+    ui->verticalScrollBar->setMaximum(max(0, int(3.*pageSize.height()*m_scale-height)));
     ui->verticalScrollBar->setPageStep(pageSize.height());
     ui->verticalScrollBar->setSingleStep(1);
 
-    ui->horizontalScrollBar->setMinimum(0);
-    ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width/m_scale)));
+    ui->horizontalScrollBar->setMinimum(-0*int(pageSize.width()*m_scale-width));
+    ui->horizontalScrollBar->setMaximum(max(0, int(3.*pageSize.width()*m_scale-width)));
     ui->horizontalScrollBar->setPageStep(pageSize.width());
     ui->horizontalScrollBar->setSingleStep(1);
 
@@ -648,16 +648,21 @@ void GraphicsView::setScale(float scale)
 {
     if(scale != m_scale)
     {
-        m_scale = scale;
-		Graph::GraphObject::m_scale	= m_scale;
-
-        ui->verticalScrollBar->setMaximum(max(0.f, float(pageSize.height()-height()/m_scale)));
-		ui->horizontalScrollBar->setMaximum(max(0.f, float(pageSize.width()-width()/m_scale)));
+		ui->verticalScrollBar->setMinimum(-0*int(pageSize.height()*scale-height()));
+        ui->verticalScrollBar->setMaximum(max(0, int(3.*pageSize.height()*scale-height())));
+		ui->horizontalScrollBar->setMinimum(-0*int(pageSize.width()*scale-width()));
+		ui->horizontalScrollBar->setMaximum(max(0, int(3.*pageSize.width()*scale-width())));
+		//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value()*scale/m_scale);
+		//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value()*scale/m_scale);
 
         if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
         else										ui->verticalScrollBar->show();
         if(ui->horizontalScrollBar->maximum() == 0) ui->horizontalScrollBar->hide();
         else										ui->horizontalScrollBar->show();
+
+		m_scale = scale;
+		Graph::GraphObject::m_scale	= m_scale;
+
     }
 }
 
@@ -669,7 +674,7 @@ void GraphicsView::update()
     m_view  = mat4(1.0f);
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
     m_view	= translate(m_view, -vec3(0.f, pageSize.height(), dist));
-    m_view	= translate(m_view, -vec3(ui->horizontalScrollBar->value(), -ui->verticalScrollBar->value(), 0.f));
+    m_view	= translate(m_view, -vec3(ui->horizontalScrollBar->value()/m_scale, -ui->verticalScrollBar->value()/m_scale, 0.f));
 
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
@@ -813,6 +818,22 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	Qt::MouseButtons		buttons	= event->buttons();
 	Qt::KeyboardModifiers	mdf		= event->modifiers();
 
+	//Отдельные действия в режиме перетаскивания
+	if(m_bZoomMode)
+	{
+		QPoint	mouse	= event->globalPos();
+		if(buttons & Qt::LeftButton)
+		{
+			QPoint	delta	= mouse - m_oldMouse;
+			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x());
+			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - delta.y());
+		}
+
+		//Сохраняем в классе положение мыши
+		m_oldMouse	= mouse;
+		return;
+	}
+
 	//Переводим мышь в координаты модели
 	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
@@ -829,21 +850,6 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	vec2	mousePos(world.x, world.y);
-
-	//Отдельные действия в режиме перетаскивания
-	if(m_bZoomMode)
-	{
-		if(buttons & Qt::LeftButton)
-		{
-			vec2	delta	= mousePos - m_mousePos;
-//			ui->horizontalScrollBar->setSliderPosition(ui->horizontalScrollBar->value() + delta.x);
-//			ui->verticalScrollBar->setSliderPosition(ui->verticalScrollBar->value() + delta.y);
-		}
-
-		//Сохраняем в классе положение мыши
-		m_mousePos	= mousePos;
-		return;
-	}
 
 	//Определим объект, на который попала мышь
 	bool	bFound	= false;
@@ -961,20 +967,36 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 //	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	vec2	mousePos(world.x, world.y);
 
+	//Отдельные действия в режиме перетаскивания
 	if(m_bZoomMode)
 	{
 		if(mdf.testFlag(Qt::ControlModifier))
 		{
-			if(numDegrees.y() > 0)	setScale(m_scale*1.01);
-			else					setScale(m_scale/1.01);
+			//Расстояние от мыши до верхнего левого угла в миллиметрах
+			vec2	delta		= vec2(mousePos.x, pageSize.height() - mousePos.y);
+			float	oldScale	= m_scale;
+
+			if(numDegrees.y() > 0)	setScale(m_scale*1.1);
+			else					setScale(m_scale/1.1);
+
+			//Сдвигаем прокрутку, чтобы точка осталась на месте
+			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
+			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
+
+		}
+		else if(mdf.testFlag(Qt::ShiftModifier))
+		{
+			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - numDegrees.y());
 		}
 		else
 		{
-
+			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - numDegrees.x());
+			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
 		}
 		event->accept();
 		return;
 	}
+
 
 	if(m_SelectedObjects.size())
 	{

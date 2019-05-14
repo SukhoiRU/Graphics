@@ -112,6 +112,7 @@ private:
 	graphSettings*				m_pGraphSettings;
 
 	bool		m_bZoomMode;	//Признак управления страницей
+	QPoint		m_oldMouse;
 
 	//Начальное время и масштаб
 	double		Time0;

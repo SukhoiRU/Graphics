@@ -46,6 +46,7 @@ public:
     QAction *action_LoadTRF;
     QAction *actionZoom;
     QAction *actionFitPage;
+    QAction *actionReload;
     QSplitter *splitter;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
@@ -125,6 +126,8 @@ public:
         actionZoom->setIcon(icon7);
         actionFitPage = new QAction(GraphicsDoc);
         actionFitPage->setObjectName(QStringLiteral("actionFitPage"));
+        actionReload = new QAction(GraphicsDoc);
+        actionReload->setObjectName(QStringLiteral("actionReload"));
         splitter = new QSplitter(GraphicsDoc);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
@@ -203,6 +206,7 @@ public:
         menu->addAction(actionSave);
         menu->addAction(actionSaveAs);
         menu_2->addAction(menu_LoadData->menuAction());
+        menu_2->addAction(actionReload);
         menu_LoadData->addAction(action_LoadSapr);
         menu_LoadData->addAction(action_LoadOrion);
         menu_LoadData->addAction(action_LoadTRF);
@@ -277,6 +281,10 @@ public:
         actionFitPage->setText(QApplication::translate("GraphicsDoc", "\320\222\320\265\321\201\321\214 \320\273\320\270\321\201\321\202", Q_NULLPTR));
 #ifndef QT_NO_SHORTCUT
         actionFitPage->setShortcut(QApplication::translate("GraphicsDoc", "/", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        actionReload->setText(QApplication::translate("GraphicsDoc", "\320\236\320\261\320\275\320\276\320\262\320\270\321\202\321\214", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        actionReload->setShortcut(QApplication::translate("GraphicsDoc", "F5", Q_NULLPTR));
 #endif // QT_NO_SHORTCUT
         menu->setTitle(QApplication::translate("GraphicsDoc", "\320\244\320\260\320\271\320\273", Q_NULLPTR));
         menu_2->setTitle(QApplication::translate("GraphicsDoc", "\320\224\320\260\320\275\320\275\321\213\320\265", Q_NULLPTR));

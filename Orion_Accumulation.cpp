@@ -22,7 +22,7 @@ void	Orion_Accumulation::load(const QString& filename)
 
 	if(m_pFile)
 	{
-		m_pFile->close();
+		if(m_pFile->isOpen()) m_pFile->close();
 		delete m_pFile;
 		m_pFile	= nullptr;
 	}
@@ -75,6 +75,11 @@ void	Orion_Accumulation::load(const QString& filename)
 		m_pFile->seek(h.pos);
 		LoadOrionPacket();
 	}
+
+	//Сохраняем время изменения файла
+	QFileInfo	info(*m_pFile);
+	m_lastModified	= info.lastModified();
+	m_pFile->close();
 }
 
 /*
@@ -272,6 +277,7 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 		if(signal->OrionFilePos == data.pos)
 		{
 			*ppData	= data.ptr;
+			*nType	= data.type;
 			break;
 		}
 	}
@@ -285,14 +291,32 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 		char*	ptr	= new char[size];
 		if(!ptr)	return 0;
 
+		//Проверяем файл
+		QFileInfo	info(*m_pFile);
+		if(info.lastModified() != m_lastModified)
+		{
+			//Файл был изменен!!!
+			const_cast<Orion_Accumulation*>(this)->load(m_pFile->fileName());
+		}
+
+		if(!m_pFile->open(QIODevice::ReadOnly))
+		{
+			QString	msg = "Не удалось открыть файл\n";
+			msg	+= m_pFile->fileName();
+			QMessageBox::critical(0, "Чтение Орион", msg);
+			return false;
+		}
+
 		//Читаем из большого файла
 		if(!m_pFile->seek(signal->OrionFileTime))	return 0;
 		if(m_pFile->read((char*)ptr, size) != size)	return 0;
+		m_pFile->close();
 
 		//Запоминаем указатель в списке
 		OrionData	d;
 		d.pos	= signal->OrionFileTime;
 		d.ptr	= ptr;
+		d.type	= DataType::Double;
 
 		m_OrionData.push_back(d);
 		*ppTime	= (double*)ptr;
@@ -317,14 +341,32 @@ bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double*
 		char*	ptr	= new char[size];
 		if(!ptr)	return 0;
 
+		//Проверяем файл
+		QFileInfo	info(*m_pFile);
+		if(info.lastModified() != m_lastModified)
+		{
+			//Файл был изменен!!!
+			const_cast<Orion_Accumulation*>(this)->load(m_pFile->fileName());
+		}
+
+		if(!m_pFile->open(QIODevice::ReadOnly))
+		{
+			QString	msg = "Не удалось открыть файл\n";
+			msg	+= m_pFile->fileName();
+			QMessageBox::critical(0, "Чтение Орион", msg);
+			return false;
+		}
+
 		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFilePos))	return 0;
-		if(m_pFile->read((char*)ptr, size) != size)	return 0;
+		if(!m_pFile->seek(signal->OrionFilePos))	return false;
+		if(m_pFile->read((char*)ptr, size) != size)	return false;
+		m_pFile->close();
 
 		//Запоминаем указатель в списке
 		OrionData	d;
 		d.pos	= signal->OrionFilePos;
 		d.ptr	= ptr;
+		d.type	= *nType;
 
 		m_OrionData.push_back(d);
 		*ppData	= ptr;

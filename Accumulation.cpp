@@ -21,7 +21,7 @@ Accumulation::~Accumulation()
 	//Закрываем файл
 	if(m_pFile)
 	{
-		m_pFile->close();
+		if(m_pFile->isOpen())	m_pFile->close();
 		delete m_pFile;
 		m_pFile	= nullptr;
 	}

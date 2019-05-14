@@ -130,6 +130,7 @@
      <addaction name="action_LoadTRF"/>
     </widget>
     <addaction name="menu_LoadData"/>
+    <addaction name="actionReload"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -329,6 +330,14 @@
    </property>
    <property name="shortcut">
     <string>/</string>
+   </property>
+  </action>
+  <action name="actionReload">
+   <property name="text">
+    <string>Обновить</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>

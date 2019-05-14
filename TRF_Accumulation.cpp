@@ -54,7 +54,7 @@ void	TRF_Accumulation::load(const QString& filename)
 
 	if(m_pFile)
 	{
-		m_pFile->close();
+		if(m_pFile->isOpen()) m_pFile->close();
 		delete m_pFile;
 		m_pFile	= nullptr;
 	}
@@ -67,7 +67,7 @@ void	TRF_Accumulation::load(const QString& filename)
 	{
 		QString	msg = "Не удалось открыть файл\n";
 		msg	+= filename;
-		QMessageBox::critical(0, "Чтение САПР", msg);
+		QMessageBox::critical(0, "Чтение TRF", msg);
 		return;
 	}
 
@@ -122,12 +122,33 @@ void	TRF_Accumulation::load(const QString& filename)
 
 	//Сохраняем положение в файле
 	m_DataPos	= m_pFile->pos();
+
+	//Сохраняем время изменения файла
+	QFileInfo	info(*m_pFile);
+	m_lastModified	= info.lastModified();
+	m_pFile->close();
 }
 
 void	TRF_Accumulation::preloadData(QStringList* pAxes)
 {
 	clearData();
 	
+	//Проверяем файл
+	QFileInfo	info(*m_pFile);
+	if(info.lastModified() != m_lastModified)
+	{
+		//Файл был изменен!!!
+		load(m_pFile->fileName());
+	}
+
+	if(!m_pFile->open(QIODevice::ReadOnly))
+	{
+		QString	msg = "Не удалось открыть файл\n";
+		msg	+= m_pFile->fileName();
+		QMessageBox::critical(0, "Чтение TRF", msg);
+		return;
+	}
+
 	//Проверяем время
 	if(!m_pTime)
 	{
@@ -189,6 +210,8 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 		}
 	}
 	delete[] Block;
+
+	m_pFile->close();
 }
 
 bool	TRF_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const

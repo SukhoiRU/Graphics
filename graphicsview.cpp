@@ -1363,16 +1363,35 @@ void	GraphicsView::fitTime()
 	//По звездочке выставляем полное время полета
 	double	tMin	= 0;
 	double	tMax	= 0;
+	bool	bHasCorrect	= false;
 	for(size_t i = 0; i < m_pPanel->size(); i++)
 	{
 		GAxe*	pAxe	= m_pPanel->at(i);
-        double t0 = 0, t1 = 0;
-		if(tMin == 0 && tMax == 0)	pAxe->getTime(tMin, tMax);
-		else		pAxe->getTime(t0, t1);
 
-		if(t0 < tMin)	tMin	= t0;
-		if(t1 > tMax)	tMax	= t1;
+		//Получаем диапазон времени от оси
+		double t0, t1;
+		pAxe->getTime(t0, t1);
+		if(t0 == 0 && t1 == 0)
+		{
+			//Время некорректно, пропускаем
+			continue;
+		}
+		else if(!bHasCorrect)
+		{
+			//Первый раз нашли непустое время
+			bHasCorrect	= true;
+			tMin	= t0;
+			tMax	= t1;
+		}
+		else
+		{
+			//Последующие непустые времена сравниваем
+			if(t0 < tMin)	tMin	= t0;
+			if(t1 > tMax)	tMax	= t1;
+		}
 	}
+
+	if(!bHasCorrect)	return;
 
 	//Подбираем под диапазон
 	Time0	= tMin;

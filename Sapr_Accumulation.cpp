@@ -53,7 +53,7 @@ void	Sapr_Accumulation::load(const QString& filename)
 
 	if(m_pFile)
 	{
-		m_pFile->close();
+		if(m_pFile->isOpen())	m_pFile->close();
 		delete m_pFile;
 		m_pFile	= nullptr;
 	}
@@ -129,11 +129,32 @@ void	Sapr_Accumulation::load(const QString& filename)
 		qint64	dwLength	= m_pFile->size();
 		m_nRecCount	= (dwLength-dwPosition)/m_nRecordSize;
 	}
+
+	//Сохраняем время изменения файла
+	QFileInfo	info(*m_pFile);
+	m_lastModified	= info.lastModified();
+	m_pFile->close();
 }
 
 void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 {
 	clearData();
+
+	//Проверяем файл
+	QFileInfo	info(*m_pFile);
+	if(info.lastModified() != m_lastModified)
+	{
+		//Файл был изменен!!!
+		load(m_pFile->fileName());
+	}
+
+	if(!m_pFile->open(QIODevice::ReadOnly))
+	{
+		QString	msg = "Не удалось открыть файл\n";
+		msg	+= m_pFile->fileName();
+		QMessageBox::critical(0, "Чтение САПР", msg);
+		return;
+	}
 	
 	//Проверяем время
 	if(!m_pTime)
@@ -213,6 +234,8 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 		}
 	}
 	delete[] Block;
+
+	m_pFile->close();
 }
 
 bool	Sapr_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const

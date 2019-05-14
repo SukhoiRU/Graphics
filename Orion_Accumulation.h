@@ -38,8 +38,9 @@ private:
 
 	struct OrionData
 	{
-		qint64	pos;	//Положение в большом файле
-		char*	ptr;	//Указатель на считанные данные
+		qint64		pos;	//Положение в большом файле
+		char*		ptr;	//Указатель на считанные данные
+		DataType	type;	//Тип данных
 	};
 
 	int							m_nOrionVersion;	//Номер версии файла Орион

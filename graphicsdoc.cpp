@@ -73,10 +73,15 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(this, &GraphicsDoc::axeAdded, ui->oglView, &GraphicsView::on_axeAdded);
 
 	//Меню
-//	connect(ui->menu_LoadData, &QMenu::triggered, this, &GraphicsDoc::on_menu_LoadData);
 	connect(ui->action_LoadSapr, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadSapr); });
 	connect(ui->action_LoadOrion, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadOrion);});
 	connect(ui->action_LoadTRF, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadTRF); });
+
+	connect(ui->actionReload, &QAction::triggered, [this]
+	{
+		preloadPanel();
+		emit panelChanged(&m_pActivePanel->Axes);}
+	);
 }
 
 GraphicsDoc::~GraphicsDoc()
@@ -593,7 +598,10 @@ GAxe::DataType	toGAxe(const Accumulation::DataType nType)
         case Accumulation::DataType::Float:		return GAxe::DataType::Float;
         case Accumulation::DataType::Short:		return GAxe::DataType::Short;
 		default:
+		{
+			QMessageBox::critical(nullptr, "Преобразование Accumulation::DataType", "Ошибка!!!");
 			throw;
+		}
 	}
 }
 

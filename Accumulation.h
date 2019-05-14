@@ -32,6 +32,7 @@ protected:
 	AccType				m_Type;			//Тип накопления
 	QString				m_Name;			//Имя накопления
 	QFile*				m_pFile;		//Указатель на открытый файл
+	QDateTime			m_lastModified;	//Время последнего изменения файла
 
 public:
 	Accumulation();

@@ -476,11 +476,15 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 
     if(dlg.exec() == QDialog::Accepted)
     {
+		//Выделяем последнее имя
 		QStringList	pathList	= dlg.m_Path.split('\\');
+		QString	name	= pathList.back();
+		if(name == "x" || name == "y" || name == "z")
+			name	= pathList.at(pathList.size()-2) + "." + pathList.back();
 
 		//Добавляем ось
 		Graph::GAxe* pAxe	= new Graph::GAxe;
-		pAxe->m_Name		= pathList.back();
+		pAxe->m_Name		= name;
 		pAxe->m_Path		= dlg.m_Path;
 		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
 		pAxe->m_nMarker		= 0;//GetNextMarker();

@@ -59,5 +59,6 @@ void ColorButton::mousePressEvent(QMouseEvent* /*e*/)
 	{
 		m_color	= dlg.currentColor();
 		m_bDiff	= false;
+		emit colorChanged();
 	}
 }

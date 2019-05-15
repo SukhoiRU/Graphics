@@ -26,6 +26,7 @@ private slots:
     void	on_accept(QAbstractButton* pButton);
 	void	on_replace();
 	void	on_substract();
+	void	on_colorChanged();
 
 signals:
 	void	change_axe(Graph::GAxe* pAxe);

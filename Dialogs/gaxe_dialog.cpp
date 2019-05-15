@@ -16,6 +16,7 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
 	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);
 	connect(ui->pushButton_Substract, &QPushButton::clicked, this, &GAxe_dialog::on_substract);
+	connect(ui->pushButton_Color, &ColorButton::colorChanged, this, &GAxe_dialog::on_colorChanged);
 	axes		= *pAxes;
 
 	//Заполняем поля
@@ -88,8 +89,8 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 
 	//Цвет
 	vec3	color	= axes.front()->m_Color;
-        QColor  c(color.r*255, color.g*255, color.b*255);
-        ui->pushButton_Color->setColor(c);
+	QColor  c(color.r*255, color.g*255, color.b*255);
+	ui->pushButton_Color->setColor(c);
 	for(size_t i = 0; i < axes.size(); i++)
 	{
 		GAxe*	pAxe	= axes.at(i);
@@ -226,4 +227,13 @@ void	GAxe_dialog::on_substract()
 	ui->label_Max->setText(QString("[%1]").arg(Max));
 	ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
 	ui->lineEdit_Scale->setText(QString("%1").arg(pAxe->m_AxeScale));
+}
+
+void	GAxe_dialog::on_colorChanged()
+{
+	//Сразу применяем цвет
+	QColor	color;
+	if(ui->pushButton_Color->getColor(color))
+		for(size_t i = 0; i < axes.size(); i++)
+			axes.at(i)->m_Color = vec3(color.red()/255., color.green()/255., color.blue()/255.);
 }

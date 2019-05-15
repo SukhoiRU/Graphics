@@ -17,6 +17,8 @@ public:
 	void	setColor(QColor& c);
 	void	setDiffColor();
 	bool	getColor(QColor& c);
+signals:
+	void	colorChanged();
 private:
 	QColor	m_color;
 	bool	m_bDiff;

@@ -1450,7 +1450,7 @@ void	GraphicsView::shiftToScroll()
 		else
 		{
 			ui->horizontalScrollBar->setValue(hMax);
-			m_shift.x	= hValue + m_shift.x - hMax;
+			m_shift.x	+= hValue - hMax;
 		}
 	}
 	else
@@ -1473,7 +1473,7 @@ void	GraphicsView::shiftToScroll()
 		else
 		{
 			ui->verticalScrollBar->setValue(vMax);
-			m_shift.y	= vValue + m_shift.y - vMax;
+			m_shift.y	+= vValue - vMax;
 		}
 	}
 	else

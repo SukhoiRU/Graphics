@@ -191,7 +191,7 @@ void	GraphicsView::loadAxeArg(QDomElement* e, double ver)
 void GraphicsView::initializeGL()
 {
 	//Initialize OpenGL Backend
-    connect(this, SIGNAL(frameSwapped()), this, SLOT(update()));
+    connect(this, &GraphicsView::frameSwapped, this, &GraphicsView::update);
 
 	// Set global information
 	gladLoadGL();
@@ -840,6 +840,8 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 		//Сохраняем в классе положение мыши
 		m_oldMouse	= mouse;
+//		update();
+
 		return;
 	}
 
@@ -957,6 +959,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	m_mousePos	= mousePos;
 
 	event->accept();
+//	update();
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)

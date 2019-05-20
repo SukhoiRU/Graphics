@@ -88,6 +88,9 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 	void	onCustomMenuRequested(QPoint pos);
 	void	onZoomMode();
+	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
+	void	on_HsliderChanged();
+	void	on_VsliderChanged();
 
 	void	paintOverGL(QPainter* p);
 
@@ -101,7 +104,7 @@ private:
 	QRectF		graphBorders;
 	vec2		gridStep;
 	vec2		m_mousePos;	//Текущее положение курсора
-	vec2		m_clickPos;	//Точка щелчка мышью
+	vec2		m_shift;	//Сдвиг для правильного zoom
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
 	PageSetup*	pPageSetup;

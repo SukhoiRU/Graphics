@@ -23,8 +23,8 @@ void	Sapr_Accumulation::clearData()
 	for(size_t i = 0; i < m_Data.size(); i++)
 	{
 		SaprData*	data	= m_Data.at(i);
-		delete	data->ptr;
-		delete	data;
+		delete[]	data->ptr;
+		delete		data;
 	}
 	m_Data.clear();
 

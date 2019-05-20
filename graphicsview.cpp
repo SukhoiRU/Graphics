@@ -78,7 +78,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
 	m_mousePos	= vec2(0.f);
-	m_clickPos	= vec2(0.f);
+	m_shift		= vec2(0.f);
 
 	fbo	= 0;
 	qFBO	= nullptr;
@@ -116,7 +116,7 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	connect(ui->actionPageInfo, &QAction::triggered, this, &GraphicsView::openPageSetup);
 	connect(ui->actionGraphSettings, &QAction::triggered, this, &GraphicsView::on_graphSettings);
 
-	connect(ui->actionScaleUp, &QAction::triggered, this, [=]{
+	connect(ui->actionScaleUp, &QAction::triggered, [this]{
 		//Нормализуем масштаб
 		double	Power	= floor(log10(TimeScale));
 		double	Mantiss	= TimeScale / pow(10., Power);
@@ -132,7 +132,7 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 		Time0	= curTime - dLen*TimeScale;	
 	});
 
-	connect(ui->actionScaleDown, &QAction::triggered, this, [=]{
+	connect(ui->actionScaleDown, &QAction::triggered, [this]{
 		//Нормализуем масштаб
 		double	Power	= floor(log10(TimeScale));
 		double	Mantiss	= TimeScale / pow(10., Power);
@@ -148,6 +148,10 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 		Time0	= curTime - dLen*TimeScale;
 	});
 
+	//Обработка скролла
+	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
+	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+	
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
 	connect(ui->actionFitPage, &QAction::triggered, this, &GraphicsView::fitPage);
 	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
@@ -367,13 +371,13 @@ void GraphicsView::resizeGL(int width, int height)
 #endif // USE_FBO
 
 	//Меняем полосы прокрутки
-    ui->verticalScrollBar->setMinimum(-pageSize.height()*m_scale);
-    ui->verticalScrollBar->setMaximum(max(0, int(2.*pageSize.height()*m_scale-height)));
+    ui->verticalScrollBar->setMinimum(0);
+    ui->verticalScrollBar->setMaximum(max(0, int(pageSize.height()*m_scale-height)));
     ui->verticalScrollBar->setPageStep(pageSize.height());
     ui->verticalScrollBar->setSingleStep(1);
 
-    ui->horizontalScrollBar->setMinimum(-pageSize.width()*m_scale);
-    ui->horizontalScrollBar->setMaximum(max(0, int(2.*pageSize.width()*m_scale-width)));
+    ui->horizontalScrollBar->setMinimum(0);
+    ui->horizontalScrollBar->setMaximum(max(0, int(pageSize.width()*m_scale-width)));
     ui->horizontalScrollBar->setPageStep(pageSize.width());
     ui->horizontalScrollBar->setSingleStep(1);
 
@@ -653,26 +657,18 @@ void GraphicsView::setScale(float scale)
 {
     if(scale != m_scale)
     {
-		ui->verticalScrollBar->setMinimum(-pageSize.height()*scale);
-        ui->verticalScrollBar->setMaximum(max(0, int(2.*pageSize.height()*scale-height())));
-		ui->horizontalScrollBar->setMinimum(-pageSize.width()*scale);
-		ui->horizontalScrollBar->setMaximum(max(0, int(2.*pageSize.width()*scale-width())));
+		ui->verticalScrollBar->setMinimum(0);
+        ui->verticalScrollBar->setMaximum(max(0, int(pageSize.height()*scale-height())));
+		ui->horizontalScrollBar->setMinimum(0);
+		ui->horizontalScrollBar->setMaximum(max(0, int(pageSize.width()*scale-width())));
 
         if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
         else										ui->verticalScrollBar->show();
         if(ui->horizontalScrollBar->maximum() == 0) ui->horizontalScrollBar->hide();
         else										ui->horizontalScrollBar->show();
 
-		//Расстояние от мыши до верхнего левого угла в миллиметрах
-		//vec2	delta		= vec2(m_mousePos.x, pageSize.height() - m_mousePos.y);
-		//float	oldScale	= m_scale;
-
 		m_scale = scale;
 		Graph::GraphObject::m_scale	= m_scale;
-
-		//Сдвигаем прокрутку, чтобы точка осталась на месте
-		//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
-		//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
     }
 }
 
@@ -685,6 +681,7 @@ void GraphicsView::update()
     m_view	= scale(m_view, vec3(m_scale,m_scale,1.f));
     m_view	= translate(m_view, -vec3(0.f, pageSize.height(), dist));
     m_view	= translate(m_view, -vec3(ui->horizontalScrollBar->value()/m_scale, -ui->verticalScrollBar->value()/m_scale, 0.f));
+	m_view	= translate(m_view, -vec3(m_shift.x/m_scale, -m_shift.y/m_scale, 0.f));
 
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
@@ -835,8 +832,10 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		if(buttons & Qt::LeftButton)
 		{
 			QPoint	delta	= mouse - m_oldMouse;
-			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x());
-			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - delta.y());
+			m_shift -= vec2(delta.x(), delta.y());
+			shiftToScroll();
+			//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x());
+			//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - delta.y());
 		}
 
 		//Сохраняем в классе положение мыши
@@ -985,8 +984,10 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			else					setScale(m_scale/1.1);
 
 			//Сдвигаем прокрутку, чтобы точка осталась на месте
-			ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
-			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
+			m_shift	+= delta*(m_scale - oldScale);
+			shiftToScroll();
+			//ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() + delta.x*(m_scale - oldScale));
+			//ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*(m_scale - oldScale));
 		}
 		else if(mdf.testFlag(Qt::ShiftModifier))
 		{
@@ -1077,14 +1078,14 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 	if(buttons & Qt::LeftButton)
 	{
 		//Запомним эту точку
-		m_clickPos	= mouseToDoc(event);
+		vec2 clickPos	= mouseToDoc(event);
 
 		//Определим объект, в который произошел клик
 		bool	bFound	= false;
 		for(size_t i = m_GraphObjects.size(); i > 0; i--)
 		{
 			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i-1);
-			if(pGraph->hitTest(m_clickPos))
+			if(pGraph->hitTest(clickPos))
 			{
 				if(!m_SelectedObjects.size())
 				{
@@ -1429,5 +1430,66 @@ void	GraphicsView::fitPage()
 	int	h	= height();
 	float	scaleW	= w/pageSize.width();
 	float	scaleH	= h/pageSize.height();
+	m_shift	= vec2(0.f);
 	setScale(std::min(scaleW, scaleH));
+}
+
+void	GraphicsView::shiftToScroll()
+{			
+	//Перекачка в scrollBar
+	disconnect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
+	int	hValue	= ui->horizontalScrollBar->value();
+	int	hMax	= ui->horizontalScrollBar->maximum();
+	if(hValue + m_shift.x > 0)
+	{
+		if(hValue + m_shift.x <= hMax)
+		{
+			ui->horizontalScrollBar->setValue(hValue + m_shift.x);
+			m_shift.x	= 0;
+		}
+		else
+		{
+			ui->horizontalScrollBar->setValue(hMax);
+			m_shift.x	= hValue + m_shift.x - hMax;
+		}
+	}
+	else
+	{
+		ui->horizontalScrollBar->setValue(0);
+		m_shift.x	= hValue + m_shift.x;
+	}
+	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
+
+	disconnect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+	int	vValue	= ui->verticalScrollBar->value();
+	int	vMax	= ui->verticalScrollBar->maximum();
+	if(vValue + m_shift.y > 0)
+	{
+		if(vValue + m_shift.y <= vMax)
+		{
+			ui->verticalScrollBar->setValue(vValue + m_shift.y);
+			m_shift.y	= 0;
+		}
+		else
+		{
+			ui->verticalScrollBar->setValue(vMax);
+			m_shift.y	= vValue + m_shift.y - vMax;
+		}
+	}
+	else
+	{
+		ui->verticalScrollBar->setValue(0);
+		m_shift.y	= vValue + m_shift.y;
+	}
+	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+}
+
+void	GraphicsView::on_HsliderChanged()
+{
+	shiftToScroll();
+}
+
+void	GraphicsView::on_VsliderChanged()
+{
+	shiftToScroll();
 }

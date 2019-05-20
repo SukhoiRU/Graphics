@@ -24,8 +24,8 @@ void	TRF_Accumulation::clearData()
 	for(size_t i = 0; i < m_Data.size(); i++)
 	{
 		TrfData*	data	= m_Data.at(i);
-		delete	data->ptr;
-		delete	data;
+		delete[]	data->ptr;
+		delete		data;
 	}
 	m_Data.clear();
 
@@ -40,7 +40,6 @@ void	TRF_Accumulation::clearData()
 		delete[] m_pTRF_Head;	
 		m_pTRF_Head	= nullptr;
 	}
-
 }
 
 //Чтение из файла TRF

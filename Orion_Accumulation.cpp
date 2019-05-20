@@ -12,7 +12,7 @@ Orion_Accumulation::Orion_Accumulation()
 
 Orion_Accumulation::~Orion_Accumulation()
 {
-	FreeOrionData();
+	clearData();
 }
 
 void	Orion_Accumulation::load(const QString& filename)
@@ -26,7 +26,7 @@ void	Orion_Accumulation::load(const QString& filename)
 		delete m_pFile;
 		m_pFile	= nullptr;
 	}
-	FreeOrionData();
+	clearData();
 	m_OrionPacketList.clear();
 
 	//Открываем файл
@@ -223,7 +223,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 	}
 }
 
-void	Orion_Accumulation::FreeOrionData()
+void	Orion_Accumulation::clearData()
 {
 	//Очистка всех выделенных областей под Орион
 	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
@@ -237,6 +237,66 @@ void	Orion_Accumulation::FreeOrionData()
 	}
 
 	m_OrionData.clear();
+}
+
+void	Orion_Accumulation::preloadData(QStringList* pAxes)
+{/*
+	clearData();
+
+	//Проверяем файл
+	QFileInfo	info(*m_pFile);
+	if(info.lastModified() != m_lastModified)
+	{
+		//Файл был изменен!!!
+		load(m_pFile->fileName());
+	}
+
+	if(!m_pFile->open(QIODevice::ReadOnly))
+	{
+		QString	msg = "Не удалось открыть файл\n";
+		msg	+= m_pFile->fileName();
+		QMessageBox::critical(0, "Чтение Орион", msg);
+		return;
+	}
+
+	//Формируем перечень загрузки из файла
+	for(size_t i = 0; i < pAxes->size(); i++)
+	{
+		QString	path	= pAxes->at(i);
+
+		//Ищем путь
+		OrionSignal*	signal	= nullptr;
+		for(size_t i = 0; i < m_Header.size(); i++)
+		{
+			SignalInfo*	pInfo	= m_Header.at(i);
+			if(m_Name + '\\' + pInfo->path == path)
+			{
+				signal	= static_cast<OrionSignal*>(pInfo);
+
+				OrionData*	data	= new OrionData;
+				data->path		= pInfo->path;
+				data->offset	= signal->Offset;
+
+				//Уточняем тип данных
+				switch(signal->icons.back())
+				{
+					case 0: { data->type	= DataType::Bool;	data->ptr	= (char*)new bool[m_nRecCount]; }	break;
+					case 1: { data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount]; }		break;
+					case 2: { data->type	= DataType::Double;	data->ptr	= (char*)new double[m_nRecCount]; }	break;
+					case 12: { data->type	= DataType::Float;	data->ptr	= (char*)new float[m_nRecCount]; }	break;
+					case 13: { data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount]; }		break;
+					case 14: { data->type	= DataType::Short;	data->ptr	= (char*)new short[m_nRecCount]; }	break;
+					default:	throw;
+				};
+				m_Data.push_back(data);
+				break;
+			}
+		}
+	}
+
+	//Загружаем данные в память
+	m_pFile->seek(m_DataPos);*/
+
 }
 
 bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const

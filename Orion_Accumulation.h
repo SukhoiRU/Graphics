@@ -43,14 +43,14 @@ private:
 		DataType	type;	//Тип данных
 	};
 
-	int							m_nOrionVersion;	//Номер версии файла Орион
-	vector<OrionHead>			m_OrionPacketList;	//Перечень пакетов в файле Ориона
+	int					m_nOrionVersion;	//Номер версии файла Орион
+	vector<OrionHead>	m_OrionPacketList;	//Перечень пакетов в файле Ориона
 	mutable vector<OrionData>	m_OrionData;		//Перечень считанных данных
 
 	void	LoadOrionPacket();					//Чтение Орион
 	void	SaveOrionPart(QFile& file, double Time0, double Time1) const;	//Запись нужного куска
 	void	SaveOrionPart_Packet(QFile* pFile, QString& packet_name, double Time0, double Time1) const;	//Запись нужного куска пакета
-	void	FreeOrionData();	//Очистка всех выделенных областей памяти под Орион
+	void	clearData();	//Очистка всех выделенных областей памяти под Орион
 
 public:
 	Orion_Accumulation();
@@ -58,7 +58,7 @@ public:
 	
 	//Переопределяемые методы
 	virtual void	load(const QString& filename);
-    virtual void	preloadData(QStringList* /*pAxes*/){};
+    virtual void	preloadData(QStringList* pAxes);
 	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const;
     virtual void	savePart(const QString& /*filename*/, double /*Time0*/, double /*Time1*/) const{};
     virtual void	print(const QString& /*filename*/, bool /*bHead = true*/){};

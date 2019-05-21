@@ -89,8 +89,6 @@ protected:
 	void	onCustomMenuRequested(QPoint pos);
 	void	onZoomMode();
 	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
-	void	on_HsliderChanged();
-	void	on_VsliderChanged();
 
 	void	paintOverGL(QPainter* p);
 

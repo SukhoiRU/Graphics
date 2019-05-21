@@ -149,8 +149,8 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	});
 
 	//Обработка скролла
-	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
-	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
+	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 	
 	connect(ui->actionFitTime, &QAction::triggered, this, &GraphicsView::fitTime);
 	connect(ui->actionFitPage, &QAction::triggered, this, &GraphicsView::fitPage);
@@ -686,7 +686,7 @@ void GraphicsView::update()
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
 	{
-		float angle	= 10.;
+		float angle	= 500.;
 		GLfloat	anglez	= glm::radians(angle)*sin(0.1*modelTime*6.28);
 		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*modelTime*6.28);
 		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*modelTime*6.28);
@@ -695,7 +695,8 @@ void GraphicsView::update()
 			m_view  = rotate(m_view, anglex, vec3(1.f, 0.f, 0.0f));
 			m_view  = rotate(m_view, angley, vec3(0.f, 1.f, 0.0f));
 		}
-		m_view  = rotate(m_view, anglez, vec3(0.f, 0.f, 1.0f));
+//		m_view  = rotate(m_view, anglez, vec3(0.f, 0.f, 1.0f));
+		m_view	= translate(m_view, vec3(anglex, anglez, 0.f));
 	}
 
 	if(m_bPerspective)
@@ -1440,7 +1441,7 @@ void	GraphicsView::fitPage()
 void	GraphicsView::shiftToScroll()
 {			
 	//Перекачка в scrollBar
-	disconnect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
+	disconnect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 	int	hValue	= ui->horizontalScrollBar->value();
 	int	hMax	= ui->horizontalScrollBar->maximum();
 	if(hValue + m_shift.x > 0)
@@ -1461,9 +1462,9 @@ void	GraphicsView::shiftToScroll()
 		ui->horizontalScrollBar->setValue(0);
 		m_shift.x	= hValue + m_shift.x;
 	}
-	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_HsliderChanged);
+	connect(ui->horizontalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 
-	disconnect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+	disconnect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 	int	vValue	= ui->verticalScrollBar->value();
 	int	vMax	= ui->verticalScrollBar->maximum();
 	if(vValue + m_shift.y > 0)
@@ -1484,15 +1485,6 @@ void	GraphicsView::shiftToScroll()
 		ui->verticalScrollBar->setValue(0);
 		m_shift.y	= vValue + m_shift.y;
 	}
-	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::on_VsliderChanged);
+	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 }
 
-void	GraphicsView::on_HsliderChanged()
-{
-	shiftToScroll();
-}
-
-void	GraphicsView::on_VsliderChanged()
-{
-	shiftToScroll();
-}

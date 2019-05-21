@@ -482,16 +482,24 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		if(name == "x" || name == "y" || name == "z")
 			name	= pathList.at(pathList.size()-2) + "." + pathList.back();
 
+		//Определяем цвет
+		QColor	c	= QColorDialog::standardColor(m_colorIndex);
+//		QColor	c	= QColorDialog::standardColor(48*rand()/RAND_MAX);
+
 		//Добавляем ось
 		Graph::GAxe* pAxe	= new Graph::GAxe;
 		pAxe->m_Name		= name;
 		pAxe->m_Path		= dlg.m_Path;
-		pAxe->m_Color		= vec3(1.0,0.,0.);//GetNextColor();
-		pAxe->m_nMarker		= 0;//GetNextMarker();
+		pAxe->m_Color		= vec3(c.red()/255., c.green()/255., c.blue()/255.);
+		pAxe->m_nMarker		= m_markerIndex;
 		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
 		pAxe->SetPosition(-20, 200);
 		pAxe->setAxeLength(4);
+
+		//Сдвигаем индексы цвета и маркера
+		if(m_colorIndex++ > 48)		m_colorIndex	= 0;
+		if(m_markerIndex++ > 20)	m_colorIndex	= 0;
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);

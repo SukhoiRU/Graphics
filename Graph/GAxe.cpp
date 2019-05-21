@@ -5,9 +5,6 @@
 using std::min;
 using std::max;
 
-QColor	GetColor(int n);
-int		GetMarker(int n);
-
 namespace Graph{
 
 QOpenGLShaderProgram*	GAxe::m_axe_program	= nullptr;

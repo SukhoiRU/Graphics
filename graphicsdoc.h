@@ -66,6 +66,8 @@ private:
     int				m_nLastColor;		//Индекс последнего цвета графика
     int				m_nLastMarker;		//Индекс последнего маркера
 	QString			m_oldPath;			//Данные о прошлой добавленной оси
+	int				m_colorIndex;		//Текущий номер стандартного цвета
+	int				m_markerIndex;		//Текущий номер маркера
 
 	void on_PanelListChanged();
 	void on_PanelAdd();

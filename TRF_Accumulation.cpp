@@ -95,7 +95,7 @@ void	TRF_Accumulation::load(const QString& filename)
 		Comm	= Comm.trimmed();	
 
 		//Ищем такое же имя в списке параметров
-		while(names.filter(Name).size())
+		while(names.contains(Name))
 		{
 			Name	+= "_1";
 		}
@@ -128,7 +128,7 @@ void	TRF_Accumulation::load(const QString& filename)
 	m_pFile->close();
 }
 
-void	TRF_Accumulation::preloadData(QStringList* pAxes)
+void	TRF_Accumulation::preloadData(const QStringList* pAxes)
 {
 	clearData();
 	
@@ -157,7 +157,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 	//Формируем перечень загрузки из файла
 	for(size_t i = 0; i < pAxes->size(); i++)
 	{
-		QString	path	= pAxes->at(i);
+		const QString&	path	= pAxes->at(i);
 
 		//Ищем путь
 		TrfSignal*	signal	= nullptr;
@@ -166,7 +166,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 			SignalInfo*	pInfo	= m_Header.at(i);
 			if(m_Name + '\\' + pInfo->path == path)
 			{
-				signal	= static_cast<TrfSignal*>(pInfo);
+				signal	= dynamic_cast<TrfSignal*>(pInfo);
 
 				TrfData*	data	= new TrfData;
 				data->path		= pInfo->path;
@@ -198,7 +198,7 @@ void	TRF_Accumulation::preloadData(QStringList* pAxes)
 		}
 		
 		//Берем одну запись
-		char*	buf	= (Block + curRec*m_nRecordSize);
+		const char*	buf	= (Block + curRec*m_nRecordSize);
 
 		//Разбираем запись
 		m_pTime[i]	= *(float*)(buf + 1);
@@ -218,7 +218,7 @@ bool	TRF_Accumulation::getData(const QString& path, size_t* len, const double** 
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)
 	{
-		TrfData* data	= m_Data.at(i);
+		const TrfData* data	= m_Data.at(i);
 		if(data->path == path)
 		{
 			*ppTime	= m_pTime;

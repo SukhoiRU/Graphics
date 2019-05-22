@@ -226,21 +226,19 @@ void	Orion_Accumulation::LoadOrionPacket()
 void	Orion_Accumulation::clearData()
 {
 	//Очистка всех выделенных областей под Орион
-	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
+	for(size_t i = 0; i < m_Data.size(); i++)
 	{
-		OrionData&	data	= m_OrionData[pos];
-		if(data.ptr)
-		{
-			delete[] data.ptr;
-			data.ptr	= 0;
-		}
+		OrionData*	data	= m_Data[i];
+		delete[]	data->ptr;
+		delete[]	data->pTime;
+		delete		data;
 	}
 
-	m_OrionData.clear();
+	m_Data.clear();
 }
 
-void	Orion_Accumulation::preloadData(QStringList* pAxes)
-{/*
+void	Orion_Accumulation::preloadData(const QStringList* pAxes)
+{
 	clearData();
 
 	//Проверяем файл
@@ -262,7 +260,7 @@ void	Orion_Accumulation::preloadData(QStringList* pAxes)
 	//Формируем перечень загрузки из файла
 	for(size_t i = 0; i < pAxes->size(); i++)
 	{
-		QString	path	= pAxes->at(i);
+		const QString&	path	= pAxes->at(i);
 
 		//Ищем путь
 		OrionSignal*	signal	= nullptr;
@@ -271,170 +269,69 @@ void	Orion_Accumulation::preloadData(QStringList* pAxes)
 			SignalInfo*	pInfo	= m_Header.at(i);
 			if(m_Name + '\\' + pInfo->path == path)
 			{
-				signal	= static_cast<OrionSignal*>(pInfo);
+				signal	= dynamic_cast<OrionSignal*>(pInfo);
 
 				OrionData*	data	= new OrionData;
-				data->path		= pInfo->path;
-				data->offset	= signal->Offset;
+				data->path	= pInfo->path;
+				data->len	= signal->Length;
 
-				//Уточняем тип данных
+				//Грузим сигнал
+				qint64	size;
 				switch(signal->icons.back())
 				{
-					case 0: { data->type	= DataType::Bool;	data->ptr	= (char*)new bool[m_nRecCount]; }	break;
-					case 1: { data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount]; }		break;
-					case 2: { data->type	= DataType::Double;	data->ptr	= (char*)new double[m_nRecCount]; }	break;
-					case 12: { data->type	= DataType::Float;	data->ptr	= (char*)new float[m_nRecCount]; }	break;
-					case 13: { data->type	= DataType::Int;	data->ptr	= (char*)new int[m_nRecCount]; }		break;
-					case 14: { data->type	= DataType::Short;	data->ptr	= (char*)new short[m_nRecCount]; }	break;
-					default:	throw;
-				};
+					case 0:		{size	= signal->Length*sizeof(bool);		data->type	= DataType::Bool;}		break;
+					case 1:		{size	= signal->Length*sizeof(int);		data->type	= DataType::Int;}		break;
+					case 2:		{size	= signal->Length*sizeof(double);	data->type	= DataType::Double;}	break;
+					case 12:	{size	= signal->Length*sizeof(float);		data->type	= DataType::Float;}		break;
+					case 13:	{size	= signal->Length*sizeof(int);		data->type	= DataType::Int;}		break;
+					default:
+						continue;
+				}
+
+				//Выделяем память
+				char*	ptr		= new char[size];
+				double*	pTime	= new double[signal->Length];
+				if(!ptr)	return;
+				if(!pTime)	return;
+
+				//Читаем из файла сигнал и время
+				if(!m_pFile->seek(signal->OrionFilePos))		return;
+				if(m_pFile->read((char*)ptr, size) != size)		return;
+				size	= signal->Length*sizeof(double);
+				if(!m_pFile->seek(signal->OrionFileTime))		return;
+				if(m_pFile->read((char*)pTime, size) != size)	return;
+
+				//Запоминаем указатель в списке
+				data->ptr	= ptr;
+				data->pTime	= pTime;
+
 				m_Data.push_back(data);
-				break;
 			}
 		}
 	}
 
-	//Загружаем данные в память
-	m_pFile->seek(m_DataPos);*/
-
+	m_pFile->close();
 }
 
 bool	Orion_Accumulation::getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const
 {
-	//Ищем путь
-	OrionSignal*	signal	= nullptr;
-	for(size_t i = 0; i < m_Header.size(); i++)
+	//Ищем в загруженных
+	for(size_t i = 0; i < m_Data.size(); i++)
 	{
-		SignalInfo*	pInfo	= m_Header.at(i);
-		if(pInfo->path == path)
+		const OrionData* data	= m_Data.at(i);
+		if(data->path == path)
 		{
-			signal	= static_cast<OrionSignal*>(pInfo);
-			break;
+			*ppTime	= data->pTime;
+			*ppData	= data->ptr;
+			*len	= data->len;
+			*nType	= data->type;
+
+			return	true;
 		}
 	}
 
-	//Проверка на существование
-	if(!signal)	return false;
-
-	//Прежде всего, ищем этот элемент в уже загруженных
-	*ppTime	= nullptr;
-	*ppData	= nullptr;
-	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
-	{
-		//Ищем время
-		const OrionData&	data	= m_OrionData[pos];
-		if(signal->OrionFileTime == data.pos)
-		{
-			*ppTime	= (double*)data.ptr;
-			break;
-		}
-	}
-
-	for(size_t pos = 0; pos < m_OrionData.size(); pos++)
-	{
-		//Ищем данные
-		const OrionData&	data	= m_OrionData[pos];
-		if(signal->OrionFilePos == data.pos)
-		{
-			*ppData	= data.ptr;
-			*nType	= data.type;
-			break;
-		}
-	}
-
-	if(*ppTime == nullptr)
-	{
-		//Раз не нашли, то загружаем
-		qint64	size	= signal->Length*sizeof(double);
-
-		//Выделяем память
-		char*	ptr	= new char[size];
-		if(!ptr)	return 0;
-
-		//Проверяем файл
-		QFileInfo	info(*m_pFile);
-		if(info.lastModified() != m_lastModified)
-		{
-			//Файл был изменен!!!
-			const_cast<Orion_Accumulation*>(this)->load(m_pFile->fileName());
-		}
-
-		if(!m_pFile->open(QIODevice::ReadOnly))
-		{
-			QString	msg = "Не удалось открыть файл\n";
-			msg	+= m_pFile->fileName();
-			QMessageBox::critical(0, "Чтение Орион", msg);
-			return false;
-		}
-
-		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFileTime))	return 0;
-		if(m_pFile->read((char*)ptr, size) != size)	return 0;
-		m_pFile->close();
-
-		//Запоминаем указатель в списке
-		OrionData	d;
-		d.pos	= signal->OrionFileTime;
-		d.ptr	= ptr;
-		d.type	= DataType::Double;
-
-		m_OrionData.push_back(d);
-		*ppTime	= (double*)ptr;
-	}
-
-	if(*ppData == nullptr)
-	{
-		//Раз не нашли, то загружаем
-		qint64	size;
-		switch(signal->icons.back())
-		{
-		case 0:		{size	= signal->Length*sizeof(bool);		*nType	= DataType::Bool;}		break;
-		case 1:		{size	= signal->Length*sizeof(int);		*nType	= DataType::Int;}		break;
-		case 2:		{size	= signal->Length*sizeof(double);	*nType	= DataType::Double;}	break;
-		case 12:	{size	= signal->Length*sizeof(float);		*nType	= DataType::Float;}		break;
-		case 13:	{size	= signal->Length*sizeof(int);		*nType	= DataType::Int;}		break;
-		default:
-			return false;
-		}
-
-		//Выделяем память
-		char*	ptr	= new char[size];
-		if(!ptr)	return 0;
-
-		//Проверяем файл
-		QFileInfo	info(*m_pFile);
-		if(info.lastModified() != m_lastModified)
-		{
-			//Файл был изменен!!!
-			const_cast<Orion_Accumulation*>(this)->load(m_pFile->fileName());
-		}
-
-		if(!m_pFile->open(QIODevice::ReadOnly))
-		{
-			QString	msg = "Не удалось открыть файл\n";
-			msg	+= m_pFile->fileName();
-			QMessageBox::critical(0, "Чтение Орион", msg);
-			return false;
-		}
-
-		//Читаем из большого файла
-		if(!m_pFile->seek(signal->OrionFilePos))	return false;
-		if(m_pFile->read((char*)ptr, size) != size)	return false;
-		m_pFile->close();
-
-		//Запоминаем указатель в списке
-		OrionData	d;
-		d.pos	= signal->OrionFilePos;
-		d.ptr	= ptr;
-		d.type	= *nType;
-
-		m_OrionData.push_back(d);
-		*ppData	= ptr;
-	}
-
-	//Все загружено
-	*len	= signal->Length;
-	return true;
+	//Данные не найдены в списке предварительно загруженных.
+	return false;
 }
 
 /*

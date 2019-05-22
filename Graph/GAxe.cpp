@@ -873,7 +873,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 			glUniform1f(u_marker_size, (1.5f + 1.5f*m_IsSelected)*m_scale);
 			static float angle = 0;
-			angle += 2./60./50.;
+			angle += 2.f/60.f/50.f;
 			glUniform1f(u_marker_orientation, angle);
 			glUniform1f(u_marker_linewidth, 1.f);
 			glUniform1f(u_marker_antialias, 0.5f);

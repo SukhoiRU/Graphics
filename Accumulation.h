@@ -46,7 +46,7 @@ public:
 
 	//Переопределяемые методы
 	virtual void	load(const QString& filename) = 0;
-	virtual void	preloadData(QStringList* pAxes) = 0;
+	virtual void	preloadData(const QStringList* pAxes) = 0;
 	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const = 0;
 	virtual void	savePart(const QString& filename, double Time0, double Time1) const = 0;
     virtual void	print(const QString& /*filename*/, bool /*bHead = true*/){};

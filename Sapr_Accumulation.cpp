@@ -136,7 +136,7 @@ void	Sapr_Accumulation::load(const QString& filename)
 	m_pFile->close();
 }
 
-void	Sapr_Accumulation::preloadData(QStringList* pAxes)
+void	Sapr_Accumulation::preloadData(const QStringList* pAxes)
 {
 	clearData();
 
@@ -165,7 +165,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 	//Формируем перечень загрузки из файла
 	for(size_t i = 0; i < pAxes->size(); i++)
 	{
-		QString	path	= pAxes->at(i);
+		const QString&	path	= pAxes->at(i);
 
 		//Ищем путь
 		SaprSignal*	signal	= nullptr;
@@ -174,7 +174,7 @@ void	Sapr_Accumulation::preloadData(QStringList* pAxes)
 			SignalInfo*	pInfo	= m_Header.at(i);
 			if(m_Name + '\\' + pInfo->path == path)
 			{
-				signal	= static_cast<SaprSignal*>(pInfo);
+				signal	= dynamic_cast<SaprSignal*>(pInfo);
 
 				SaprData*	data	= new SaprData;
 				data->path		= pInfo->path;
@@ -243,7 +243,7 @@ bool	Sapr_Accumulation::getData(const QString& path, size_t* len, const double**
 	//Ищем в загруженных
 	for(size_t i = 0; i < m_Data.size(); i++)
 	{
-		SaprData* data	= m_Data.at(i);
+		const SaprData* data	= m_Data.at(i);
 		if(data->path == path)
 		{
 			*ppTime	= m_pTime;

@@ -57,6 +57,8 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(m_pPanelSelect->ui->comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &GraphicsDoc::on_PanelIndexChanged);
 
     m_bAddAcc_Mode  = false;
+	m_colorIndex	= 0;
+	m_markerIndex	= 0;
 
 	//Создаем новую пустую панель
 	Panel*	p	= new Panel;

@@ -12,10 +12,7 @@ private:
 	public:
 		int		Offset;			//Смещение переменной в векторе
 
-		SaprSignal()
-		{
-			Offset	= 0;
-		}
+		SaprSignal():Offset(0){}
 		virtual ~SaprSignal(){}
 	};
 
@@ -41,7 +38,7 @@ public:
 
 	//Переопределяемые методы
 	virtual void	load(const QString& filename);
-	virtual void	preloadData(QStringList* pAxes);
+	virtual void	preloadData(const QStringList* pAxes);
 	virtual bool	getData(const QString& path, size_t* len, const double** ppTime, const char** ppData, DataType* nType) const;
     virtual void	savePart(const QString& /*filename*/, double /*Time0*/, double /*Time1*/) const{};
     virtual void	print(const QString& /*filename*/, bool /*bHead = true*/){};

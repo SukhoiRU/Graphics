@@ -984,8 +984,8 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			vec2	delta		= vec2(mousePos.x, pageSize.height() - mousePos.y);
 			float	oldScale	= m_scale;
 
-			if(numDegrees.y() > 0)	setScale(m_scale*1.1);
-			else					setScale(m_scale/1.1);
+			if(numDegrees.y() > 0)	setScale(m_scale*(1.1*numDegrees.y()/120.f));
+			else					setScale(m_scale/(-1.1*numDegrees.y()/120.f));
 
 			//Сдвигаем прокрутку, чтобы точка осталась на месте
 			m_shift	+= delta*(m_scale - oldScale);

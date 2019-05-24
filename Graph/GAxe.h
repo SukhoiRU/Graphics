@@ -101,6 +101,14 @@ private:
 	static	int		u_select_color;
 	static	int		u_select_round;
 
+	static QOpenGLShaderProgram*		m_fbo_program;
+	static GLuint	fbo;
+	static GLuint	rbo;
+	static GLuint	fboVBO;
+	static GLuint	fboTexture;
+	static int		fboWidth;
+	static int		fboHeight;
+
 public:
 	static	GLfloat	m_width, m_selWidth, m_interpWidth;
 	static	GLfloat	m_alias, m_selAlias, m_interpAlias;
@@ -150,6 +158,7 @@ public:
 	virtual void	clearGL();
 	static  void	finalDelete();
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
+	static	void	onResize(int width, int height);	//Пересоздание буфера и текстуры
 
 	//Мышиные дела
 	virtual bool	hitTest(const vec2& pt);//Проверка на попадание курсора

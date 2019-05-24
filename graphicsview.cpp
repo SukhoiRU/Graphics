@@ -308,67 +308,8 @@ void GraphicsView::resizeGL(int width, int height)
 	else
 		m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
 
-
-/*
-	//Создаем framebuffer
-	if(fbo)	
-	{
-		//Очищаем имеюшийся буфер
-		glDeleteTextures(1, fboTexture);
-		glDeleteFramebuffers(1, &fbo);
-	}
-
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	{
-		//Текстурное прикрепление
-		glGenTextures(2, fboTexture);
-		glBindTexture(GL_TEXTURE_2D, fboTexture[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture[0], 0);
-
-		glBindTexture(GL_TEXTURE_2D, fboTexture[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, fboTexture[1], 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(err != GL_FRAMEBUFFER_COMPLETE)
-			qDebug() << "Framebuffer ERROR!";
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);//defaultFramebufferObject());
-*/
-
-#ifdef USE_FBO
-	QOpenGLFramebufferObjectFormat	fmt;
-	fmt.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-	fmt.setMipmap(true);
-	fmt.setSamples(8);
-	fmt.setTextureTarget(GL_TEXTURE_2D);
-	fmt.setInternalTextureFormat(GL_RGBA32F_ARB);
-
-	QOpenGLFramebufferObjectFormat	fmt2;
-	fmt2.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-	fmt2.setMipmap(true);
-	fmt2.setTextureTarget(GL_TEXTURE_2D);
-	fmt2.setInternalTextureFormat(GL_RGBA32F_ARB);
-
-	if(qFBO)
-	{
-		delete qFBO;
-		delete qFBO_unsamled;
-	}
-	qFBO	= new QOpenGLFramebufferObject(width, height, fmt);
-	qFBO_unsamled	= new QOpenGLFramebufferObject(width, height, fmt2);
-	if(!qFBO->isValid())
-	{
-		int a = 0;
-	}
-
-	drawScene();
-#endif // USE_FBO
+	//Обновляем общую текстуру для графиков
+	GAxe::onResize(width, height);
 
 	//Меняем полосы прокрутки
     ui->verticalScrollBar->setMinimum(0);
@@ -409,14 +350,9 @@ void GraphicsView::paintGL()
 
 	glBindVertexArray(pageVAO);
 
-#ifdef USE_FBO
-	//Копирование картинки из буфера
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, qFBO_unsamled->handle());
-	glBlitFramebuffer(0,0,width(),height(), 0,0,width(),height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#else
 	drawScene();
-#endif // USE_FBO
 
+	//Надпись
 	{
 		mat4 dataModel	= mat4(1.f);
 		dataModel	= translate(dataModel, vec3(pageBorders.left()+graphBorders.left(), pageSize.height()-pageBorders.top()-graphBorders.top() - 4.*gridStep.y, 0.f));

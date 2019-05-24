@@ -172,7 +172,7 @@ void	LocatorView::on_panelChanged(vector<Graph::GAxe*>* axes)
 
 void	LocatorView::on_timeChanged(double time)
 {
-	if(m_model)
+	if(m_model && width() > 10)
 	{
 		oldTime	= time;
 		m_model->updateModel(time);

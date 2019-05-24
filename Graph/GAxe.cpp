@@ -58,6 +58,14 @@ int		GAxe::u_select_dL			= 0;
 int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
+QOpenGLShaderProgram*	GAxe::m_fbo_program	= nullptr;
+GLuint	GAxe::fbo					= 0;
+GLuint	GAxe::rbo					= 0;
+GLuint	GAxe::fboVBO				= 0;
+GLuint	GAxe::fboTexture			= 0;
+int		GAxe::fboWidth				= 0;
+int		GAxe::fboHeight				= 0;
+
 GLfloat	GAxe::m_width		= 1.0f;
 GLfloat	GAxe::m_selWidth	= 1.0f;
 GLfloat	GAxe::m_interpWidth	= 1.0f;
@@ -144,6 +152,11 @@ void	GAxe::finalDelete()
 	if(m_marker_program)	delete m_marker_program;
 	if(m_cross_program)		delete m_cross_program;
 	if(m_select_program)	delete m_select_program;
+	if(m_fbo_program)		delete m_fbo_program;
+	if(fbo)					glDeleteFramebuffers(1, &fbo);
+	if(rbo)					glDeleteRenderbuffers(1, &rbo);
+	if(fboVBO)				glDeleteBuffers(1, &fboVBO);
+	if(fboTexture)			glDeleteTextures(1, &fboTexture);
 }
 
 void	GAxe::initializeGL()
@@ -243,6 +256,23 @@ void	GAxe::initializeGL()
 		u_select_color			= m_select_program->uniformLocation("color");
 		u_select_round			= m_select_program->uniformLocation("round");
 		m_select_program->release();
+
+		//Программа для рисования из текстуры
+		m_fbo_program = new QOpenGLShaderProgram();
+		m_fbo_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/fbo.vert");
+		m_fbo_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fbo.frag");
+		m_fbo_program->link();
+
+		//Создаем буфер для двух треугольников
+		glGenBuffers(1, &fboVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
+		vector<vec4>	data;
+		data.push_back(vec4(-1.f, +1.f, 0.f, 1.f));
+		data.push_back(vec4(-1.f, -1.f, 0.f, 0.f));
+		data.push_back(vec4(+1.f, +1.f, 1.f, 1.f));
+		data.push_back(vec4(+1.f, -1.f, 1.f, 0.f));
+		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(vec4), data.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Prepare texture
 		QOpenGLTexture *gl_texture = new QOpenGLTexture(QImage(":/Resources/images/delete.png"));
@@ -677,7 +707,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	//Крест на оси без данных
+	//Крест на пустой оси
 	if(m_data.empty())
 	{
 		m_cross_program->bind();
@@ -740,6 +770,20 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		m_marker_program->release();
 	}
 
+	//Рисуем график сначала в текстуру
+	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glViewport(0,0,fboWidth,fboHeight);
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glStencilMask(0xFF);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+//	glEnable(GL_BLEND);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_MULTISAMPLE);
+	glEnable(GL_STENCIL_TEST);
+	glDisable(GL_LINE_SMOOTH);
+	glEnable(GL_PROGRAM_POINT_SIZE);
+
 	//Область графиков для трафарета
 	{
 		m_axe_program->bind();
@@ -763,8 +807,12 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//График с нулевым масштабом не рисуем
-	if(!m_AxeScale)	return;
-	if(!m_data.size())	return;
+	if(!m_AxeScale || !m_data.size())
+	{
+		//Переключаемся обратно на экранный буфер
+		glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
+		return;
+	}
 	updateIndices(t0, TimeScale, grid, areaSize);
 
 	//Определяем диапазон индексов
@@ -810,7 +858,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1i(u_bool_lineType, 3);
 		
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);		
-		m_data_program->release();
+		m_bool_program->release();
 	}
 	else
 	{
@@ -858,9 +906,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 				glUniform1f(u_data_antialias, m_interpAlias/m_scale);
 			}
 		}
-//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		m_data_program->release();
 
 		//Рисуем набор маркеров
@@ -894,6 +940,20 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//Переключаемся обратно на экранный буфер
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//Рисуем полученную текстуру графика
+	m_fbo_program->bind();
+	glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
+	glBindTexture(GL_TEXTURE_2D, fboTexture);
+	glDisable(GL_STENCIL_TEST);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glEnable(GL_STENCIL_TEST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	m_fbo_program->release();
 }
 
 bool	GAxe::hitTest(const vec2& pt_)
@@ -1608,4 +1668,49 @@ void	GAxe::getTime(double& t0, double& t1)
 	t0	= m_data.front().x;
 	t1	= m_data.back().x;
 }
+
+void	GAxe::onResize(int width, int height)
+{
+	//Сохраняем новые размеры
+	fboWidth	= width;
+	fboHeight	= height;
+
+	//Создаем framebuffer
+	if(fbo)
+	{
+		//Очищаем имеюшийся буфер
+		glDeleteTextures(1, &fboTexture);
+		glDeleteRenderbuffers(1, &rbo);
+		glDeleteFramebuffers(1, &fbo);
+	}
+
+	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	{
+		//Текстурное прикрепление
+		glGenTextures(1, &fboTexture);
+		glBindTexture(GL_TEXTURE_2D, fboTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			qDebug() << "Framebuffer ERROR!";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		//GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		//if(err != GL_FRAMEBUFFER_COMPLETE)
+		//	qDebug() << "Framebuffer ERROR!";
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 }

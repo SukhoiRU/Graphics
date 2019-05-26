@@ -59,12 +59,11 @@ int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_fbo_program	= nullptr;
-GLuint	GAxe::fbo					= 0;
-GLuint	GAxe::rbo					= 0;
 GLuint	GAxe::fboVBO				= 0;
 GLuint	GAxe::fboTexture			= 0;
 int		GAxe::fboWidth				= 0;
 int		GAxe::fboHeight				= 0;
+QOpenGLFramebufferObject* GAxe::m_fbo	= nullptr;
 
 GLfloat	GAxe::m_width		= 1.0f;
 GLfloat	GAxe::m_selWidth	= 1.0f;
@@ -153,8 +152,7 @@ void	GAxe::finalDelete()
 	if(m_cross_program)		delete m_cross_program;
 	if(m_select_program)	delete m_select_program;
 	if(m_fbo_program)		delete m_fbo_program;
-	if(fbo)					glDeleteFramebuffers(1, &fbo);
-	if(rbo)					glDeleteRenderbuffers(1, &rbo);
+	if(m_fbo)				delete m_fbo;
 	if(fboVBO)				glDeleteBuffers(1, &fboVBO);
 	if(fboTexture)			glDeleteTextures(1, &fboTexture);
 }
@@ -770,17 +768,96 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		m_marker_program->release();
 	}
 
+	/*//////////////////////////////////////////////////////////////////////////
+	{
+		imReady	= true;
+
+		QSurfaceFormat format;
+		format.setMajorVersion(3);
+		format.setMinorVersion(3);
+
+		QWindow window;
+		window.setSurfaceType(QWindow::OpenGLSurface);
+		window.setFormat(format);
+		window.create();
+
+		QOpenGLContext context;
+		context.setFormat(format);
+		if(!context.create()) qFatal("Cannot create the requested OpenGL context!");
+		context.makeCurrent(&window);
+
+	
+		const QRect drawRect(0, 0, 400, 400);
+		const QSize drawRectSize = drawRect.size();
+
+		QOpenGLFramebufferObjectFormat fboFormat;
+		fboFormat.setSamples(16);
+		fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+		fboFormat.setMipmap(true);
+		fboFormat.setSamples(8);
+		fboFormat.setTextureTarget(GL_TEXTURE_2D);
+		fboFormat.setInternalTextureFormat(GL_RGBA32F_ARB);
+
+		QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
+		fbo.bind();
+
+		QOpenGLPaintDevice device(drawRectSize);
+		QPainter painter;
+		painter.begin(&device);
+		painter.setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
+		painter.endNativePainting();
+		painter.beginNativePainting();
+/ *
+		painter.fillRect(drawRect, Qt::blue);
+
+		painter.drawTiledPixmap(drawRect, QPixmap(":/qt-project.org/qmessagebox/images/qtlogo-64.png"));
+
+		painter.setPen(QPen(Qt::green, 5));
+		painter.setBrush(Qt::red);
+		painter.drawEllipse(0, 100, 400, 200);
+		painter.drawEllipse(100, 0, 200, 400);
+* /
+		painter.setPen(QPen(Qt::black, 0));
+		QFont font;
+		font.setFamily("Symbol");
+		font.setPointSize(24);
+		painter.setFont(font);
+
+		QStringList	strList;
+
+		strList.push_back("Vn sns");
+		strList.push_back("Vh sns");
+		strList.push_back("Русский текст α γ");
+
+		for(size_t i = 0; i < strList.size(); i++)
+		{
+			QString	str	= strList.at(i);
+			painter.drawText(0, 40 + i*30, str);
+		}
+
+		painter.endNativePainting();
+
+		fbo.release();
+
+		//QString	filename	= strList.back() + ".png";
+		//QImage	im	= fbo.toImage();
+		//im.save(filename, nullptr, 100);
+	}
+*/
+
+	//////////////////////////////////////////////////////////////////////////
 	//Рисуем график сначала в текстуру
-	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	m_fbo->bind();
+
 	glViewport(0,0,fboWidth,fboHeight);
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClearColor(0.2f, 0.3f, 0.3f, 0.0f);
+//	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
-	glEnable(GL_STENCIL_TEST);
+	//glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 	glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -944,7 +1021,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Переключаемся обратно на экранный буфер
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	m_fbo->release();
+	{
+		//QString	filename	= "test.png";
+		//QImage	im	= m_fbo->toImage();
+		//im.save(filename, nullptr, 100);
+	}
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	//Рисуем полученную текстуру графика
@@ -1680,42 +1763,13 @@ void	GAxe::onResize(int width, int height)
 	fboWidth	= width;
 	fboHeight	= height;
 
-	//Создаем framebuffer
-	if(fbo)
+	if(m_fbo)
 	{
-		//Очищаем имеюшийся буфер
-		glDeleteTextures(1, &fboTexture);
-		glDeleteRenderbuffers(1, &rbo);
-		glDeleteFramebuffers(1, &fbo);
+		delete	m_fbo;
 	}
 
-	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	{
-		//Текстурное прикрепление
-		glGenTextures(1, &fboTexture);
-		glBindTexture(GL_TEXTURE_2D, fboTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			qDebug() << "Framebuffer ERROR!";
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-		//GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		//if(err != GL_FRAMEBUFFER_COMPLETE)
-		//	qDebug() << "Framebuffer ERROR!";
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
+	m_fbo	= new QOpenGLFramebufferObject(width, height, QOpenGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA32F_ARB);
+	fboTexture	= m_fbo->texture();
 }
 
 }

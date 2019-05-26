@@ -174,8 +174,11 @@ void	LocatorView::on_timeChanged(double time)
 {
 	if(m_model && width() > 10)
 	{
-		oldTime	= time;
-		m_model->updateModel(time);
+		if(oldTime != time)
+		{
+			oldTime	= time;
+			m_model->updateModel(time);
+		}
 	}
 }
 

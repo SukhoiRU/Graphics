@@ -777,8 +777,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
 	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
@@ -810,7 +810,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(!m_AxeScale || !m_data.size())
 	{
 		//Переключаемся обратно на экранный буфер
-		glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		return;
 	}
 	updateIndices(t0, TimeScale, grid, areaSize);
@@ -943,10 +945,13 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 	//Переключаемся обратно на экранный буфер
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	//Рисуем полученную текстуру графика
 	m_fbo_program->bind();
 	glBindBuffer(GL_ARRAY_BUFFER, fboVBO);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fboTexture);
 	glDisable(GL_STENCIL_TEST);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1710,7 +1715,7 @@ void	GAxe::onResize(int width, int height)
 		//if(err != GL_FRAMEBUFFER_COMPLETE)
 		//	qDebug() << "Framebuffer ERROR!";
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
 }
 
 }

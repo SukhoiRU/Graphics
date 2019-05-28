@@ -30,14 +30,13 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 {
     ui->setupUi(this);
 	ui->oglView->setUI(ui);
-	ui->oglView->setFocus();
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
 	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
 	settings.beginGroup("GraphicsDoc");
-	ui->splitter->restoreState(settings.value("splitter", ui->splitter->saveState()).toByteArray());
+	if(settings.contains("splitter"))	ui->splitter->restoreState(settings.value("splitter").toByteArray());
 	settings.endGroup();
 
 	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
@@ -518,7 +517,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 			vector<Graph::GAxe*>	axes;
 			axes.push_back(pAxe);
 
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->oglView);
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->centralwidget);
 			connect(dlg, &GAxe_dialog::change_axe, [=](Graph::GAxe* pAxe){on_changeAxe(pAxe, dlg);});
 			dlg->exec();
 			delete	dlg;

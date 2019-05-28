@@ -26,13 +26,14 @@ using namespace Graph;
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(parent, f)
+GraphicsView::GraphicsView():QOpenGLWindow(QOpenGLWindow::NoPartialUpdate)
 {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
     format.setSamples(1);
+	format.setSwapInterval(0);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -64,7 +65,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	bdWidth	= 0.1f;
 
-	setMouseTracking(true);    
+//	setMouseTracking(true);    
     pPageSetup	= nullptr;
     m_pPanel	= nullptr;
 	m_bZoomMode	= false;
@@ -399,8 +400,8 @@ void GraphicsView::paintGL()
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-		glFinish();
-
+		//glFinish();
+/*
 		//Получаем мышь
 		QPointF	pLocal	= mapFromGlobal(QCursor::pos());
 
@@ -410,10 +411,10 @@ void GraphicsView::paintGL()
 		vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 		mouse.x	= world.x;
 		mouse.y	= world.y;
-
+*/
 		//Растягиваем единичные палки мыши во всю область
 		areaMat	= mat4(1.0f);
-		areaMat	= translate(areaMat, vec3(mouse.x, mouse.y, 0));
+		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
 		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -423,7 +424,7 @@ void GraphicsView::paintGL()
 		m_program->release();
 	}
 	glBindVertexArray(0);
-	//emit dt(t0.elapsed());
+//	emit dt(timeStep*1000);
 }
 
 void GraphicsView::drawScene()
@@ -641,14 +642,14 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	QOpenGLWidget::update();
+	QOpenGLWindow::update();
 }
 
 void	GraphicsView::openPageSetup()
 {
 	if(!pPageSetup)
 	{
-		pPageSetup	= new PageSetup(this);
+		pPageSetup	= new PageSetup(ui->splitter);
 		pPageSetup->pageSize		= pageSize;
 		pPageSetup->pageBorders		= pageBorders;
 		pPageSetup->graphBorders	= graphBorders;
@@ -1109,7 +1110,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 		if(axes.size())
 		{
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->centralwidget);
 			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){emit change_axe(pAxe, dlg); });
 			connect(dlg, &GAxe_dialog::substract_axe, [=](GAxe* pAxe){emit substract_axe(pAxe, dlg);});
 			dlg->exec();
@@ -1118,7 +1119,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		}
 	}
 	else
-		return QOpenGLWidget::mouseDoubleClickEvent(event);
+		return QOpenGLWindow::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::on_deleteAxes()
@@ -1145,7 +1146,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
-	if(m_bZoomMode)	QOpenGLWidget::keyPressEvent(event);
+	if(m_bZoomMode)	QOpenGLWindow::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1199,7 +1200,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			break;
 	}
 
-	return QOpenGLWidget::keyPressEvent(event);
+	return QOpenGLWindow::keyPressEvent(event);
 }
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
@@ -1224,7 +1225,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 		default:
 			break;
 	}
-	return QOpenGLWidget::keyReleaseEvent(event);
+	return QOpenGLWindow::keyReleaseEvent(event);
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
@@ -1272,7 +1273,7 @@ void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 
 void	GraphicsView::onCustomMenuRequested(QPoint pos)
 {
-	QMenu*		menu			= new QMenu(this);
+	QMenu*		menu			= new QMenu(ui->centralwidget);
 	QAction*	actAngle		= new QAction("Качалка", this);
 	QAction*	actPersp		= new QAction("Перспектива", this);
 
@@ -1295,7 +1296,7 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 void	GraphicsView::on_graphSettings()
 {
 	if(!m_pGraphSettings)
-		m_pGraphSettings	= new graphSettings(this);
+		m_pGraphSettings	= new graphSettings(ui->centralwidget);
 	m_pGraphSettings->show();
 }
 

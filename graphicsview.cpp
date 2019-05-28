@@ -26,7 +26,7 @@ using namespace Graph;
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-GraphicsView::GraphicsView()
+GraphicsView::GraphicsView():QOpenGLWindow(QOpenGLWindow::NoPartialUpdate)
 {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -465,7 +465,7 @@ void GraphicsView::paintGL()
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 		//glFinish();
-
+/*
 		//Получаем мышь
 		QPointF	pLocal	= mapFromGlobal(QCursor::pos());
 
@@ -475,10 +475,10 @@ void GraphicsView::paintGL()
 		vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 		mouse.x	= world.x;
 		mouse.y	= world.y;
-
+*/
 		//Растягиваем единичные палки мыши во всю область
 		areaMat	= mat4(1.0f);
-		areaMat	= translate(areaMat, vec3(mouse.x, mouse.y, 0));
+		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
 		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -488,7 +488,7 @@ void GraphicsView::paintGL()
 		m_program->release();
 	}
 	glBindVertexArray(0);
-	//emit dt(t0.elapsed());
+//	emit dt(timeStep*1000);
 }
 
 void GraphicsView::drawScene()

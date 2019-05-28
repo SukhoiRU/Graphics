@@ -59,11 +59,12 @@ int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
 QOpenGLShaderProgram*	GAxe::m_fbo_program	= nullptr;
+GLuint	GAxe::fbo					= 0;
+GLuint	GAxe::rbo					= 0;
 GLuint	GAxe::fboVBO				= 0;
 GLuint	GAxe::fboTexture			= 0;
 int		GAxe::fboWidth				= 0;
 int		GAxe::fboHeight				= 0;
-QOpenGLFramebufferObject* GAxe::m_fbo	= nullptr;
 
 GLfloat	GAxe::m_width		= 1.0f;
 GLfloat	GAxe::m_selWidth	= 1.0f;
@@ -152,7 +153,8 @@ void	GAxe::finalDelete()
 	if(m_cross_program)		delete m_cross_program;
 	if(m_select_program)	delete m_select_program;
 	if(m_fbo_program)		delete m_fbo_program;
-	if(m_fbo)				delete m_fbo;
+	if(fbo)					glDeleteFramebuffers(1, &fbo);
+	if(rbo)					glDeleteRenderbuffers(1, &rbo);
 	if(fboVBO)				glDeleteBuffers(1, &fboVBO);
 	if(fboTexture)			glDeleteTextures(1, &fboTexture);
 }
@@ -847,17 +849,18 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 	//////////////////////////////////////////////////////////////////////////
 	//Рисуем график сначала в текстуру
-	m_fbo->bind();
+	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	glViewport(0,0,fboWidth,fboHeight);
-	glClearColor(0.2f, 0.3f, 0.3f, 0.0f);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 //	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_MULTISAMPLE);
-	//glEnable(GL_STENCIL_TEST);
+	glEnable(GL_STENCIL_TEST);
 	glDisable(GL_LINE_SMOOTH);
 	glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -1021,13 +1024,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//Переключаемся обратно на экранный буфер
-	m_fbo->release();
-	{
-		//QString	filename	= "test.png";
-		//QImage	im	= m_fbo->toImage();
-		//im.save(filename, nullptr, 100);
-	}
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	//Рисуем полученную текстуру графика
@@ -1763,13 +1760,42 @@ void	GAxe::onResize(int width, int height)
 	fboWidth	= width;
 	fboHeight	= height;
 
-	if(m_fbo)
+	//Создаем framebuffer
+	if(fbo)
 	{
-		delete	m_fbo;
+		//Очищаем имеюшийся буфер
+		glDeleteTextures(1, &fboTexture);
+		glDeleteRenderbuffers(1, &rbo);
+		glDeleteFramebuffers(1, &fbo);
 	}
 
-	m_fbo	= new QOpenGLFramebufferObject(width, height, QOpenGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA32F_ARB);
-	fboTexture	= m_fbo->texture();
+	GLuint	curFBO	= (GL_FRAMEBUFFER_BINDING);
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	{
+		//Текстурное прикрепление
+		glGenTextures(1, &fboTexture);
+		glBindTexture(GL_TEXTURE_2D, fboTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			qDebug() << "Framebuffer ERROR!";
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		//GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		//if(err != GL_FRAMEBUFFER_COMPLETE)
+		//	qDebug() << "Framebuffer ERROR!";
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
 }
 
 }

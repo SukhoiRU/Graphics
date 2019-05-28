@@ -102,7 +102,8 @@ private:
 	static	int		u_select_round;
 
 	static QOpenGLShaderProgram*		m_fbo_program;
-	static QOpenGLFramebufferObject*	m_fbo;
+	static GLuint	fbo;
+	static GLuint	rbo;
 	static GLuint	fboVBO;
 	static GLuint	fboTexture;
 	static int		fboWidth;

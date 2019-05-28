@@ -159,10 +159,8 @@ public:
 
         oglView = new GraphicsView();
         oglView->setObjectName(QStringLiteral("oglView"));
-//        oglView->setMouseTracking(true);
- //       oglView->setFocusPolicy(Qt::ClickFocus);
 
-        gridLayout->addWidget(QWidget::createWindowContainer(oglView), 0, 0, 1, 1);
+        gridLayout->addWidget(QWidget::createWindowContainer(oglView, centralwidget), 0, 0, 1, 1);
 
         splitter->addWidget(centralwidget);
         locator = new LocatorView(splitter);

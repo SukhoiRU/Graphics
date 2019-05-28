@@ -713,7 +713,7 @@ void	GraphicsView::openPageSetup()
 {
 	if(!pPageSetup)
 	{
-		pPageSetup	= new PageSetup(ui->centralwidget);
+		pPageSetup	= new PageSetup(ui->splitter);
 		pPageSetup->pageSize		= pageSize;
 		pPageSetup->pageBorders		= pageBorders;
 		pPageSetup->graphBorders	= graphBorders;
@@ -887,7 +887,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		   world.y > pageBorders.bottom()+graphBorders.bottom() &&
 		   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 		{
-//			setCursor(Qt::BlankCursor);
+			setCursor(Qt::BlankCursor);
 			m_bOnMouse	= true;
 		}
 		else

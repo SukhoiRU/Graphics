@@ -33,6 +33,7 @@ GraphicsView::GraphicsView()
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
     format.setSamples(1);
+	format.setSwapInterval(0);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -463,7 +464,7 @@ void GraphicsView::paintGL()
 		glStencilMask(0x00);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-		glFinish();
+		//glFinish();
 
 		//Получаем мышь
 		QPointF	pLocal	= mapFromGlobal(QCursor::pos());

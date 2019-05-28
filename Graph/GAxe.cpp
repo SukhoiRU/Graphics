@@ -609,8 +609,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaBL	= areaBL;
 
 //	m_BottomRight.y	= Strip(ph_dX, 0.4, 0.5)[y_zad];
-//	m_BottomRight.y	= Oscill(ph_Y, 0.05, 0.45)[y_zad];
-	m_BottomRight.y	= y_zad;
+	m_BottomRight.y	= Oscill(ph_Y, 0.2, 0.7)[y_zad];
+//	m_BottomRight.y	= y_zad;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);

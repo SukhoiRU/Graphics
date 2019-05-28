@@ -26,7 +26,7 @@ using namespace Graph;
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(parent, f)
+GraphicsView::GraphicsView()
 {
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -64,7 +64,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
 
 	bdWidth	= 0.1f;
 
-	setMouseTracking(true);    
+//	setMouseTracking(true);    
     pPageSetup	= nullptr;
     m_pPanel	= nullptr;
 	m_bZoomMode	= false;
@@ -705,14 +705,14 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	QOpenGLWidget::update();
+	QOpenGLWindow::update();
 }
 
 void	GraphicsView::openPageSetup()
 {
 	if(!pPageSetup)
 	{
-		pPageSetup	= new PageSetup(this);
+		pPageSetup	= new PageSetup(ui->centralwidget);
 		pPageSetup->pageSize		= pageSize;
 		pPageSetup->pageBorders		= pageBorders;
 		pPageSetup->graphBorders	= graphBorders;
@@ -886,7 +886,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		   world.y > pageBorders.bottom()+graphBorders.bottom() &&
 		   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 		{
-			setCursor(Qt::BlankCursor);
+//			setCursor(Qt::BlankCursor);
 			m_bOnMouse	= true;
 		}
 		else
@@ -1173,7 +1173,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 
 		if(axes.size())
 		{
-			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, this);
+			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->centralwidget);
 			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){emit change_axe(pAxe, dlg); });
 			connect(dlg, &GAxe_dialog::substract_axe, [=](GAxe* pAxe){emit substract_axe(pAxe, dlg);});
 			dlg->exec();
@@ -1182,7 +1182,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		}
 	}
 	else
-		return QOpenGLWidget::mouseDoubleClickEvent(event);
+		return QOpenGLWindow::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::on_deleteAxes()
@@ -1209,7 +1209,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
-	if(m_bZoomMode)	QOpenGLWidget::keyPressEvent(event);
+	if(m_bZoomMode)	QOpenGLWindow::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1263,7 +1263,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			break;
 	}
 
-	return QOpenGLWidget::keyPressEvent(event);
+	return QOpenGLWindow::keyPressEvent(event);
 }
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
@@ -1288,7 +1288,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 		default:
 			break;
 	}
-	return QOpenGLWidget::keyReleaseEvent(event);
+	return QOpenGLWindow::keyReleaseEvent(event);
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
@@ -1336,7 +1336,7 @@ void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 
 void	GraphicsView::onCustomMenuRequested(QPoint pos)
 {
-	QMenu*		menu			= new QMenu(this);
+	QMenu*		menu			= new QMenu(ui->centralwidget);
 	QAction*	actAngle		= new QAction("Качалка", this);
 	QAction*	actPersp		= new QAction("Перспектива", this);
 
@@ -1359,7 +1359,7 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 void	GraphicsView::on_graphSettings()
 {
 	if(!m_pGraphSettings)
-		m_pGraphSettings	= new graphSettings(this);
+		m_pGraphSettings	= new graphSettings(ui->centralwidget);
 	m_pGraphSettings->show();
 }
 

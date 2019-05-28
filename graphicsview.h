@@ -27,13 +27,13 @@ class GTextLabel;
 
 class GTextLabel;
 
-class GraphicsView : public QOpenGLWidget
+class GraphicsView : public QOpenGLWindow
 {
 	Q_OBJECT
 
 // OpenGL Events
 public:
-    explicit GraphicsView(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+    explicit GraphicsView();
     virtual ~GraphicsView();
 	void	setUI(Ui::GraphicsDoc* pUI);
 

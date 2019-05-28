@@ -33,6 +33,7 @@ GraphicsView::GraphicsView(QWidget* parent, Qt::WindowFlags f) :QOpenGLWidget(pa
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
     format.setSamples(1);
+	format.setSwapInterval(0);
     setFormat(format);
 
 	pageSize.setWidth(450);
@@ -886,7 +887,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		   world.y > pageBorders.bottom()+graphBorders.bottom() &&
 		   world.y < pageSize.height()-pageBorders.top()-graphBorders.top())
 		{
-			setCursor(Qt::BlankCursor);
+			//setCursor(Qt::BlankCursor);
 			m_bOnMouse	= true;
 		}
 		else

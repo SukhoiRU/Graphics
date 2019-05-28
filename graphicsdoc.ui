@@ -73,9 +73,6 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="GraphicsView" name="oglView" native="true"/>
-     </item>
     </layout>
    </widget>
    <widget class="LocatorView" name="locator">
@@ -336,11 +333,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>GraphicsView</class>
-   <extends>QWidget</extends>
-   <header>graphicsview.h</header>
-  </customwidget>
   <customwidget>
    <class>LocatorView</class>
    <extends>QTreeView</extends>

@@ -24,7 +24,6 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
 #include "Dialogs/locator_view.h"
-#include "graphicsview.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -52,7 +51,6 @@ public:
     QGridLayout *gridLayout;
     QScrollBar *verticalScrollBar;
     QScrollBar *horizontalScrollBar;
-    GraphicsView *oglView;
     LocatorView *locator;
     QMenuBar *menuBar;
     QMenu *menu;
@@ -156,11 +154,6 @@ public:
         horizontalScrollBar->setInvertedControls(false);
 
         gridLayout->addWidget(horizontalScrollBar, 1, 0, 1, 1);
-
-        oglView = new GraphicsView();
-        oglView->setObjectName(QStringLiteral("oglView"));
-
-        gridLayout->addWidget(QWidget::createWindowContainer(oglView, centralwidget), 0, 0, 1, 1);
 
         splitter->addWidget(centralwidget);
         locator = new LocatorView(splitter);

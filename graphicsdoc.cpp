@@ -29,7 +29,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
-	ui->oglView->setUI(ui);
+	oglView = new GraphicsView();
+	oglView->setObjectName(QStringLiteral("oglView"));
+	ui->gridLayout->addWidget(createWindowContainer(oglView, this), 0, 0, 1, 1);
+	oglView->setUI(ui);
+
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
 	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
@@ -39,13 +43,13 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	if(settings.contains("splitter"))	ui->splitter->restoreState(settings.value("splitter").toByteArray());
 	settings.endGroup();
 
-	connect(this, &GraphicsDoc::panelChanged, ui->oglView, &GraphicsView::on_panelChanged);
+	connect(this, &GraphicsDoc::panelChanged, oglView, &GraphicsView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
-	connect(this, &GraphicsDoc::panelDeleted, ui->oglView, &GraphicsView::on_panelDeleted);
-	connect(ui->oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
-	connect(ui->oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
-	connect(ui->oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
-	connect(ui->oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
+	connect(this, &GraphicsDoc::panelDeleted, oglView, &GraphicsView::on_panelDeleted);
+	connect(oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
+	connect(oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
+	connect(oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
+	connect(oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
 
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
     ui->toolBarPanel->addWidget(m_pPanelSelect);
@@ -67,11 +71,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	m_pActivePanel	= p;
 	on_PanelListChanged();
 
-	connect(ui->oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
-	connect(ui->oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
-	connect(ui->oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
-	connect(ui->oglView, &GraphicsView::substract_axe, this, &GraphicsDoc::on_substractAxe);
-	connect(this, &GraphicsDoc::axeAdded, ui->oglView, &GraphicsView::on_axeAdded);
+	connect(oglView, &GraphicsView::dt, [=](int msecs){if(msecs) ui->statusBar->showMessage(QString("Темп %1").arg(msecs), 100);});
+	connect(oglView, &GraphicsView::change_axe, this, &GraphicsDoc::on_changeAxe);
+	connect(oglView, &GraphicsView::delete_axe, this, &GraphicsDoc::on_deleteAxe);
+	connect(oglView, &GraphicsView::substract_axe, this, &GraphicsDoc::on_substractAxe);
+	connect(this, &GraphicsDoc::axeAdded, oglView, &GraphicsView::on_axeAdded);
 
 	//Меню
 	connect(ui->action_LoadSapr, &QAction::triggered, [this]{on_menu_LoadData(ui->action_LoadSapr); });
@@ -106,7 +110,7 @@ GraphicsDoc::~GraphicsDoc()
 	Graph::GAxe::finalDelete();
 	Graph::GTextLabel::finalDelete();
 
-	delete ui->oglView;
+	delete oglView;
 	delete ui;
 }
 
@@ -162,7 +166,7 @@ void GraphicsDoc::loadScreen(QString FileName)
 
 	//Читаем настройки оси времени
 	QDomElement	arg	= root.firstChildElement("Ось_времени");
-	ui->oglView->loadAxeArg(&arg, root.attribute("version").toDouble());
+	oglView->loadAxeArg(&arg, root.attribute("version").toDouble());
 
 	//Очищаем список панелей
     for(size_t i = 0; i < m_PanelList.size(); i++)
@@ -251,7 +255,7 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.writeAttribute("version", "2.0");
 	{
 		xml.writeStartElement("Ось_времени");
-		ui->oglView->saveAxeArg(xml);
+		oglView->saveAxeArg(xml);
 		xml.writeEndElement();	//Ось_времени
 	}
 	xml.writeStartElement("Список_панелей");

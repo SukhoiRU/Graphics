@@ -31,7 +31,9 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui->setupUi(this);
 	oglView = new GraphicsView();
 	oglView->setObjectName(QStringLiteral("oglView"));
-	ui->gridLayout->addWidget(createWindowContainer(oglView, this), 0, 0, 1, 1);
+	container	= createWindowContainer(oglView, this);
+	ui->gridLayout->addWidget(container, 0, 0, 1, 1);
+	container->setFocus();
 	oglView->setUI(ui);
 
 	ui->splitter->setStretchFactor(0, 1);

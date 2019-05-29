@@ -1430,9 +1430,12 @@ void	GraphicsView::fitPage()
 {
 	//Подстраиваем лист под окно
 	ui->horizontalScrollBar->setValue(0);
+	ui->horizontalScrollBar->hide();
 	ui->verticalScrollBar->setValue(0);
-	int	w	= width();
-	int	h	= height();
+	ui->verticalScrollBar->hide();
+	QSize	sz	= ui->splitter->widget(0)->size();
+	int	w	= sz.width();
+	int	h	= sz.height();
 	float	scaleW	= w/pageSize.width();
 	float	scaleH	= h/pageSize.height();
 	m_shift	= vec2(0.f);

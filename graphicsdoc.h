@@ -55,6 +55,7 @@ signals:
 private:
     Ui::GraphicsDoc *ui;
 	GraphicsView*	oglView;
+	QWidget*		container;
     PanelSelect*    m_pPanelSelect;
 	QString			m_screenFileName;
 	QString			m_dataFileName;

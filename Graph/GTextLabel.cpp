@@ -211,7 +211,7 @@ void	GTextLabel::addString(QString str, GLfloat x, GLfloat y)
 		//Создаем два треугольника. Координаты в миллиметрах документа!
 		Data	data;
 		data.text.z	= info.layer;
-		data.corr.x	= 1.f;
+		data.corr.x	= 1.0f;
 		data.corr.y	= -0.1f;
 
 		//Левый верхний

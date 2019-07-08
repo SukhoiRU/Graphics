@@ -163,7 +163,6 @@ void	Orion_Accumulation::LoadOrionPacket()
 		for(size_t i = 0; i < iconsList.size(); i++)
 		{
 			int nIcon	= iconsList.at(i).toInt();
-			if(nIcon == 12) nIcon = 13;
 			signal->icons.push_back(nIcon);
 		}
 

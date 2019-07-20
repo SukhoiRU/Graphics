@@ -36,6 +36,7 @@ public:
 
     void	setPanel(const std::vector<Graph::GAxe*>* axes, bool m_bUseBool, bool bUseEmpty);
 	void	updateModel(double time);
+	void	setTimeLeft(double timeLeft, bool use);
 	void	setSelected(bool bSelected);
 	void	resortAxes();
 	void	updateNames();
@@ -48,6 +49,9 @@ protected:
 	QModelIndex		i_Stop;
 
 	bool	m_bHasSelected;
+
+	bool	bUseTimeLeft;
+	double	timeLeft;
 };
 
 #endif	//LOCATORMODEL_H

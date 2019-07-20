@@ -24,6 +24,8 @@ private:
 	LocatorModel*	m_model;
 	vector<Graph::GAxe*>* m_axes;
 	double	oldTime;
+	double	oldTimeLeft;
+	bool	oldUseTimeLeft;
 
 public:
     explicit LocatorView(QWidget *parent = nullptr);
@@ -37,6 +39,7 @@ private:
 public slots:
 	void	on_panelChanged(vector<Graph::GAxe*>* axes);
 	void	on_timeChanged(double time);
+	void	on_timeLeftChanged(double time, bool use);
 	void	on_axeSelected(bool bSelect);
 	void	on_axesMoved();
 	void	on_axesRenamed();

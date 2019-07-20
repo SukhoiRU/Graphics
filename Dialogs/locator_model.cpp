@@ -14,6 +14,8 @@ LocatorModel::LocatorModel(QObject *parent): QAbstractItemModel(parent)
 	m_rootItem	= new LocatorItem(data);
 
 	m_bHasSelected	= false;
+	bUseTimeLeft	= false;
+	timeLeft		= 0;
 }
 
 LocatorModel::~LocatorModel()
@@ -162,8 +164,16 @@ void	LocatorModel::updateModel(double time)
 {
 	if(m_rootItem)
 	{
-		m_rootItem->setHeaderData("Параметр", QString("t = %1").arg(time));
-		emit headerDataChanged(Qt::Horizontal, 0, 1);
+		if(bUseTimeLeft)	
+		{
+			m_rootItem->setHeaderData(QString("dt = %1").arg(time - timeLeft), QString("t = %1").arg(time));
+			emit headerDataChanged(Qt::Horizontal, 0, 1);
+		}
+		else
+		{
+			m_rootItem->setHeaderData("Параметр", QString("t = %1").arg(time));
+			emit headerDataChanged(Qt::Horizontal, 0, 1);
+		}
 
 		m_rootItem->update(time);
 		emit dataChanged(i_Start, i_Stop);
@@ -192,4 +202,10 @@ void	LocatorModel::updateNames()
 		m_rootItem->updateNames();
 		emit dataChanged(index(0,0), i_Stop);
 	}
+}
+
+void	LocatorModel::setTimeLeft(double time, bool use)
+{
+	timeLeft		= time;
+	bUseTimeLeft	= use;
 }

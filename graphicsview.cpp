@@ -76,6 +76,11 @@ GraphicsView::GraphicsView():QOpenGLWindow(QOpenGLWindow::NoPartialUpdate)
 	m_bTurning	= false;
 	m_bPerspective	= false;
 
+	bDrawLeftTime	= false;
+	bDrawRightTime	= false;
+	timeLeft		= 0;
+	timeRight		= 0;
+
 	axeArg		= new Graph::GAxeArg;
 	oglInited	= false;
 	m_mousePos	= vec2(0.f);
@@ -484,6 +489,30 @@ void GraphicsView::paintGL()
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
 		glDrawArrays(GL_LINES, 0, 4);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
+		//Рисуем левый и правый маркер
+		if(bDrawLeftTime)
+		{
+			areaMat	= mat4(1.0f);
+			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeLeft-Time0)/TimeScale*gridStep.x, m_mousePos.y, 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+			glStencilFunc(GL_EQUAL, 1, 0xFF);
+			glDrawArrays(GL_LINES, 2, 2);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		}
+
+		if(bDrawRightTime)
+		{
+			areaMat	= mat4(1.0f);
+			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeRight-Time0)/TimeScale*gridStep.x, m_mousePos.y, 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+			glStencilFunc(GL_EQUAL, 1, 0xFF);
+			glDrawArrays(GL_LINES, 2, 2);
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		}
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_program->release();
 	}
@@ -1121,6 +1150,26 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 		}
 
 		//Если ни в один объект не попали, выполняем действия по клику в окно
+		if(clickPos.x > pageBorders.left()+graphBorders.left() &&
+		   clickPos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
+		   clickPos.y > pageBorders.bottom()+graphBorders.bottom() &&
+		   clickPos.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+		{
+			//Щелчок в поле графиков. Ставим левый маркер
+
+			//Получаем мышь в поле графиков
+			glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+			glm::vec4	graph	= glm::inverse(graphM)*glm::vec4(clickPos, 0.f, 1.f);
+			double time	= Time0	+ graph.x/gridStep.x*TimeScale;
+			
+			bDrawLeftTime	= true;
+			if(time != timeLeft)
+			{
+				timeLeft		= time;
+				emit timeLeftChanged(timeLeft, true);
+			}
+		}
+
 		if(!bFound)
 		{
             SelectObject(nullptr);
@@ -1128,7 +1177,29 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 	}
 	else if(buttons & Qt::RightButton)
 	{
-		onCustomMenuRequested(event->pos());
+		//Запомним эту точку
+		vec2 clickPos	= mouseToDoc(event);
+		if(clickPos.x > pageBorders.left()+graphBorders.left() &&
+		   clickPos.x < pageSize.width()-pageBorders.right()-graphBorders.right() &&
+		   clickPos.y > pageBorders.bottom()+graphBorders.bottom() &&
+		   clickPos.y < pageSize.height()-pageBorders.top()-graphBorders.top())
+		{
+			//Щелчок в поле графиков. Ставим правый маркер
+
+			//Получаем мышь в поле графиков
+			glm::mat4	graphM	= glm::translate(mat4(1.0f), vec3(pageBorders.left()+graphBorders.left(), pageBorders.bottom()+graphBorders.bottom(), 0.f));
+			glm::vec4	graph	= glm::inverse(graphM)*glm::vec4(clickPos, 0.f, 1.f);
+			double time	= Time0	+ graph.x/gridStep.x*TimeScale;
+
+			bDrawRightTime	= true;
+			if(time != timeRight)
+			{
+				timeRight		= time;
+				emit timeRightChanged(timeRight, true);
+			}
+		}
+		else
+			onCustomMenuRequested(event->pos());
 	}
 
 	event->accept();
@@ -1231,6 +1302,20 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 				}
 				SelectObject(nullptr);
 			}
+
+			//Отключим маркеры времени
+			if(bDrawLeftTime)
+			{
+				bDrawLeftTime	= false;
+				emit timeLeftChanged(timeLeft, false);
+			}
+
+			if(bDrawRightTime)
+			{
+				bDrawRightTime	= false;
+				emit timeRightChanged(timeRight, false);
+			}
+
 			event->accept();
 		}break;
 

@@ -67,6 +67,8 @@ protected slots:
 signals:
 	void	dt(int msecs);
 	void	timeChanged(double time);
+	void	timeLeftChanged(double time, bool use);
+	void	timeRightChanged(double time, bool use);
 	void	hasSelectedAxes(bool bSelected);
 	void	axesMoved();
 	void	axesRenamed();
@@ -122,6 +124,12 @@ private:
 	double		curTime;
 	bool		m_bTurning;
 	bool		m_bPerspective;
+
+	//Маркеры времени
+	double		timeLeft;
+	double		timeRight;
+	bool		bDrawLeftTime;
+	bool		bDrawRightTime;
 
 	//Реальное время
 	QTime	timer;

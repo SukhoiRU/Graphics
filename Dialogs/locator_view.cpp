@@ -39,8 +39,9 @@ LocatorView::LocatorView(QWidget *parent) : QTreeView(parent)
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, &LocatorView::customContextMenuRequested, this, &LocatorView::onCustomMenuRequested);
 
-	m_model	= nullptr;
-	oldTime	= 0;
+	m_model		= nullptr;
+	oldTime		= 0;
+	oldTimeLeft	= 0;
 }
 
 LocatorView::~LocatorView()
@@ -178,6 +179,19 @@ void	LocatorView::on_timeChanged(double time)
 		{
 			oldTime	= time;
 			m_model->updateModel(time);
+		}
+	}
+}
+
+void	LocatorView::on_timeLeftChanged(double timeLeft, bool use)
+{
+	if(m_model)
+	{
+		if(oldTimeLeft != timeLeft || oldUseTimeLeft != use)
+		{
+			oldTimeLeft	= timeLeft;
+			m_model->setTimeLeft(timeLeft, use);
+			m_model->updateModel(oldTime);
 		}
 	}
 }

@@ -49,6 +49,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(this, &GraphicsDoc::panelChanged, ui->locator, &LocatorView::on_panelChanged);
 	connect(this, &GraphicsDoc::panelDeleted, oglView, &GraphicsView::on_panelDeleted);
 	connect(oglView, &GraphicsView::timeChanged, ui->locator, &LocatorView::on_timeChanged, Qt::QueuedConnection);
+	connect(oglView, &GraphicsView::timeLeftChanged, ui->locator, &LocatorView::on_timeLeftChanged, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);

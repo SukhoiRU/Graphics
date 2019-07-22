@@ -94,10 +94,6 @@ GAxe::GAxe()
 	oldTimeStep	= 20;
 	m_markersCount	= 0;
 
-	ph_dL		= 0;
-	ph_dX		= 0;
-	y_zad		= 0;
-	ph_Y		= vec2(0.,0.);
 	m_BottomRight	= vec2(0.,0.);
 }
 
@@ -499,8 +495,7 @@ void	GAxe::load(QDomElement* node, double ver)
 		m_BottomRight.x -= 65;
 		m_BottomRight.y	+= 297 - 17;
 	}
-	y_zad	= m_BottomRight.y;
-	ph_dX	= y_zad;
+
 	if(node->hasAttribute("Тип"))			m_Data_Type		= (DataType)node->attribute("Тип").toInt();
 	if(node->hasAttribute("СРК"))			m_bSRK			= node->attribute("СРК").toInt();
 	if(node->hasAttribute("Бит_СРК"))		m_nBitSRK		= node->attribute("Бит_СРК").toInt();
@@ -519,16 +514,12 @@ void	GAxe::SetPosition(double x, double y)
 {
 	m_BottomRight	= vec2(x,y);
 	m_FrameBR		= vec2(x,y);
-	ph_Y			= vec2(0.,y);
-	y_zad			= y;
 }
 
 void	GAxe::SetPosition(vec2 pt)
 {
 	m_BottomRight	= pt;
 	m_FrameBR		= pt;
-	ph_Y			= vec2(0.,pt.y);
-	y_zad			= pt.y;
 }
 
 void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& /*grid*/, const vec2& /*areaSize*/)
@@ -608,10 +599,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	oldAreaSize	= areaSize;
 	oldAreaBL	= areaBL;
 
-//	m_BottomRight.y	= Strip(ph_dX, 0.4, 0.5)[y_zad];
-	m_BottomRight.y	= Oscill(ph_Y, 0.2, 0.7)[y_zad];
-//	m_BottomRight.y	= y_zad;
-
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
 
@@ -630,7 +617,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glEnableVertexAttribArray(0);
 
 	mat4 dataModel	= mat4(1.0f);
-	dataModel		= translate(dataModel, vec3(areaBL + vec2(m_BottomRight.x, y_zad), 0.f));
+	dataModel		= translate(dataModel, vec3(areaBL + m_BottomRight, 0.f));
 	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 
@@ -652,7 +639,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1f(u_select_toc, 1.0f);
 		glUniform1i(u_select_round, 1);
 
-		glUniform1f(u_select_dL, Integral(ph_dL, 2.)[-1.]);
+		glUniform1f(u_select_dL, 0.0f);//Integral(ph_dL, 2.)[-1.]);
 
 		//Меняем описание данных на два последовательных vec2
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
@@ -670,7 +657,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	}
 
 	//Надписи у оси
-	dataModel	= translate(mat4(1.f), vec3(areaBL + vec2(m_BottomRight.x, y_zad), 0.f));
+	dataModel	= translate(mat4(1.f), vec3(areaBL + m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
@@ -686,9 +673,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 		mat4	cross(1.0f);
 		if(m_Data_Type == DataType::Bool)
-			cross	= translate(cross, vec3(m_BottomRight.x, y_zad - 0.5*textLabel->midLine(), 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y - 0.5*textLabel->midLine(), 0.f));
 		else
-			cross	= translate(cross, vec3(m_BottomRight.x, y_zad + 0.5f*m_Axe_Length*grid.y, 0.f));
+			cross	= translate(cross, vec3(m_BottomRight.x, m_BottomRight.y + 0.5f*m_Axe_Length*grid.y, 0.f));
 		cross	= translate(cross, vec3(areaBL, 0.f));
 		cross	= scale(cross, vec3(0.6f*grid.x, 0.6f*grid.x, 1.0f));
 		glUniformMatrix4fv(u_cross_modelToWorld, 1, GL_FALSE, &cross[0][0]);
@@ -719,7 +706,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 
 		//Матрица проекции
 		mat4	data(1.0f);
-		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, y_zad + m_Axe_Length*grid.y + 0.5*grid.y, 0.f));
+		data	= translate(data, vec3(m_BottomRight.x+0.5*grid.x, m_BottomRight.y + m_Axe_Length*grid.y + 0.5*grid.y, 0.f));
 		data	= translate(data, vec3(areaBL, 0.f));
 		mat4	mpv	= m_proj*m_view*data;
 		glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
@@ -872,9 +859,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 			glUniformMatrix4fv(u_marker_ortho, 1, GL_FALSE, &mpv[0][0]);
 
 			glUniform1f(u_marker_size, (1.5f + 1.5f*m_IsSelected)*m_scale);
-			static float angle = 0;
-			angle += 2.f/60.f/50.f;
-			glUniform1f(u_marker_orientation, angle);
+			glUniform1f(u_marker_orientation, 0.0f);
 			glUniform1f(u_marker_linewidth, 1.f);
 			glUniform1f(u_marker_antialias, 0.5f);
 			vec4	fg_color	= vec4(0.8f*vec3(1.), 1.0f);//vec4(vec3(1.f)-color, 1.0f);//vec4(0.999f*vec3(1.), 1.0f);
@@ -959,9 +944,9 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 
 	//Положение оси по высоте округлим до сетки
 	float	step	= oldGrid.y;
-	if(m_Data_Type == DataType::Bool)	step	= 0.5f*step;
-	if(mdf & Qt::AltModifier)			y_zad	= m_FrameBR.y;
-	else								y_zad	= int(m_FrameBR.y/step + 0.5f)*step;
+	if(m_Data_Type == DataType::Bool)	step			= 0.5f*step;
+	if(mdf & Qt::AltModifier)			m_BottomRight.y	= m_FrameBR.y;
+	else								m_BottomRight.y	= int(m_FrameBR.y/step + 0.5f)*step;
 
 	return;
 /*

@@ -401,12 +401,7 @@ void GraphicsView::resizeGL(int width, int height)
 void GraphicsView::paintGL()
 {
 	//Реальное время
-	timeStep	= 0.001*timer.elapsed(); 
-	modelTime += timeStep;
 	timer.start();
-
-	GAxe::modelTime	= modelTime;
-	GAxe::timeStep	= timeStep;
 
 	//Очистка вида
 	glStencilMask(0xFF);

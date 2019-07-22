@@ -28,12 +28,6 @@ private:
 	int				m_Axe_nCount;	//Количество точек в буфере отрисовки шкалы
 	int				m_MaskSRK;		//Маска СРК
 
-	//Фазовые
-	double			ph_dL;	//Смещение выделения оси
-	double			ph_dX;
-	double			y_zad;
-	vec2			ph_Y;
-
 	//Данные для OpenGL
 	vector<vec2>	m_data;
 	vector<GLuint>	m_indices;

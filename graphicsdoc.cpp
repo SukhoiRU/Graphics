@@ -18,6 +18,8 @@
 #include "Graph/GTextLabel.h"
 #include "Dialogs/gaxe_dialog.h"
 
+using namespace Graph;
+
 Panel::~Panel()
 {
     for(size_t i = 0; i < Axes.size(); i++)	delete Axes.at(i);
@@ -608,15 +610,15 @@ void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	}
 }
 
-GAxe::DataType	toGAxe(const Accumulation::DataType nType)
+Graph::GAxe::DataType	toGAxe(const Accumulation::DataType nType)
 {
 	switch(nType)
 	{
-		case Accumulation::DataType::Bool:		return GAxe::DataType::Bool;
-		case Accumulation::DataType::Int:		return GAxe::DataType::Int;
-		case Accumulation::DataType::Double:	return GAxe::DataType::Double;
-        case Accumulation::DataType::Float:		return GAxe::DataType::Float;
-        case Accumulation::DataType::Short:		return GAxe::DataType::Short;
+		case Accumulation::DataType::Bool:		return Graph::GAxe::DataType::Bool;
+		case Accumulation::DataType::Int:		return Graph::GAxe::DataType::Int;
+		case Accumulation::DataType::Double:	return Graph::GAxe::DataType::Double;
+        case Accumulation::DataType::Float:		return Graph::GAxe::DataType::Float;
+        case Accumulation::DataType::Short:		return Graph::GAxe::DataType::Short;
 		default:
 		{
 			QMessageBox::critical(nullptr, "Преобразование Accumulation::DataType", "Ошибка!!!");

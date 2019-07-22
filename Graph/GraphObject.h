@@ -33,8 +33,6 @@ public:
 	static mat4		m_proj;				//Общая матрица проекции				
 	static mat4		m_view;				//Общая матрица камеры
 	static float	m_scale;			//Общий масштаб, [пикселей/мм]
-	static double	modelTime;			//Общее время, с
-	static double	timeStep;			//Шаг счета, с
 
 //////////////////////////////////////////////////////////////////////////////////
 //		Методы
@@ -61,7 +59,5 @@ public:
     virtual void	OnStopMoving(){}				//Реакция на конец перетаскивания
 };
 }
-
-#include "SystemDynamic.h"
 
 #endif	//GRAPH_OBJECT_H

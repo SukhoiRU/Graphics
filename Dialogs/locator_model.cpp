@@ -166,7 +166,9 @@ void	LocatorModel::updateModel(double time)
 	{
 		if(bUseTimeLeft)	
 		{
-			m_rootItem->setHeaderData(QString("dt = %1").arg(time - timeLeft), QString("t = %1").arg(time));
+			QString	head1	= QString("dt = %1").arg(time - timeLeft);
+			while(head1.length() < 18)	head1.append(' ');
+			m_rootItem->setHeaderData(head1, QString("t = %1").arg(time));
 			emit headerDataChanged(Qt::Horizontal, 0, 1);
 		}
 		else

@@ -297,6 +297,11 @@ void	GraphicsView::updatePageBuffer()
 	data.push_back(Vertex(vec2(1.f, 1.f), color));
 	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
+	//Маркер времени
+	color	= vec3(185.f/256.f, 185.f/256.f, 0.0f);
+	data.push_back(Vertex(vec2(0.f, 0.f), color));
+	data.push_back(Vertex(vec2(0.f, 1.f), color));
+
 	//Пересоздаем буфер
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
@@ -432,8 +437,7 @@ void GraphicsView::paintGL()
 		//m_pLabel->renderText(vec3(1., 0., 0.0f), 1.0f);
 	}
 
-	//Отрисовка мыши
-	if(m_bOnMouse && !m_bZoomMode)
+	//Отрисовка мыши	
 	{
 		m_program->bind();
 
@@ -481,37 +485,35 @@ void GraphicsView::paintGL()
 		mouse.x	= world.x;
 		mouse.y	= world.y;
 */
+		//Рисуем левый и правый маркер
+		if(bDrawLeftTime && (timeLeft > Time0) && (timeLeft < Time0 + (area.width() - graphBorders.left())/gridStep.x*TimeScale))
+		{
+			areaMat	= mat4(1.0f);
+			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeLeft-Time0)/TimeScale*gridStep.x, pageBorders.bottom() + graphBorders.bottom(), 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+			glDrawArrays(GL_LINES, 16, 2);
+		}
+
+		if(bDrawRightTime && (timeRight > Time0) && (timeRight < Time0 + (area.width() - graphBorders.left())/gridStep.x*TimeScale))
+		{
+			areaMat	= mat4(1.0f);
+			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeRight-Time0)/TimeScale*gridStep.x, pageBorders.bottom() + graphBorders.bottom(), 0));
+			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+			glDrawArrays(GL_LINES, 16, 2);
+		}
+
 		//Растягиваем единичные палки мыши во всю область
 		areaMat	= mat4(1.0f);
 		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
 		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
-		glDrawArrays(GL_LINES, 0, 4);
+		if(m_bOnMouse && !m_bZoomMode)
+			glDrawArrays(GL_LINES, 0, 4);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
-		//Рисуем левый и правый маркер
-		if(bDrawLeftTime)
-		{
-			areaMat	= mat4(1.0f);
-			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeLeft-Time0)/TimeScale*gridStep.x, m_mousePos.y, 0));
-			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
-			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-			glStencilFunc(GL_EQUAL, 1, 0xFF);
-			glDrawArrays(GL_LINES, 2, 2);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		}
-
-		if(bDrawRightTime)
-		{
-			areaMat	= mat4(1.0f);
-			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeRight-Time0)/TimeScale*gridStep.x, m_mousePos.y, 0));
-			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
-			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-			glStencilFunc(GL_EQUAL, 1, 0xFF);
-			glDrawArrays(GL_LINES, 2, 2);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_program->release();

@@ -253,6 +253,9 @@
     <ClInclude Include="TRF_Accumulation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="graphics.qrc">
@@ -371,5 +374,11 @@
     <None Include="shaders\gaxe_selection.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Graphics.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="line.ico" />
   </ItemGroup>
 </Project>

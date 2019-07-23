@@ -255,6 +255,11 @@ void GraphicsView::initializeGL()
 	m_pLabel->setFont(5.7f);
 	m_pLabel->addString("(И ещё «по-русски» можно)", 10, -10);
 	m_pLabel->prepare();
+
+	//Восстанавливаем загруженную панель
+	vector<Graph::GAxe*>*	pPanel	= m_pPanel;
+	m_pPanel	= nullptr;
+	on_panelChanged(pPanel);
 }
 
 struct Vertex
@@ -299,6 +304,10 @@ void	GraphicsView::updatePageBuffer()
 
 	//Маркер времени
 	color	= vec3(185.f/256.f, 185.f/256.f, 0.0f);
+	data.push_back(Vertex(vec2(0.f, 0.f), color));
+	data.push_back(Vertex(vec2(0.f, 1.f), color));
+	
+	color	= vec3(185.f/256.f, 128.f/256.f, 0.0f);
 	data.push_back(Vertex(vec2(0.f, 0.f), color));
 	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
@@ -480,6 +489,16 @@ void GraphicsView::paintGL()
 		mouse.x	= world.x;
 		mouse.y	= world.y;
 */
+		//Растягиваем единичные палки мыши во всю область
+		areaMat	= mat4(1.0f);
+		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
+		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		if(m_bOnMouse && !m_bZoomMode)
+			glDrawArrays(GL_LINES, 0, 4);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
 		//Рисуем левый и правый маркер
 		if(bDrawLeftTime && (timeLeft > Time0) && (timeLeft < Time0 + (area.width() - graphBorders.left())/gridStep.x*TimeScale))
 		{
@@ -496,19 +515,8 @@ void GraphicsView::paintGL()
 			areaMat	= translate(areaMat, vec3(pageBorders.left() + graphBorders.left() + (timeRight-Time0)/TimeScale*gridStep.x, pageBorders.bottom() + graphBorders.bottom(), 0));
 			areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
 			glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-			glDrawArrays(GL_LINES, 16, 2);
+			glDrawArrays(GL_LINES, 18, 2);
 		}
-
-		//Растягиваем единичные палки мыши во всю область
-		areaMat	= mat4(1.0f);
-		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
-		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-		glStencilFunc(GL_EQUAL, 1, 0xFF);
-		if(m_bOnMouse && !m_bZoomMode)
-			glDrawArrays(GL_LINES, 0, 4);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_program->release();

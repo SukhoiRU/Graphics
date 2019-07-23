@@ -220,6 +220,13 @@ public:
 
         horizontalLayout->addWidget(buttonBox);
 
+        QWidget::setTabOrder(tabWidget, tabWidget_2);
+        QWidget::setTabOrder(tabWidget_2, lineEdit_width);
+        QWidget::setTabOrder(lineEdit_width, lineEdit_sel_width);
+        QWidget::setTabOrder(lineEdit_sel_width, lineEdit_interp_width);
+        QWidget::setTabOrder(lineEdit_interp_width, lineEdit_alias);
+        QWidget::setTabOrder(lineEdit_alias, lineEdit_sel_alias);
+        QWidget::setTabOrder(lineEdit_sel_alias, lineEdit_interp_alias);
 
         retranslateUi(graphSettings);
 

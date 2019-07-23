@@ -219,6 +219,16 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>lineEdit_width</tabstop>
+  <tabstop>lineEdit_sel_width</tabstop>
+  <tabstop>lineEdit_interp_width</tabstop>
+  <tabstop>lineEdit_alias</tabstop>
+  <tabstop>lineEdit_sel_alias</tabstop>
+  <tabstop>lineEdit_interp_alias</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

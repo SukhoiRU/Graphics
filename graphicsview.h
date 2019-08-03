@@ -27,19 +27,24 @@ class GTextLabel;
 
 class GTextLabel;
 
-class GraphicsView : public QOpenGLWindow
+class GraphicsView : public QWindow
 {
 	Q_OBJECT
 
 // OpenGL Events
+QOpenGLContext *m_context;
+bool			m_bInited{false};
+bool			fromInit{false};
+virtual void resizeEvent(QResizeEvent *e);
+
 public:
     explicit GraphicsView();
     virtual ~GraphicsView();
 	void	setUI(Ui::GraphicsDoc* pUI);
 
-    virtual void	initializeGL() override;
-    virtual void	resizeGL(int width, int height) override;
-    virtual void	paintGL() override;
+    virtual void	initializeGL();
+    virtual void	resizeGL(int width, int height);
+    virtual void	paintGL();
 	
 	void	drawScene();
     void	setPageInfo();

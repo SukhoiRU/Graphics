@@ -26,15 +26,26 @@ using namespace Graph;
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-GraphicsView::GraphicsView():QOpenGLWindow(QOpenGLWindow::NoPartialUpdate)
+GraphicsView::GraphicsView()
 {
-    QSurfaceFormat format;
+	setSurfaceType(QWindow::OpenGLSurface);
+
+	QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(3, 3);
     format.setSamples(1);
 	format.setSwapInterval(0);
     setFormat(format);
+
+	m_context = new QOpenGLContext(this);
+	m_context->setFormat(requestedFormat());
+	if(!m_context->create()) 
+	{
+		delete m_context;
+		m_context = nullptr;
+	}
+
 
 	pageSize.setWidth(450);
 	pageSize.setHeight(297);
@@ -97,6 +108,13 @@ GraphicsView::GraphicsView():QOpenGLWindow(QOpenGLWindow::NoPartialUpdate)
 	modelTime	= 0;
 	timeStep	= 0;
 }
+
+void	GraphicsView::resizeEvent(QResizeEvent *e)
+{
+	QSize	sz	= e->size();
+	resizeGL(sz.width(), sz.height());
+}
+
 
 GraphicsView::~GraphicsView()
 {
@@ -197,11 +215,10 @@ void	GraphicsView::loadAxeArg(QDomElement* e, double ver)
 void GraphicsView::initializeGL()
 {
 	//Initialize OpenGL Backend
-    connect(this, &GraphicsView::frameSwapped, this, &GraphicsView::update);
+//    connect(this, &QWindow::frameSwapped, this, &GraphicsView::update);
 
 	// Set global information
 	gladLoadGL();
-	oglInited	= true;
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClearStencil(0);
 
@@ -256,10 +273,14 @@ void GraphicsView::initializeGL()
 	m_pLabel->addString("(И ещё «по-русски» можно)", 10, -10);
 	m_pLabel->prepare();
 
+	oglInited	= true;
+
 	//Восстанавливаем загруженную панель
 	vector<Graph::GAxe*>*	pPanel	= m_pPanel;
 	m_pPanel	= nullptr;
+	fromInit	= true;
 	on_panelChanged(pPanel);
+	fromInit	= false;
 }
 
 struct Vertex
@@ -409,6 +430,19 @@ void GraphicsView::resizeGL(int width, int height)
 
 void GraphicsView::paintGL()
 {
+	if(!m_context->makeCurrent(this)) 
+	{
+		return;
+	}
+
+	if(!m_bInited)
+	{
+		initializeGL();
+		m_bInited	= true;
+	}
+
+	glViewport(0, 0, width(), height());
+
 	//Реальное время
 	timer.start();
 
@@ -523,6 +557,9 @@ void GraphicsView::paintGL()
 	}
 	glBindVertexArray(0);
 //	emit dt(timeStep*1000);
+
+	//Переключаем буферы
+	m_context->swapBuffers(this);
 }
 
 void GraphicsView::drawScene()
@@ -740,7 +777,8 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	QOpenGLWindow::update();
+	paintGL();
+//	QWindow::update();
 }
 
 void	GraphicsView::openPageSetup()
@@ -876,7 +914,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 		//Сохраняем в классе положение мыши
 		m_oldMouse	= mouse;
-//		update();
+		update();
 
 		return;
 	}
@@ -995,7 +1033,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	m_mousePos	= mousePos;
 
 	event->accept();
-//	update();
+	update();
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -1038,6 +1076,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
 		}
 		event->accept();
+		update();
 		return;
 	}
 
@@ -1103,6 +1142,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		}
 	}
 	event->accept();
+	update();
 }
 
 void	GraphicsView::mousePressEvent(QMouseEvent *event)
@@ -1208,6 +1248,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 	}
 
 	event->accept();
+	update();
 }
 
 void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -1233,6 +1274,7 @@ void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 	}
 
 	event->accept();
+	update();
 }
 
 void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -1259,7 +1301,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		}
 	}
 	else
-		return QOpenGLWindow::mouseDoubleClickEvent(event);
+		return QWindow::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::on_deleteAxes()
@@ -1286,7 +1328,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
-	if(m_bZoomMode)	QOpenGLWindow::keyPressEvent(event);
+	if(m_bZoomMode)	QWindow::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1354,7 +1396,8 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			break;
 	}
 
-	return QOpenGLWindow::keyPressEvent(event);
+	QWindow::keyPressEvent(event);
+	update();
 }
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
@@ -1379,7 +1422,9 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 		default:
 			break;
 	}
-	return QOpenGLWindow::keyReleaseEvent(event);
+	
+	QWindow::keyReleaseEvent(event);
+	update();
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
@@ -1418,11 +1463,14 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 	}
 	m_SelectedObjects.clear();
 	modelTime	= 0;
+	if(!fromInit)
+		update();
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 {
 	m_pPanel	= nullptr;
+	update();
 }
 
 void	GraphicsView::onCustomMenuRequested(QPoint pos)
@@ -1505,6 +1553,7 @@ void	GraphicsView::fitTime()
 
 	//Центруем время
 	Time0 -= 0.5*(Time0 + nGrids*TimeScale - tMax);
+	update();
 }
 
 void	GraphicsView::onZoomMode()
@@ -1530,6 +1579,7 @@ void	GraphicsView::fitPage()
 	float	scaleH	= h/pageSize.height();
 	m_shift	= vec2(0.f);
 	setScale(std::min(scaleW, scaleH));
+	update();
 }
 
 void	GraphicsView::shiftToScroll()
@@ -1580,5 +1630,6 @@ void	GraphicsView::shiftToScroll()
 		m_shift.y	= vValue + m_shift.y;
 	}
 	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
+	update();
 }
 

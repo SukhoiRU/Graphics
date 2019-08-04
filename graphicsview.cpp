@@ -113,6 +113,7 @@ void	GraphicsView::resizeEvent(QResizeEvent *e)
 {
 	QSize	sz	= e->size();
 	resizeGL(sz.width(), sz.height());
+	update();
 }
 
 

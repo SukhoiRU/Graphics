@@ -33,8 +33,8 @@ class GraphicsView : public QWindow
 
 // OpenGL Events
 QOpenGLContext *m_context;
-bool			m_bInited{false};
 bool			fromInit{false};
+
 virtual void resizeEvent(QResizeEvent *e);
 
 public:
@@ -153,11 +153,12 @@ private:
 	mat4	m_proj;
 	mat4	m_view;
 
-	QOpenGLFramebufferObject*	qFBO;
-	QOpenGLFramebufferObject*	qFBO_unsamled;
 	QOpenGLShaderProgram*	m_fbo_program;
-	GLuint	fboVBO;
-	GLuint	fbo, fboTexture[2];
+	GLuint	fboPage{0}, fboPageTexture{0};
+	bool	fboPageValid{false};
+
+	GLuint	fboGraph{0}, fboGraphTexture{0};
+	bool	fboGraphValid{false};
 };
 
 #endif // GRAPHICS_VIEW_H

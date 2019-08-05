@@ -144,6 +144,7 @@ public:
 	virtual void	clearGL();
 	static  void	finalDelete();
 	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
+	virtual void	DrawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);
 
 	//Мышиные дела
 	virtual bool	hitTest(const vec2& pt);//Проверка на попадание курсора

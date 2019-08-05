@@ -579,10 +579,9 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& /*
 	}
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
+void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
 {
 	//Контроль деления на ноль
-	if(!TimeScale)	return;
 	if(!grid.y)		return;
 	if(oldGrid != grid)
 	{
@@ -596,8 +595,6 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		setAxeLength(m_Axe_Length);
 		updateIndices(t0, TimeScale, grid, areaSize);
 	}
-	oldAreaSize	= areaSize;
-	oldAreaBL	= areaBL;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -727,6 +724,19 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		m_marker_program->release();
 	}
 
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
+{
+	//Контроль деления на ноль
+	if(!TimeScale)	return;
+	if(!grid.y)		return;
+
+	//Смешиваем цвет с белым
+	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
+
 	//Область графиков для трафарета
 	{
 		m_axe_program->bind();
@@ -776,6 +786,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	GLuint	nStopIndex	= min(int(m_data.size()-1), nMax+1);
 
 	//Формируем модельную матрицу
+	mat4 dataModel;
 	dataModel	= mat4(1.0f);
 	dataModel	= translate(dataModel, vec3(areaBL.x, areaBL.y + m_BottomRight.y, 0.f));
 	dataModel	= scale(dataModel, vec3(grid.x/TimeScale, grid.y/m_AxeScale, 0.f));
@@ -795,8 +806,8 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniformMatrix4fv(u_bool_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 		glUniformMatrix4fv(u_bool_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glUniform1i(u_bool_lineType, 3);
-		
-		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);		
+
+		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
 		m_data_program->release();
 	}
 	else
@@ -806,7 +817,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniformMatrix4fv(u_data_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 		glUniformMatrix4fv(u_data_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 		glUniformMatrix4fv(u_data_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	
+
 		//Выставляем тип линии
 		switch(m_Data_Type)
 		{
@@ -825,7 +836,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		}
 
 		//Выставляем толщину линии
-		if(m_IsSelected)	
+		if(m_IsSelected)
 		{
 			glUniform1f(u_data_linewidth, m_selWidth/m_scale);
 			glUniform1f(u_data_antialias, m_selAlias/m_scale);
@@ -835,7 +846,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 				glUniform1f(u_data_antialias, m_interpAlias/m_scale);
 			}
 		}
-		else				
+		else
 		{
 			glUniform1f(u_data_linewidth, m_width/m_scale);
 			glUniform1f(u_data_antialias, m_alias/m_scale);
@@ -845,9 +856,9 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 				glUniform1f(u_data_antialias, m_interpAlias/m_scale);
 			}
 		}
-//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		m_data_program->release();
 
 		//Рисуем набор маркеров

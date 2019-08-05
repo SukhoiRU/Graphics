@@ -47,7 +47,7 @@ public:
 
 	//Рисование
     virtual void	Draw(const double /*t0*/, const double /*TimeScale*/, const vec2& /*grid*/, const vec2& /*areaBL*/, const vec2& /*areaSize*/, const float /*alpha*/){}					//Полное рисование
-    virtual void	DrawFrame(){}				//Отрисовка только рамки
+    virtual void	DrawFrame(const double /*t0*/, const double /*TimeScale*/, const vec2& /*grid*/, const vec2& /*areaBL*/, const vec2& /*areaSize*/, const float /*alpha*/){}				//Отрисовка только рамки
 
 	//Мышиные дела
     virtual bool	hitTest(const vec2& /*pt*/){return false;}		//Проверка на попадание курсора

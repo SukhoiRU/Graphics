@@ -742,12 +742,24 @@ void GraphicsView::saveSVG()
 
 void	GraphicsView::print()
 {
-	//QPrinter	printer(QPrinter::PrinterMode::PrinterResolution);
-	//QPrintDialog	printDialog(&printer, nullptr);
-	//if(printDialog.exec() == QDialog::Accepted)
+	//Запоминаем настройки экрана
+	float	oldScale	= m_scale;
+	float	oldWidth	= width;
+	float	oldHeight	= height;
+	vec2	oldShift	= m_shift;
+	int		oldHbar		= ui->horizontalScrollBar->value();
+	int		oldVbar		= ui->verticalScrollBar->value();
+
+	QPrinter	printer(QPrinter::PrinterMode::PrinterResolution);
+	QPrintDialog	printDialog(&printer, nullptr);
+	if(printDialog.exec() == QDialog::Accepted)
 	{
-//		QPainter	painter(&printer);
-		QRect		rect(0, 0, 210*600/25.4, 297*600/25.4);//painter.viewport();
+		printer.setResolution(300);
+		printer.setPageOrientation(QPageLayout::Landscape);
+
+		QPainter	painter(&printer);
+//		QRect		rect(0, 0, 297*600/25.4, 210*600/25.4);//painter.viewport();
+		QRect		rect	= painter.viewport();
 
 		QOpenGLFramebufferObject	fbo(rect.size(), QOpenGLFramebufferObject::Attachment::CombinedDepthStencil);
 		bool	res	= fbo.isValid();
@@ -764,17 +776,28 @@ void	GraphicsView::print()
 		float	scaleW	= w/pageSize.width();
 		float	scaleH	= h/pageSize.height();
 		m_shift	= vec2(0.f);
-		setScale(16);//std::min(scaleW, scaleH));
+		setScale(std::min(scaleW, scaleH));
 
 		fbo.bind();
-		paintGL();
+		update();
 		QImage	im	= fbo.toImage();
-		im.save("c:\\test.png");
+		im.save("c:\\test.png", nullptr, 100);
 		fbo.release();
 
-//		painter.drawImage(0, 0, im);
-		int a = 0;
+		painter.drawImage(0, 0, im);
+		
+		//Восстанавливаем настройки
+		m_scale		= oldScale;
+		width		= oldWidth;
+		height		= oldHeight;
+		m_shift		= oldShift;
+		ui->horizontalScrollBar->setValue(oldHbar);
+		ui->verticalScrollBar->setValue(oldVbar);
+		resizeGL(width, height);
+		setScale(m_scale);
+		update();
 	}
+
 }
 
 void GraphicsView::setScale(float scale)

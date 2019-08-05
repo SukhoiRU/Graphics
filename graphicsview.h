@@ -2,6 +2,7 @@
 #define GRAPHICS_VIEW_H
 
 #include "stdafx.h"
+#include <QPrinter>
 #include <glm/glm.hpp>
 using glm::vec2;
 using glm::mat4;
@@ -98,6 +99,7 @@ protected:
 	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
 
 	void	paintOverGL(QPainter* p);
+	void	print();
 
 private:
 	Ui::GraphicsDoc *ui;
@@ -112,6 +114,7 @@ private:
 	vec2		m_shift;	//Сдвиг для правильного zoom
 	bool		m_bOnMouse;
     float       m_scale;    //Масштаб [пиксель/мм]
+	int			width, height;
 	PageSetup*	pPageSetup;
 	Graph::GAxeArg*				axeArg;		//Отрисовка времени
     vector<Graph::GAxe*>*		m_pPanel;	//Указатель на панель
@@ -158,6 +161,8 @@ private:
 	QOpenGLShaderProgram*	m_fbo_program;
 	GLuint	fboVBO;
 	GLuint	fbo, fboTexture[2];
+
+	QPrinter	printer;
 };
 
 #endif // GRAPHICS_VIEW_H

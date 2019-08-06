@@ -499,7 +499,7 @@ void GraphicsView::paintGL()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	//if(!fboPageValid)
+	if(!fboPageValid)
 	{
 		//Заливаем матрицы в шейдер
 		m_program->bind();
@@ -513,7 +513,7 @@ void GraphicsView::paintGL()
 		//Рисуем фон в текстуру
 		glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
 		glViewport(0, 0, width(), height());
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -525,7 +525,7 @@ void GraphicsView::paintGL()
 		//Рамка
 		glDrawArrays(GL_LINE_LOOP, 8, 4);
 		m_program->release();
-/*
+
 		//Оси графиков
 		for(size_t i = 0; i < m_pPanel->size(); i++)
 		{
@@ -550,7 +550,7 @@ void GraphicsView::paintGL()
 				pGraph->DrawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
-		*/
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		fboPageValid	= true;
 	}

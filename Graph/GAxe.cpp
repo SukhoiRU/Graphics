@@ -599,27 +599,31 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
 
-	//Заливаем матрицы в шейдер
-	m_axe_program->bind();
-
-	glUniform3fv(u_color, 1, &color.r);
-	glUniform1f(u_alpha, 1.0f);//alpha);
-	glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-	glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-	glUniform1i(u_round, 0);
-	
 	//Рисуем шкалу
-	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	mat4 dataModel	= mat4(1.0f);
-	dataModel		= translate(dataModel, vec3(areaBL + m_BottomRight, 0.f));
-	dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
-	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-
 	if(m_Data_Type != DataType::Bool)
+	{
+		m_axe_program->bind();
+		
+		//Заливаем матрицы в шейдер
+		glUniform3fv(u_color, 1, &color.r);
+		glUniform1f(u_alpha, 1.0f);//alpha);
+		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
+		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
+		glUniform1i(u_round, 0);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		mat4 dataModel	= mat4(1.0f);
+		dataModel		= translate(dataModel, vec3(areaBL + m_BottomRight, 0.f));
+		dataModel		= scale(dataModel, vec3(1.5f, grid.y/5.0f, 0.f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
 		glDrawArrays(GL_LINES, 4, m_Axe_nCount-4);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		m_axe_program->release();
+	}
 
 	//Рисуем обрамление шкалы
 	if(m_IsSelected)
@@ -636,9 +640,10 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 		glUniform1f(u_select_toc, 1.0f);
 		glUniform1i(u_select_round, 1);
 
-		glUniform1f(u_select_dL, 0.0f);//Integral(ph_dL, 2.)[-1.]);
+		glUniform1f(u_select_dL, 0.0f);
 
 		//Меняем описание данных на два последовательных vec2
+		glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
@@ -649,12 +654,13 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 		glEnableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		m_select_program->release();
 	}
 
 	//Надписи у оси
-	dataModel	= translate(mat4(1.f), vec3(areaBL + m_BottomRight, 0.f));
+	mat4 dataModel	= translate(mat4(1.f), vec3(areaBL + m_BottomRight, 0.f));
 	textLabel->setMatrix(dataModel);
 	textLabel->renderText(color, alpha);
 	glBindBuffer(GL_ARRAY_BUFFER, axeVBO);
@@ -724,10 +730,10 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 		m_marker_program->release();
 	}
 
-	glStencilMask(0xFF);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	//glStencilMask(0xFF);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

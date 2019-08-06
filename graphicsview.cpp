@@ -26,7 +26,7 @@ using namespace Graph;
  ******************************************************************************/
 GraphicsView::GraphicsView()
 {
-	setSurfaceType(QWindow::OpenGLSurface);
+	//setSurfaceType(QWindow::OpenGLSurface);
 
 	QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -36,13 +36,13 @@ GraphicsView::GraphicsView()
 	format.setSwapInterval(0);
     setFormat(format);
 
-	m_context = new QOpenGLContext(this);
-	m_context->setFormat(requestedFormat());
-	if(!m_context->create()) 
-	{
-		delete m_context;
-		m_context = nullptr;
-	}
+	//m_context = new QOpenGLContext(this);
+	//m_context->setFormat(requestedFormat());
+	//if(!m_context->create()) 
+	//{
+	//	delete m_context;
+	//	m_context = nullptr;
+	//}
 
 	pageSize.setWidth(450);
 	pageSize.setHeight(297);
@@ -290,9 +290,9 @@ void	GraphicsView::updatePageBuffer()
 
 	//Перекрестие мыши
 	color	= vec3(0.0f, 0.0f, 1.0f);
-	data.push_back(Vertex(vec2(-1.f, 0.f), color));
+	data.push_back(Vertex(vec2(0.f, 0.f), color));
 	data.push_back(Vertex(vec2(1.f, 0.f), color));
-	data.push_back(Vertex(vec2(0.f, -1.f), color));
+	data.push_back(Vertex(vec2(0.f, 0.f), color));
 	data.push_back(Vertex(vec2(0.f, 1.f), color));
 
 	//Белый лист
@@ -334,12 +334,12 @@ void	GraphicsView::updatePageBuffer()
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
 }
 
-void	GraphicsView::resizeEvent(QResizeEvent *e)
-{
-	QSize	sz	= e->size();
-	resizeGL(sz.width(), sz.height());
-	update();
-}
+//void	GraphicsView::resizeEvent(QResizeEvent *e)
+//{
+//	QSize	sz	= e->size();
+//	resizeGL(sz.width(), sz.height());
+//	update();
+//}
 
 void GraphicsView::resizeGL(int width, int height)
 {
@@ -435,30 +435,31 @@ void GraphicsView::resizeGL(int width, int height)
     else										ui->horizontalScrollBar->show();
 }
 
-bool	GraphicsView::event(QEvent* event)
-{
-	switch(event->type())
-	{
-		case QEvent::UpdateRequest:
-		{
-			update();
-			return true;
-		}
-		default:
-			return QWindow::event(event);
-	}
-}
-
-void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
-{
-	if(isExposed())	update();
-}
+//bool	GraphicsView::event(QEvent* event)
+//{
+//	switch(event->type())
+//	{
+//		case QEvent::UpdateRequest:
+//		{
+//			update();
+//			return true;
+//		}
+//		default:
+//			return QWindow::event(event);
+//	}
+//}
+//
+//void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
+//{
+//	if(isExposed())
+//		update();
+//}
 
 void GraphicsView::paintGL()
 {
-	if(!m_context->makeCurrent(this)) return;
+//	if(!m_context->makeCurrent(this)) return;
 	if(!oglInited)	initializeGL();
-	if(!isExposed())	return;
+//	if(!isExposed())	return;
 
 	//Реальное время
 	timer.start();
@@ -630,25 +631,20 @@ void GraphicsView::paintGL()
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(1);
 
-		glStencilMask(0xFF);
-		glClear(GL_STENCIL_BUFFER_BIT);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glStencilMask(0x00);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
 		//Растягиваем единичные палки мыши во всю область
 		areaMat	= mat4(1.0f);
-		areaMat	= translate(areaMat, vec3(m_mousePos, 0));
-		areaMat	= scale(areaMat, vec3(area.width(), area.height(), 1.0f));
+		areaMat	= translate(areaMat, vec3(pageBorders.left(), m_mousePos.y, 0.0f));
+		areaMat	= scale(areaMat, vec3(area.width(), 1.0f, 1.0f));
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-		glStencilFunc(GL_EQUAL, 1, 0xFF);
 		if(m_bOnMouse && !m_bZoomMode)
-			glDrawArrays(GL_LINES, 0, 4);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glDrawArrays(GL_LINES, 0, 2);
+
+		areaMat	= mat4(1.0f);
+		areaMat	= translate(areaMat, vec3(m_mousePos.x, pageBorders.bottom() + graphBorders.bottom(), 0));
+		areaMat	= scale(areaMat, vec3(1.0f, area.height(), 1.0f));
+		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
+		if(m_bOnMouse && !m_bZoomMode)
+			glDrawArrays(GL_LINES, 2, 2);
 
 		//Рисуем левый и правый маркер
 		if(bDrawLeftTime && (timeLeft > Time0) && (timeLeft < Time0 + (area.width() - graphBorders.left())/gridStep.x*TimeScale))
@@ -676,57 +672,11 @@ void GraphicsView::paintGL()
 //	emit dt(timeStep*1000);
 
 	//Переключаем буферы
-	m_context->swapBuffers(this);
+//	m_context->swapBuffers(this);
+//	requestUpdate();
 }
 
-void GraphicsView::drawScene()
-{
-}
 
-void GraphicsView::paintOverGL(QPainter* p)
-{
-    p->translate(0, pageSize.height()*m_scale);
-    p->scale(m_scale, -m_scale);
-
-    //Получаем доступ к буферу
-    glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-    GLint   bufSize;
-    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufSize);
-    char*   pBuf    = new char[bufSize];
-    glGetBufferSubData(GL_ARRAY_BUFFER, 0, bufSize, pBuf);
-
-    //Читаем данные из буфера
-    Vertex* pData   = (Vertex*)pBuf;
-    int dataSize    = bufSize/(5*sizeof(float));
-
-    //Два треугольника листа
-    p->setPen(Qt::NoPen);
-    p->setBrush(QBrush(getColor(pData[4].color)));
-    p->drawRect(pData[4].pos.x, pData[4].pos.y, pData[7].pos.x-pData[4].pos.x, pData[7].pos.y-pData[4].pos.y);
-
-	//Рамка
-    p->setPen(QPen(getColor(pData[8].color), 0));
-    p->setBrush(Qt::NoBrush);
-    p->drawRect(pData[8].pos.x, pData[8].pos.y, pData[11].pos.x-pData[8].pos.x, pData[11].pos.y-pData[8].pos.y);
-
-    //Сетка
-    for(int i = 16; i < dataSize; i += 2)
-    {
-        p->setPen(QPen(getColor(pData[i].color), 0));
-        p->drawLine(pData[i].pos.x, pData[i].pos.y, pData[i+1].pos.x, pData[i+1].pos.y);
-    }
-
-    //Перекрестие мыши
-    if(m_bOnMouse)
-        for(int i = 0; i < 4; i += 2)
-        {
-            p->setPen(QPen(getColor(pData[i].color), 0));
-            p->drawLine(pData[i].pos.x, pData[i].pos.y, pData[i+1].pos.x, pData[i+1].pos.y);
-        }
-
-    delete[] pBuf;
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
 
 void GraphicsView::saveSVG()
 {
@@ -800,7 +750,7 @@ void GraphicsView::update()
 
 	// Schedule a redraw
 	paintGL();
-//	QWindow::update();
+	QOpenGLWindow::update();
 }
 
 void	GraphicsView::openPageSetup()
@@ -1026,10 +976,12 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.x*TimeScale;
-				m_shift.y += delta.y*m_scale;
-				shiftToScroll();
-				
-				m_mousePos	= mousePos;
+			}
+			else
+			{
+				//Вертикальная прокрутка
+				vec2	delta	= mousePos - m_mousePos;
+				ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*m_scale);
 				event->accept();
 				update();
 				return;
@@ -1324,7 +1276,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		}
 	}
 	else
-		return QWindow::mouseDoubleClickEvent(event);
+		return QOpenGLWindow::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::on_deleteAxes()
@@ -1351,7 +1303,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
-	if(m_bZoomMode)	QWindow::keyPressEvent(event);
+	if(m_bZoomMode)	QOpenGLWindow::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1419,7 +1371,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			break;
 	}
 
-	QWindow::keyPressEvent(event);
+	QOpenGLWindow::keyPressEvent(event);
 	update();
 }
 
@@ -1446,7 +1398,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 			break;
 	}
 	
-	QWindow::keyReleaseEvent(event);
+	QOpenGLWindow::keyReleaseEvent(event);
 	update();
 }
 

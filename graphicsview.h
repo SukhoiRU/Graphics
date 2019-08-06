@@ -27,7 +27,7 @@ class GTextLabel;
 
 class GTextLabel;
 
-class GraphicsView : public QWindow
+class GraphicsView : public QOpenGLWindow
 {
 	Q_OBJECT
 
@@ -35,18 +35,17 @@ class GraphicsView : public QWindow
 QOpenGLContext *m_context;
 bool			fromInit{false};
 
-virtual void resizeEvent(QResizeEvent *e);
+//virtual void resizeEvent(QResizeEvent *e);
 
 public:
     explicit GraphicsView();
     virtual ~GraphicsView();
 	void	setUI(Ui::GraphicsDoc* pUI);
 
-    virtual void	initializeGL();
-    virtual void	resizeGL(int width, int height);
-    virtual void	paintGL();
+    virtual void	initializeGL() override;
+    virtual void	resizeGL(int width, int height) override;
+    virtual void	paintGL() override;
 	
-	void	drawScene();
     void	setPageInfo();
 
 public slots:
@@ -97,10 +96,8 @@ protected:
 	void	onZoomMode();
 	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
 
-	virtual bool event(QEvent *event) override;
-	virtual void exposeEvent(QExposeEvent *event) override;
-
-	void	paintOverGL(QPainter* p);
+	//virtual bool event(QEvent *event) override;
+	//virtual void exposeEvent(QExposeEvent *event) override;
 
 private:
 	Ui::GraphicsDoc *ui;

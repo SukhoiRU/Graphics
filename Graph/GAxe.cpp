@@ -724,7 +724,11 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 		m_marker_program->release();
 	}
 
+	glStencilMask(0xFF);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

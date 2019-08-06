@@ -338,7 +338,7 @@ void	GraphicsView::resizeEvent(QResizeEvent *e)
 {
 	QSize	sz	= e->size();
 	resizeGL(sz.width(), sz.height());
-	requestUpdate();
+	update();
 }
 
 void GraphicsView::resizeGL(int width, int height)
@@ -564,7 +564,7 @@ void GraphicsView::paintGL()
 	m_fbo_program->release();
 	glEnable(GL_BLEND);
 
-	if(0)
+	if(1)
 	{
 		//Рисуем список графических объектов
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
@@ -930,7 +930,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 		//Сохраняем в классе положение мыши
 		m_oldMouse	= mouse;
-		requestUpdate();
+		update();
 
 		return;
 	}
@@ -1028,6 +1028,11 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				Time0	-=	delta.x/gridStep.x*TimeScale;
 				m_shift.y += delta.y*m_scale;
 				shiftToScroll();
+				
+				m_mousePos	= mousePos;
+				event->accept();
+				update();
+				return;
 			}
 		}
 	}
@@ -1051,7 +1056,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	m_mousePos	= mousePos;
 
 	event->accept();
-	requestUpdate();
+	update();
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -1094,7 +1099,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
 		}
 		event->accept();
-		requestUpdate();
+		update();
 		return;
 	}
 
@@ -1160,7 +1165,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		}
 	}
 	event->accept();
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::mousePressEvent(QMouseEvent *event)
@@ -1266,7 +1271,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 	}
 
 	event->accept();
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -1292,7 +1297,7 @@ void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 	}
 
 	event->accept();
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -1415,7 +1420,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 	}
 
 	QWindow::keyPressEvent(event);
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
@@ -1442,7 +1447,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 	}
 	
 	QWindow::keyReleaseEvent(event);
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
@@ -1482,13 +1487,13 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 	m_SelectedObjects.clear();
 	modelTime	= 0;
 	if(!fromInit)
-		requestUpdate();
+		update();
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 {
 	m_pPanel	= nullptr;
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::onCustomMenuRequested(QPoint pos)
@@ -1571,7 +1576,7 @@ void	GraphicsView::fitTime()
 
 	//Центруем время
 	Time0 -= 0.5*(Time0 + nGrids*TimeScale - tMax);
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::onZoomMode()
@@ -1597,7 +1602,7 @@ void	GraphicsView::fitPage()
 	float	scaleH	= h/pageSize.height();
 	m_shift	= vec2(0.f);
 	setScale(std::min(scaleW, scaleH));
-	requestUpdate();
+	update();
 }
 
 void	GraphicsView::shiftToScroll()
@@ -1650,6 +1655,6 @@ void	GraphicsView::shiftToScroll()
 	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 	fboPageValid	= false;
 	fboGraphValid	= false;
-	requestUpdate();
+	update();
 }
 

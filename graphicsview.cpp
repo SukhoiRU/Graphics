@@ -499,7 +499,7 @@ void GraphicsView::paintGL()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	if(!fboPageValid)
+	//if(!fboPageValid)
 	{
 		//Заливаем матрицы в шейдер
 		m_program->bind();
@@ -525,7 +525,7 @@ void GraphicsView::paintGL()
 		//Рамка
 		glDrawArrays(GL_LINE_LOOP, 8, 4);
 		m_program->release();
-
+/*
 		//Оси графиков
 		for(size_t i = 0; i < m_pPanel->size(); i++)
 		{
@@ -550,7 +550,7 @@ void GraphicsView::paintGL()
 				pGraph->DrawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
-
+		*/
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		fboPageValid	= true;
 	}
@@ -749,7 +749,7 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	paintGL();
+	//paintGL();
 	QOpenGLWindow::update();
 }
 
@@ -982,6 +982,8 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Вертикальная прокрутка
 				vec2	delta	= mousePos - m_mousePos;
 				ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*m_scale);
+				ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x*m_scale);
+				//m_mousePos.x	= mousePos.x;
 				event->accept();
 				update();
 				return;

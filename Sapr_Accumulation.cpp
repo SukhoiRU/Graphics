@@ -108,7 +108,7 @@ void	Sapr_Accumulation::load(const QString& filename)
 
 		//Иконки
 		QStringList	iconsList	= Icons.split(",");
-		for(size_t i = 0; i < iconsList.size(); i++)
+		for(auto i = 0; i < iconsList.size(); i++)
 		{
 			int nIcon	= iconsList.at(i).toInt();
 			if(nIcon == 12) nIcon = 13;
@@ -163,7 +163,7 @@ void	Sapr_Accumulation::preloadData(const QStringList* pAxes)
 	}
 
 	//Формируем перечень загрузки из файла
-	for(size_t i = 0; i < pAxes->size(); i++)
+	for(auto i = 0; i < pAxes->size(); i++)
 	{
 		const QString&	path	= pAxes->at(i);
 

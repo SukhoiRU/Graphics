@@ -155,7 +155,7 @@ void	TRF_Accumulation::preloadData(const QStringList* pAxes)
 	}
 
 	//Формируем перечень загрузки из файла
-	for(size_t i = 0; i < pAxes->size(); i++)
+        for(auto i = 0; i < pAxes->size(); i++)
 	{
 		const QString&	path	= pAxes->at(i);
 

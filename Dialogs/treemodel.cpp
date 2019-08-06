@@ -122,7 +122,7 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
 			if(names.size() != info->icons.size())	
 				continue;
 
-            for(size_t j = 0; j < names.size(); j++)
+            for(auto j = 0; j < names.size(); j++)
             {
                 //Для каждого элемента перебираем описатель
                 const QString&	name	= names.at(j);

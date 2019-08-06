@@ -160,7 +160,7 @@ void	Orion_Accumulation::LoadOrionPacket()
 
 		//Иконки
 		QStringList	iconsList	= Icons.split(",");
-		for(size_t i = 0; i < iconsList.size(); i++)
+		for(auto i = 0; i < iconsList.size(); i++)
 		{
 			int nIcon	= iconsList.at(i).toInt();
 			signal->icons.push_back(nIcon);
@@ -257,7 +257,7 @@ void	Orion_Accumulation::preloadData(const QStringList* pAxes)
 	}
 
 	//Формируем перечень загрузки из файла
-	for(size_t i = 0; i < pAxes->size(); i++)
+	for(auto i = 0; i < pAxes->size(); i++)
 	{
 		const QString&	path	= pAxes->at(i);
 

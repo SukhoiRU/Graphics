@@ -97,6 +97,9 @@ protected:
 	void	onZoomMode();
 	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
 
+	virtual bool event(QEvent *event) override;
+	virtual void exposeEvent(QExposeEvent *event) override;
+
 	void	paintOverGL(QPainter* p);
 
 private:

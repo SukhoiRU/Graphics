@@ -338,7 +338,7 @@ void	GraphicsView::resizeEvent(QResizeEvent *e)
 {
 	QSize	sz	= e->size();
 	resizeGL(sz.width(), sz.height());
-	update();
+	requestUpdate();
 }
 
 void GraphicsView::resizeGL(int width, int height)
@@ -435,10 +435,30 @@ void GraphicsView::resizeGL(int width, int height)
     else										ui->horizontalScrollBar->show();
 }
 
+bool	GraphicsView::event(QEvent* event)
+{
+	switch(event->type())
+	{
+		case QEvent::UpdateRequest:
+		{
+			update();
+			return true;
+		}
+		default:
+			return QWindow::event(event);
+	}
+}
+
+void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
+{
+	if(isExposed())	update();
+}
+
 void GraphicsView::paintGL()
 {
 	if(!m_context->makeCurrent(this)) return;
 	if(!oglInited)	initializeGL();
+	if(!isExposed())	return;
 
 	//Реальное время
 	timer.start();
@@ -492,7 +512,7 @@ void GraphicsView::paintGL()
 		//Рисуем фон в текстуру
 		glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
 		glViewport(0, 0, width(), height());
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -535,13 +555,16 @@ void GraphicsView::paintGL()
 	}
 
 	//Копируем на экран из текстуры
+	glDisable(GL_BLEND);
 	m_fbo_program->bind();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fboPageTexture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	m_fbo_program->release();
+	glEnable(GL_BLEND);
 
+	if(0)
 	{
 		//Рисуем список графических объектов
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
@@ -907,7 +930,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 
 		//Сохраняем в классе положение мыши
 		m_oldMouse	= mouse;
-		update();
+		requestUpdate();
 
 		return;
 	}
@@ -1003,6 +1026,8 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				//Мышь в поле графиков
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.x*TimeScale;
+				m_shift.y += delta.y*m_scale;
+				shiftToScroll();
 			}
 		}
 	}
@@ -1026,7 +1051,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	m_mousePos	= mousePos;
 
 	event->accept();
-	update();
+	requestUpdate();
 }
 
 void GraphicsView::wheelEvent(QWheelEvent *event)
@@ -1069,7 +1094,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
 		}
 		event->accept();
-		update();
+		requestUpdate();
 		return;
 	}
 
@@ -1135,7 +1160,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		}
 	}
 	event->accept();
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::mousePressEvent(QMouseEvent *event)
@@ -1241,7 +1266,7 @@ void	GraphicsView::mousePressEvent(QMouseEvent *event)
 	}
 
 	event->accept();
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -1267,7 +1292,7 @@ void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 	}
 
 	event->accept();
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
@@ -1390,7 +1415,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 	}
 
 	QWindow::keyPressEvent(event);
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
@@ -1417,7 +1442,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 	}
 	
 	QWindow::keyReleaseEvent(event);
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
@@ -1457,13 +1482,13 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 	m_SelectedObjects.clear();
 	modelTime	= 0;
 	if(!fromInit)
-		update();
+		requestUpdate();
 }
 
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 {
 	m_pPanel	= nullptr;
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::onCustomMenuRequested(QPoint pos)
@@ -1546,7 +1571,7 @@ void	GraphicsView::fitTime()
 
 	//Центруем время
 	Time0 -= 0.5*(Time0 + nGrids*TimeScale - tMax);
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::onZoomMode()
@@ -1572,7 +1597,7 @@ void	GraphicsView::fitPage()
 	float	scaleH	= h/pageSize.height();
 	m_shift	= vec2(0.f);
 	setScale(std::min(scaleW, scaleH));
-	update();
+	requestUpdate();
 }
 
 void	GraphicsView::shiftToScroll()
@@ -1625,6 +1650,6 @@ void	GraphicsView::shiftToScroll()
 	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
 	fboPageValid	= false;
 	fboGraphValid	= false;
-	update();
+	requestUpdate();
 }
 

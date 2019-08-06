@@ -1086,6 +1086,15 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				vec2	delta	= mousePos - m_mousePos;
 				Time0	-=	delta.x/gridStep.x*TimeScale;
 			}
+			else
+			{
+				//Вертикальная прокрутка
+				vec2	delta	= mousePos - m_mousePos;
+				ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*m_scale);
+				event->accept();
+				update();
+				return;
+			}
 		}
 	}
 

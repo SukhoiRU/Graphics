@@ -159,6 +159,8 @@ private:
 
 	GLuint	fboGraph{0}, fboGraphTexture{0};
 	bool	fboGraphValid{false};
+
+//	QOpenGLFramebufferObject	*qFBO;
 };
 
 #endif // GRAPHICS_VIEW_H

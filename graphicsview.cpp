@@ -216,6 +216,8 @@ void	GraphicsView::loadAxeArg(QDomElement* e, double ver)
 
 void GraphicsView::initializeGL()
 {
+	connect(this, &QOpenGLWindow::frameSwapped, this, &GraphicsView::update);
+
 	//Initialize OpenGL Backend
 	gladLoadGL();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -363,21 +365,25 @@ void GraphicsView::resizeGL(int width, int height)
 		glDeleteTextures(1, &fboPageTexture);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &fboPage);
+		//delete qFBO;
 		fboPage			= 0;
 		fboPageValid	= false;
 	}
 
 	glGenFramebuffers(1, &fboPage);
+	//qFBO	=  new QOpenGLFramebufferObject(width, height, QOpenGLFramebufferObject::Attachment::NoAttachment);
+	//fboPage	= qFBO->handle();
 	glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
 	{
 		//Текстурное прикрепление
 		glGenTextures(1, &fboPageTexture);
+		//fboPageTexture	= qFBO->texture();
 		glBindTexture(GL_TEXTURE_2D, fboPageTexture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (width/2)*2+2, (height/2)*2+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboPageTexture, 0);
 
 		GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -499,7 +505,7 @@ void GraphicsView::paintGL()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	if(!fboPageValid)
+	//if(!fboPageValid)
 	{
 		//Заливаем матрицы в шейдер
 		m_program->bind();
@@ -511,6 +517,7 @@ void GraphicsView::paintGL()
 		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
 		//Рисуем фон в текстуру
+		//qFBO->bind();
 		glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
 		glViewport(0, 0, width(), height());
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -552,8 +559,19 @@ void GraphicsView::paintGL()
 
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//QImage	im	= qFBO->toImage();
+		//im.save("c:\\0.png", nullptr, 100);
+		//qFBO->release();
 		fboPageValid	= true;
 	}
+
+	//Биндим буфер
+	glBindVertexArray(pageVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	//Копируем на экран из текстуры
 	glDisable(GL_BLEND);
@@ -565,7 +583,7 @@ void GraphicsView::paintGL()
 	m_fbo_program->release();
 	glEnable(GL_BLEND);
 
-	if(1)
+//	if(0)
 	{
 		//Рисуем список графических объектов
 		for(size_t i = 0; i < m_GraphObjects.size(); i++)
@@ -605,7 +623,7 @@ void GraphicsView::paintGL()
 		m_pLabel->renderText(vec3(1., 0., 0.0f), 1.0f);
 	}
 
-	//Отрисовка мыши	
+	//Отрисовка мыши
 	{
 		m_program->bind();
 
@@ -1087,8 +1105,17 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			//Раз ни в один объект не попали, действия по окну
 			if(mdf.testFlag(Qt::NoModifier))
 			{
-				//Двигаем время
-				Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+				if(m_bOnMouse)
+				{
+					//Двигаем время
+					Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+				}
+				else
+				{
+					//Двигаем лист
+					ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - numDegrees.x());
+					ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
+				}
 			}
 			else if(mdf.testFlag(Qt::ControlModifier))
 			{

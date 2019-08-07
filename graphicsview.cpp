@@ -565,17 +565,15 @@ void GraphicsView::paintGL()
 		fboPageValid	= true;
 	}
 
-	//Биндим буфер
-	glBindVertexArray(pageVAO);
+
+	//Копируем на экран из текстуры
+	glDisable(GL_BLEND);
+	m_fbo_program->bind();
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
-
-	//Копируем на экран из текстуры
-	glDisable(GL_BLEND);
-	m_fbo_program->bind();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fboPageTexture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
@@ -608,8 +606,6 @@ void GraphicsView::paintGL()
 			if(pGraph->m_Type != AXEARG)
 				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	//Надпись
@@ -988,23 +984,35 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 		}
 		else
 		{
-			//Выделенных объектов нет. Попробуем передвинуть время
-			if(m_bOnMouse)
+			if(mdf & Qt::ShiftModifier)
 			{
-				//Мышь в поле графиков
-				vec2	delta	= mousePos - m_mousePos;
-				Time0	-=	delta.x/gridStep.x*TimeScale;
-			}
-			else
-			{
-				//Вертикальная прокрутка
+				//Таскаем лист
 				vec2	delta	= mousePos - m_mousePos;
 				ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*m_scale);
 				ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x*m_scale);
-				//m_mousePos.x	= mousePos.x;
 				event->accept();
 				update();
 				return;
+			}
+			else
+			{
+				//Выделенных объектов нет. Попробуем передвинуть время
+				if(m_bOnMouse)
+				{
+					//Мышь в поле графиков
+					vec2	delta	= mousePos - m_mousePos;
+					Time0	-=	delta.x/gridStep.x*TimeScale;
+				}
+				else
+				{
+					//Вертикальная прокрутка
+					vec2	delta	= mousePos - m_mousePos;
+					ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() + delta.y*m_scale);
+					ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - delta.x*m_scale);
+					event->accept();
+					update();
+					return;
+				}
 			}
 		}
 	}
@@ -1117,31 +1125,52 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 					ui->verticalScrollBar->setValue(ui->verticalScrollBar->value() - numDegrees.y());
 				}
 			}
+			else if(mdf.testFlag(Qt::ShiftModifier))
+			{
+				//Двигаем лист
+				ui->horizontalScrollBar->setValue(ui->horizontalScrollBar->value() - numDegrees.y());
+			}
 			else if(mdf.testFlag(Qt::ControlModifier))
 			{
-				//Нормализуем масштаб
-				double	Power	= floor(log10(TimeScale));
-				double	Mantiss	= TimeScale / pow(10., Power);
-				double	dLen	= (curTime - Time0)/TimeScale;
-
-				//Изменяем масштаб в нужную сторону
-				if(numDegrees.y() > 0)
+				if(m_bOnMouse)
 				{
-					if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
-					else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
-					else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
-					else					TimeScale	= 5*pow(10., Power);
+					//Нормализуем масштаб
+					double	Power	= floor(log10(TimeScale));
+					double	Mantiss	= TimeScale / pow(10., Power);
+					double	dLen	= (curTime - Time0)/TimeScale;
+
+					//Изменяем масштаб в нужную сторону
+					if(numDegrees.y() > 0)
+					{
+						if(Mantiss == 1)		TimeScale	= 0.5*pow(10., Power);
+						else if(Mantiss <= 2)	TimeScale	= 1*pow(10., Power);
+						else if(Mantiss <= 5)	TimeScale	= 2*pow(10., Power);
+						else					TimeScale	= 5*pow(10., Power);
+					}
+					else
+					{
+						if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
+						else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
+						else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
+						else					TimeScale	= 20*pow(10., Power);
+					}
+
+					//Двигаем ноль так, чтобы попасть в то же время
+					Time0	= curTime - dLen*TimeScale;
 				}
 				else
 				{
-					if(Mantiss == 1)		TimeScale	= 2*pow(10., Power);
-					else if(Mantiss <= 2)	TimeScale	= 5*pow(10., Power);
-					else if(Mantiss <= 5)	TimeScale	= 10*pow(10., Power);
-					else					TimeScale	= 20*pow(10., Power);
-				}
+					//Крутим масштаб листа
+					vec2	delta		= vec2(mousePos.x, pageSize.height() - mousePos.y);
+					float	oldScale	= m_scale;
 
-				//Двигаем ноль так, чтобы попасть в то же время
-				Time0	= curTime - dLen*TimeScale;
+					if(numDegrees.y() > 0)	setScale(m_scale*(1.1*numDegrees.y()/120.f));
+					else					setScale(m_scale/(-1.1*numDegrees.y()/120.f));
+
+					//Сдвигаем прокрутку, чтобы точка осталась на месте
+					m_shift	+= delta*(m_scale - oldScale);
+					shiftToScroll();
+				}
 			}
 		}
 	}

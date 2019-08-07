@@ -197,6 +197,8 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
+	
+	if(0)
 	{
 		//Трафарет для сетки
 		glStencilMask(0xFF);
@@ -218,9 +220,9 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 		glStencilMask(0x00);
 	}
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	//glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 4, nCountGrid-4);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	//Рамка поля графиков
 	dataModel	= mat4(1.0f);
@@ -230,6 +232,7 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	glDrawArrays(GL_LINE_LOOP, nCountGrid, 4);
 	
 	//Рисуем ось
+	if(0)
 	{
 		//Трафарет для оси
 		glStencilMask(0xFF);
@@ -262,9 +265,9 @@ void	GAxeArg::Draw(const double t0, const double TimeScale, const vec2& grid, co
 	dataModel	= translate(dataModel, vec3(areaBL.x - dt/TimeScale*grid.x, areaBL.y + m_y,0.0f));
 	dataModel	= scale(dataModel, vec3(grid.x/5.0f, 1.0f, 0.f));
 	glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &dataModel[0][0]);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	//glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glDrawArrays(GL_LINES, 0, nCountAxe);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_program->release();
 

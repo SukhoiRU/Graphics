@@ -595,6 +595,8 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 		setAxeLength(m_Axe_Length);
 		updateIndices(t0, TimeScale, grid, areaSize);
 	}
+	oldAreaSize	= areaSize;
+	oldAreaBL	= areaBL;
 
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
@@ -748,6 +750,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
 
 	//Область графиков для трафарета
+	if(0)
 	{
 		m_axe_program->bind();
 		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
@@ -806,7 +809,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 	glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	//glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 	if(m_Data_Type == DataType::Bool)
 	{
@@ -898,7 +901,7 @@ void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const
 		}
 	}
 
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

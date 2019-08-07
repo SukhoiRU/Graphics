@@ -26,7 +26,7 @@ using namespace Graph;
  ******************************************************************************/
 GraphicsView::GraphicsView()
 {
-	//setSurfaceType(QWindow::OpenGLSurface);
+	setSurfaceType(QWindow::OpenGLSurface);
 
 	QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
@@ -36,13 +36,13 @@ GraphicsView::GraphicsView()
 	format.setSwapInterval(0);
     setFormat(format);
 
-	//m_context = new QOpenGLContext(this);
-	//m_context->setFormat(requestedFormat());
-	//if(!m_context->create()) 
-	//{
-	//	delete m_context;
-	//	m_context = nullptr;
-	//}
+	m_context = new QOpenGLContext(this);
+	m_context->setFormat(requestedFormat());
+	if(!m_context->create()) 
+	{
+		delete m_context;
+		m_context = nullptr;
+	}
 
 	pageSize.setWidth(450);
 	pageSize.setHeight(297);
@@ -73,7 +73,6 @@ GraphicsView::GraphicsView()
 
 	bdWidth	= 0.1f;
 
-//	setMouseTracking(true);    
     pPageSetup	= nullptr;
     m_pPanel	= nullptr;
 	m_bZoomMode	= false;
@@ -216,8 +215,6 @@ void	GraphicsView::loadAxeArg(QDomElement* e, double ver)
 
 void GraphicsView::initializeGL()
 {
-	connect(this, &QOpenGLWindow::frameSwapped, this, &GraphicsView::update);
-
 	//Initialize OpenGL Backend
 	gladLoadGL();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -336,12 +333,12 @@ void	GraphicsView::updatePageBuffer()
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
 }
 
-//void	GraphicsView::resizeEvent(QResizeEvent *e)
-//{
-//	QSize	sz	= e->size();
-//	resizeGL(sz.width(), sz.height());
-//	update();
-//}
+void	GraphicsView::resizeEvent(QResizeEvent *e)
+{
+	QSize	sz	= e->size();
+	resizeGL(sz.width(), sz.height());
+	update();
+}
 
 void GraphicsView::resizeGL(int width, int height)
 {
@@ -441,31 +438,31 @@ void GraphicsView::resizeGL(int width, int height)
     else										ui->horizontalScrollBar->show();
 }
 
-//bool	GraphicsView::event(QEvent* event)
-//{
-//	switch(event->type())
-//	{
-//		case QEvent::UpdateRequest:
-//		{
-//			update();
-//			return true;
-//		}
-//		default:
-//			return QWindow::event(event);
-//	}
-//}
-//
-//void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
-//{
-//	if(isExposed())
-//		update();
-//}
+bool	GraphicsView::event(QEvent* event)
+{
+	switch(event->type())
+	{
+		case QEvent::UpdateRequest:
+		{
+			update();
+			return true;
+		}
+		default:
+			return QWindow::event(event);
+	}
+}
+
+void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
+{
+	if(isExposed())
+		update();
+}
 
 void GraphicsView::paintGL()
 {
-//	if(!m_context->makeCurrent(this)) return;
+	if(!m_context->makeCurrent(this)) return;
+	if(!isExposed())	return;
 	if(!oglInited)	initializeGL();
-//	if(!isExposed())	return;
 
 	//Реальное время
 	timer.start();
@@ -559,12 +556,8 @@ void GraphicsView::paintGL()
 
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//QImage	im	= qFBO->toImage();
-		//im.save("c:\\0.png", nullptr, 100);
-		//qFBO->release();
 		fboPageValid	= true;
 	}
-
 
 	//Копируем на экран из текстуры
 	glDisable(GL_BLEND);
@@ -686,11 +679,8 @@ void GraphicsView::paintGL()
 //	emit dt(timeStep*1000);
 
 	//Переключаем буферы
-//	m_context->swapBuffers(this);
-//	requestUpdate();
+	m_context->swapBuffers(this);
 }
-
-
 
 void GraphicsView::saveSVG()
 {
@@ -763,8 +753,7 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	//paintGL();
-	QOpenGLWindow::update();
+	paintGL();
 }
 
 void	GraphicsView::openPageSetup()
@@ -1334,7 +1323,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		}
 	}
 	else
-		return QOpenGLWindow::mouseDoubleClickEvent(event);
+		return QWindow::mouseDoubleClickEvent(event);
 }
 
 void	GraphicsView::on_deleteAxes()
@@ -1361,7 +1350,7 @@ void	GraphicsView::on_deleteAxes()
 void	GraphicsView::keyPressEvent(QKeyEvent *event)
 {
 //	Qt::KeyboardModifiers	mdf		= event->modifiers();
-	if(m_bZoomMode)	QOpenGLWindow::keyPressEvent(event);
+	if(m_bZoomMode)	QWindow::keyPressEvent(event);
 
 	switch(event->key())
 	{
@@ -1429,7 +1418,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 			break;
 	}
 
-	QOpenGLWindow::keyPressEvent(event);
+	QWindow::keyPressEvent(event);
 	update();
 }
 
@@ -1456,7 +1445,7 @@ void	GraphicsView::keyReleaseEvent(QKeyEvent *event)
 			break;
 	}
 	
-	QOpenGLWindow::keyReleaseEvent(event);
+	QWindow::keyReleaseEvent(event);
 	update();
 }
 

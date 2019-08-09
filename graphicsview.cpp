@@ -444,7 +444,7 @@ bool	GraphicsView::event(QEvent* event)
 	{
 		case QEvent::UpdateRequest:
 		{
-			update();
+			paintGL();
 			return true;
 		}
 		default:
@@ -676,7 +676,7 @@ void GraphicsView::paintGL()
 		m_program->release();
 	}
 	glBindVertexArray(0);
-//	emit dt(timeStep*1000);
+//	emit dt(timer.elapsed());
 
 	//Переключаем буферы
 	m_context->swapBuffers(this);
@@ -718,6 +718,7 @@ void GraphicsView::setScale(float scale)
 		fboPageValid	= false;
 		fboGraphValid	= false;
     }
+	update();
 }
 
 void GraphicsView::update()
@@ -753,7 +754,8 @@ void GraphicsView::update()
 		m_view  = translate(m_view, -vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 
 	// Schedule a redraw
-	paintGL();
+	requestUpdate();
+//	paintGL();
 }
 
 void	GraphicsView::openPageSetup()
@@ -785,6 +787,7 @@ void	GraphicsView::updatePage()
 
 		updatePageBuffer();
 	}
+	update();
 }
 
 vec2	GraphicsView::mouseToDoc(QMouseEvent *event)
@@ -1522,6 +1525,7 @@ void	GraphicsView::on_graphSettings()
 	if(!m_pGraphSettings)
 		m_pGraphSettings	= new graphSettings(ui->centralwidget);
 	m_pGraphSettings->show();
+	connect(m_pGraphSettings, &QDialog::accepted, this, &GraphicsView::update);
 }
 
 void	GraphicsView::fitTime()

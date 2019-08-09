@@ -37,5 +37,7 @@ void	graphSettings::on_accept(QAbstractButton* pButton)
 
 		if(ui.buttonBox->buttonRole(pButton) == QDialogButtonBox::AcceptRole)
 			accept();
+		else
+			emit accepted();
 	}
 }

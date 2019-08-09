@@ -35,7 +35,9 @@ class GraphicsView : public QWindow
 QOpenGLContext *m_context;
 bool			fromInit{false};
 
-virtual void resizeEvent(QResizeEvent *e);
+virtual bool event(QEvent *event) override;
+virtual void resizeEvent(QResizeEvent *e) override;
+virtual void exposeEvent(QExposeEvent *event) override;
 
 public:
     explicit GraphicsView();
@@ -96,9 +98,6 @@ protected:
 	void	onZoomMode();
 	void	shiftToScroll();	//Перекачка сдвига в полосы прокрутки
 
-	virtual bool event(QEvent *event) override;
-	virtual void exposeEvent(QExposeEvent *event) override;
-
 private:
 	Ui::GraphicsDoc *ui;
 
@@ -154,8 +153,8 @@ private:
 	mat4	m_view;
 
 	QOpenGLShaderProgram*	m_fbo_program;
-	GLuint	fboPage{0}, fboPageTexture{0};
-	bool	fboPageValid{false};
+	GLuint	fboPage = 0, fboPageTexture = 0;
+	bool	fboPageValid = false;
 
 	GLuint	fboGraph{0}, fboGraphTexture{0};
 	bool	fboGraphValid{false};

@@ -266,7 +266,7 @@ void GraphicsView::initializeGL()
 	oglInited	= true;
 
 	//Выставляем размеры окна
-	resizeGL(width(), height());
+	resizeGL(width, height);
 
 	//Восстанавливаем загруженную панель
 	vector<Graph::GAxe*>*	pPanel	= m_pPanel;
@@ -487,7 +487,7 @@ void GraphicsView::paintGL()
 	vec2	areaSize(area.width(), area.height());
 
 	//Очистка вида
-	glViewport(0, 0, width(), height());
+	glViewport(0, 0, width, height);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glStencilMask(0xFF);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -523,7 +523,7 @@ void GraphicsView::paintGL()
 		//Рисуем фон в текстуру
 		//qFBO->bind();
 		glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
-		glViewport(0, 0, width(), height());
+		glViewport(0, 0, width, height);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glEnable(GL_BLEND);
@@ -755,8 +755,10 @@ void	GraphicsView::print()
 		fbo.bind();
 		update();
 		QImage	im	= fbo.toImage();
-		im.save("c:\\test.png", nullptr, 100);
 		fbo.release();
+
+		QString	filename	= QFileDialog::getSaveFileName(nullptr, "Сохранение графика", "", "*.png");
+		im.save(filename, nullptr, 100);
 
 		painter.drawImage(0, 0, im);
 		

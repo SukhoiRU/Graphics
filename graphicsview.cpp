@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QSvgGenerator>
 #include <QDomDocument>
+#include <QPrintDialog>
 #include "Dialogs/pageSetup.h"
 #include "Graph/GraphObject.h"
 #include "Graph/GAxe.h"
@@ -167,6 +168,8 @@ void	GraphicsView::setUI(Ui::GraphicsDoc* pUI)
 	connect(ui->actionFitPage, &QAction::triggered, this, &GraphicsView::fitPage);
 	connect(ui->actionDelAxe, &QAction::triggered, this, &GraphicsView::on_deleteAxes);
 	connect(ui->actionZoom, &QAction::triggered, this, &GraphicsView::onZoomMode);
+	connect(ui->action_SavePNG, &QAction::triggered, this, &GraphicsView::saveSVG);
+	connect(ui->actionPrint, &QAction::triggered, this, &GraphicsView::print);
 }
 
 void GraphicsView::teardownGL()
@@ -340,8 +343,11 @@ void	GraphicsView::resizeEvent(QResizeEvent *e)
 	update();
 }
 
-void GraphicsView::resizeGL(int width, int height)
+void GraphicsView::resizeGL(int Width, int Height)
 {
+	width	= Width;
+	height	= Height;
+
 	//Меняем матрицу проекции
 	if(m_bPerspective)
 	{
@@ -463,6 +469,7 @@ void GraphicsView::paintGL()
 	if(!m_context->makeCurrent(this)) return;
 	if(!isExposed())	return;
 	if(!oglInited)	initializeGL();
+	glViewport(0, 0, width, height);
 
 	//Реальное время
 	timer.start();
@@ -682,8 +689,16 @@ void GraphicsView::paintGL()
 	m_context->swapBuffers(this);
 }
 
+extern Q_GUI_EXPORT QImage qt_gl_read_framebuffer(const QSize &size, bool alpha_format, bool include_alpha);
+
 void GraphicsView::saveSVG()
 {
+	QString	filename	= QFileDialog::getSaveFileName(nullptr, "Сохранение графика", "", "*.png");
+	m_context->makeCurrent(this);
+	QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
+	img.setDevicePixelRatio(devicePixelRatio());
+	img.save(filename);
+
 /*  QSvgGenerator generator;
     generator.setFileName("c:\\Users\\zasovin\\Documents\\Visual Studio 2015\\Projects\\MFC_GLFW\\3b_CameraControl_07.10.2018\\my_svg.svg");
     generator.setSize(pageSize*m_scale);
@@ -699,14 +714,74 @@ void GraphicsView::saveSVG()
     painter.end();*/
 }
 
+void	GraphicsView::print()
+{
+	//Запоминаем настройки экрана
+	float	oldScale	= m_scale;
+	float	oldWidth	= width;
+	float	oldHeight	= height;
+	vec2	oldShift	= m_shift;
+	int		oldHbar		= ui->horizontalScrollBar->value();
+	int		oldVbar		= ui->verticalScrollBar->value();
+
+	QPrinter	printer(QPrinter::PrinterMode::PrinterResolution);
+	QPrintDialog	printDialog(&printer, nullptr);
+	if(printDialog.exec() == QDialog::Accepted)
+	{
+		printer.setResolution(300);
+		printer.setPageOrientation(QPageLayout::Landscape);
+
+		QPainter	painter(&printer);
+//		QRect		rect(0, 0, 297*600/25.4, 210*600/25.4);//painter.viewport();
+		QRect		rect	= painter.viewport();
+
+		QOpenGLFramebufferObject	fbo(rect.size(), QOpenGLFramebufferObject::Attachment::CombinedDepthStencil);
+		bool	res	= fbo.isValid();
+		resizeGL(rect.width(), rect.height());
+
+		//Подстраиваем лист под окно
+		ui->horizontalScrollBar->setValue(0);
+		ui->horizontalScrollBar->hide();
+		ui->verticalScrollBar->setValue(0);
+		ui->verticalScrollBar->hide();
+		QSize	sz	= rect.size();
+		int	w	= sz.width();
+		int	h	= sz.height();
+		float	scaleW	= w/pageSize.width();
+		float	scaleH	= h/pageSize.height();
+		m_shift	= vec2(0.f);
+		setScale(std::min(scaleW, scaleH));
+
+		fbo.bind();
+		update();
+		QImage	im	= fbo.toImage();
+		im.save("c:\\test.png", nullptr, 100);
+		fbo.release();
+
+		painter.drawImage(0, 0, im);
+		
+		//Восстанавливаем настройки
+		m_scale		= oldScale;
+		width		= oldWidth;
+		height		= oldHeight;
+		m_shift		= oldShift;
+		ui->horizontalScrollBar->setValue(oldHbar);
+		ui->verticalScrollBar->setValue(oldVbar);
+		resizeGL(width, height);
+		setScale(m_scale);
+		update();
+	}
+
+}
+
 void GraphicsView::setScale(float scale)
 {
     if(scale != m_scale)
     {
 		ui->verticalScrollBar->setMinimum(0);
-        ui->verticalScrollBar->setMaximum(max(0, int(pageSize.height()*scale-height())));
+        ui->verticalScrollBar->setMaximum(max(0, int(pageSize.height()*scale-height)));
 		ui->horizontalScrollBar->setMinimum(0);
-		ui->horizontalScrollBar->setMaximum(max(0, int(pageSize.width()*scale-width())));
+		ui->horizontalScrollBar->setMaximum(max(0, int(pageSize.width()*scale-width)));
 
         if(ui->verticalScrollBar->maximum() == 0)	ui->verticalScrollBar->hide();
         else										ui->verticalScrollBar->show();
@@ -795,7 +870,7 @@ vec2	GraphicsView::mouseToDoc(QMouseEvent *event)
 	QPointF	pLocal	= event->pos();
 
 	//Переводим мышь в координаты модели
-	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::vec2	mouse(pLocal.x()/width*2.-1., 1.-pLocal.y()/height*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
@@ -892,7 +967,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	//Переводим мышь в координаты модели
-	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::vec2	mouse(pLocal.x()/width*2.-1., 1.-pLocal.y()/height*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 
@@ -1038,7 +1113,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 	Qt::KeyboardModifiers	mdf			= event->modifiers();
 
 	//Переводим мышь в координаты модели
-	glm::vec2	mouse(pLocal.x()/width()*2.-1., 1.-pLocal.y()/height()*2.);
+	glm::vec2	mouse(pLocal.x()/width*2.-1., 1.-pLocal.y()/height*2.);
 	glm::mat4	iView	= glm::inverse(m_proj*m_view);
 	glm::vec4	world	= iView*glm::vec4(mouse, 0.f, 1.f);
 	vec2	mousePos(world.x, world.y);
@@ -1510,7 +1585,7 @@ void	GraphicsView::onCustomMenuRequested(QPoint pos)
 	actPersp->setChecked(m_bPerspective);
 
 	connect(actAngle, &QAction::toggled, [=](bool bCheck){m_bTurning = bCheck; modelTime = 0;});
-	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(width(), height()); modelTime = 0;});
+	connect(actPersp, &QAction::toggled, [=](bool bCheck){m_bPerspective = bCheck; resizeGL(QWindow::width(), QWindow::height()); modelTime = 0;});
 
 	menu->addAction(ui->actionScaleUp);
 	menu->addAction(ui->actionScaleDown);

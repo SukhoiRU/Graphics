@@ -106,6 +106,7 @@
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionPrint"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -132,6 +133,7 @@
     <addaction name="actionScaleDown"/>
     <addaction name="actionFitTime"/>
     <addaction name="actionFitPage"/>
+    <addaction name="action_SavePNG"/>
    </widget>
    <widget class="QMenu" name="menu_5">
     <property name="title">
@@ -328,6 +330,16 @@
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="action_SavePNG">
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>Печать</string>
    </property>
   </action>
  </widget>

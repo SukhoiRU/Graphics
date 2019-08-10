@@ -547,10 +547,10 @@ void GraphicsView::paintGL()
 				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 					if(m_SelectedObjects.at(j) == pAxe)
 						continue;
-				pAxe->DrawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
+				pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
 			}
 			else
-				pAxe->DrawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+				pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		//Дорисовываем выделенные
@@ -558,7 +558,7 @@ void GraphicsView::paintGL()
 		{
 			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
 			if(pGraph->m_Type == AXE)
-				pGraph->DrawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+				pGraph->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		
@@ -593,10 +593,10 @@ void GraphicsView::paintGL()
 				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 					if(m_SelectedObjects.at(j) == pGraph)
 						continue;
-				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
+				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
 			}
 			else
-				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 
 		//Дорисовываем выделенные
@@ -604,7 +604,7 @@ void GraphicsView::paintGL()
 		{
 			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
 			if(pGraph->m_Type != AXEARG)
-				pGraph->Draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 		}
 	}
 
@@ -1030,7 +1030,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 				{
 					GraphObject*	pGraph	= m_SelectedObjects.at(i);
 					pGraph->m_IsMoving	= true;
-					pGraph->OnStartMoving();
+					pGraph->onStartMoving();
 				}
 			}
 
@@ -1039,7 +1039,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 			for(size_t i = 0; i < m_SelectedObjects.size(); i++)
 			{
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
-				pGraph->MoveOffset(delta, buttons, mdf);
+				pGraph->moveOffset(delta, buttons, mdf);
 				if(pGraph->m_Type == AXEARG)
 				{
 					//Для оси дополнительно двигаем время
@@ -1095,7 +1095,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 			if(pGraph->m_Type == AXE)
 			{
 				GAxe*	pAxe	= (GAxe*)pGraph;
-				int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
+				int	index	= int((m_mousePos.y - pAxe->getPosition().y)/gridStep.y + 0.5);
 				pAxe->setAxeLength(pAxe->getAxeLength(), index);
 			}
 		}
@@ -1368,7 +1368,7 @@ void	GraphicsView::mouseReleaseEvent(QMouseEvent *event)
 			{
 				GraphObject*	pGraph	= m_SelectedObjects.at(i);
 				pGraph->m_IsMoving	= false;
-				pGraph->OnStopMoving();
+				pGraph->onStopMoving();
 			}
 
 			//SelectObject(0);
@@ -1446,7 +1446,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 					{
 						GraphObject*	pGraph	= m_SelectedObjects.at(i);
 						pGraph->m_IsMoving	= false;
-						pGraph->OnStopMoving();
+						pGraph->onStopMoving();
 					}
 				}
 				SelectObject(nullptr);
@@ -1477,7 +1477,7 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 				if(pGraph->m_Type == AXE)
 				{
 					GAxe*	pAxe	= (GAxe*)pGraph;
-					int	index	= int((m_mousePos.y - pAxe->GetPosition().y)/gridStep.y + 0.5);
+					int	index	= int((m_mousePos.y - pAxe->getPosition().y)/gridStep.y + 0.5);
 
 					pAxe->setAxeLength(pAxe->getAxeLength(), index);
 				}

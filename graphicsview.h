@@ -156,12 +156,13 @@ private:
 	mat4	m_proj;
 	mat4	m_view;
 
+	//Текстуры
 	QOpenGLShaderProgram*	m_fbo_program;
-	GLuint	fboPage = 0, fboPageTexture = 0;
+	GLuint	fboPage = 0, fboPageTexture = 0;	//Для сборки поля графиков
 	bool	fboPageValid = false;
 
-	GLuint	fboGraph{0}, fboGraphTexture{0};
-	bool	fboGraphValid{false};
+	GLuint	fboGraph = 0, fboGraphTexture = 0;	//Для отрисовки отдельных графиков
+	bool	fboGraphValid = false;
 
 	QPrinter	printer;
 };

@@ -48,16 +48,14 @@ public:
 	virtual ~GAxeArg();
 
 	//Рисование
-	virtual	void	initializeGL();
-	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
+	virtual	void	initializeGL() override;
+	virtual void	draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha) override;		//Полное рисование
+	virtual void	drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha) override;	//Только шкала
 
 	//Мышиные дела
-	virtual bool	hitTest(const vec2& /*pt*/);//Проверка на попадание курсора
-	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
-	virtual void	MoveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/);	//Перемещение на заданное расстояние
-	virtual void	OnDoubleClick(){};				//Реакция на щелчок мышью
-	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
-	virtual void	OnStopMoving() {};				//Реакция на конец перетаскивания
+	virtual bool	hitTest(const vec2& /*pt*/) override;//Проверка на попадание курсора
+	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape) override;
+	virtual void	moveOffset(const vec2& /*delta*/, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& /*mdf*/) override;	//Перемещение на заданное расстояние
 };
 }
 

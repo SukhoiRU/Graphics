@@ -140,26 +140,26 @@ public:
 	void			clearData();
 	
 	//Рисование
-	virtual void	initializeGL();
-	virtual void	clearGL();
+	virtual void	initializeGL() override;
+	virtual void	clearGL() override;
 	static  void	finalDelete();
-	virtual void	Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);					//Полное рисование
-	virtual void	DrawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha);
+	virtual void	draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha) override;		//Полное рисование
+	virtual void	drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha) override;	//Только ось
 
 	//Мышиные дела
-	virtual bool	hitTest(const vec2& pt);//Проверка на попадание курсора
-	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape);
-    virtual void	MoveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf);	//Перемещение на заданное расстояние
-    virtual void	onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees);	//Обработка колеса
-	virtual void	OnStartMoving(){};				//Реакция на начало перетаскивания
-	virtual void	OnStopMoving();					//Реакция на конец перетаскивания
+	virtual bool	hitTest(const vec2& pt) override;//Проверка на попадание курсора
+	virtual bool	getCursor(const vec2& pt, Qt::CursorShape& shape) override;
+    virtual void	moveOffset(const vec2& delta, const Qt::MouseButtons& buttons, const Qt::KeyboardModifiers& mdf) override;	//Перемещение на заданное расстояние
+    virtual void	onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees) override;	//Обработка колеса
+	virtual void	onStartMoving() override{};				//Реакция на начало перетаскивания
+	virtual void	onStopMoving() override;				//Реакция на конец перетаскивания
 
 	void	fitToScale(double t0 = 0, double t1 = 0);//Подбор масштаба и начала
 	void	getTime(double& t0, double& t1);	
-	void	GetLimits(	double* pMin = 0,
+	void	getLimits(	double* pMin = 0,
 						double* pMax = 0);			//минимакс
 
-	void	GetLimits(double t0, double t1,
+	void	getLimits(double t0, double t1,
 						double* pMin = 0,
 						double* pMax = 0);			//минимакс
 
@@ -168,15 +168,15 @@ private:
 	void	updateIndices(const double t0, const double TimeScale, const vec2& grid, const vec2& areaSize);						//Обновление массива отрисовываемых индексов
 
 public:
-	void		SetPosition(double x, double y);		//Начальная установка координат
-	void		SetPosition(vec2 pt);					//Начальная установка координат
-	vec2		GetPosition()const{return m_BottomRight + oldAreaBL;} 	//Получение позиции
-	double		GetValueAtTime(const double Time) const;	//Получение данных из конкретной записи
-	double		GetTopPosition() const;						//Координата верхнего угла по высоте
-	bool		IsBoolean() const;						//Признак логической оси
-	void		GetStatistic() const;					//Выдача статистической информации
-	void		ErrorsFilter() const;					//Фильтрация сбоев
-	void		UpdateFiltering();						//Фильтрация сигнала
+	void		setPosition(double x, double y);		//Начальная установка координат
+	void		setPosition(vec2 pt);					//Начальная установка координат
+	vec2		getPosition()const{return m_BottomRight + oldAreaBL;} 	//Получение позиции
+	double		getValueAtTime(const double Time) const;	//Получение данных из конкретной записи
+	double		getTopPosition() const;						//Координата верхнего угла по высоте
+	bool		isBoolean() const;						//Признак логической оси
+	void		getStatistic() const;					//Выдача статистической информации
+	void		errorsFilter() const;					//Фильтрация сбоев
+	void		updateFiltering();						//Фильтрация сигнала
 	int			getAxeLength() const {return m_Axe_Length;}
 	void		setAxeLength(int len, int highlighted = -1);
 };

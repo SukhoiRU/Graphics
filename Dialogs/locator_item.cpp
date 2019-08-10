@@ -80,7 +80,7 @@ void	LocatorItem::update(double time)
 	//Обновляем себя
 	if(m_Data.pAxe)
 	{
-		double	val	= m_Data.pAxe->GetValueAtTime(time);
+		double	val	= m_Data.pAxe->getValueAtTime(time);
 		QString	strVal	= QString("%1").arg(val);
 		if(m_Data.pAxe->isEmpty())	strVal	= "";
 		if(strVal != m_Data.value)
@@ -108,7 +108,7 @@ void	LocatorItem::sortAxes()
 	{
 		const Graph::GAxe*	pAxe1	= a->GetData()->pAxe;
 		const Graph::GAxe*	pAxe2	= b->GetData()->pAxe;
-		return (pAxe1->GetTopPosition() > pAxe2->GetTopPosition());
+		return (pAxe1->getTopPosition() > pAxe2->getTopPosition());
 	});
 }
 

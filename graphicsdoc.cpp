@@ -504,7 +504,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 		pAxe->m_nMarker		= m_markerIndex;
 		pAxe->m_AxeMin		= -10;
 		pAxe->m_AxeScale	= 10;
-		pAxe->SetPosition(-20, 200);
+		pAxe->setPosition(-20, 200);
 		pAxe->setAxeLength(4);
 
 		//Сдвигаем индексы цвета и маркера
@@ -722,7 +722,7 @@ void	GraphicsDoc::preloadPanel()
 			double*	pDelta	= new double[len];
             for(size_t i = 0; i < len; i++)
 			{
-				*(pDelta + i)	= pAxe->GetValueAtTime(pTime[i]) - axe.GetValueAtTime(pTime[i]);
+				*(pDelta + i)	= pAxe->getValueAtTime(pTime[i]) - axe.getValueAtTime(pTime[i]);
 			}
 			
 			//Принудительно выставляем тип Double

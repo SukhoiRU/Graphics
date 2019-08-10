@@ -36,7 +36,7 @@ void	LocatorModel::setPanel(const std::vector<Graph::GAxe*>* axes, bool bUseBool
 		data.name	= pAxe->m_Name;
 		data.pAxe	= pAxe;
 
-		if(!pAxe->IsBoolean() || (pAxe->IsBoolean() && bUseBool))
+		if(!pAxe->isBoolean() || (pAxe->isBoolean() && bUseBool))
 			if(!pAxe->isEmpty() || (pAxe->isEmpty() && bUseEmpty))
 				m_rootItem->addChildren(data);
 	}

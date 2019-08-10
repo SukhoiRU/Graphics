@@ -22,12 +22,12 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 	//Заполняем поля
 	{
 		double	Min, Max;
-		axes.front()->GetLimits(&Min, &Max);
+		axes.front()->getLimits(&Min, &Max);
 		for(size_t i = 0; i < axes.size(); i++)
 		{
 			GAxe*	pAxe	= axes.at(i);
 			double	axeMin, axeMax;
-			pAxe->GetLimits(&axeMin, &axeMax);
+			pAxe->getLimits(&axeMin, &axeMax);
 			if(axeMin < Min)	Min	= axeMin;
 			if(axeMax < Max)	Max	= axeMax;
 		}
@@ -204,7 +204,7 @@ void	GAxe_dialog::on_replace()
 	//Меняем диалог
 	ui->lineEdit_Name->setText(pAxe->m_Name);
 	double	Min, Max;
-	pAxe->GetLimits(&Min, &Max);
+	pAxe->getLimits(&Min, &Max);
 	ui->label_Min->setText(QString("[%1]").arg(Min));
 	ui->label_Max->setText(QString("[%1]").arg(Max));
 	ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));
@@ -222,7 +222,7 @@ void	GAxe_dialog::on_substract()
 	//Меняем диалог
 	ui->lineEdit_Name->setText(pAxe->m_Name);
 	double	Min, Max;
-	pAxe->GetLimits(&Min, &Max);
+	pAxe->getLimits(&Min, &Max);
 	ui->label_Min->setText(QString("[%1]").arg(Min));
 	ui->label_Max->setText(QString("[%1]").arg(Max));
 	ui->lineEdit_Min->setText(QString("%1").arg(pAxe->m_AxeMin));

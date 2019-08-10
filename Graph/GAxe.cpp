@@ -507,16 +507,16 @@ void	GAxe::load(QDomElement* node, double ver)
 	if(node->hasAttribute("Ksi_Oscill"))	m_Oscill_Ksi	= node->attribute("Ksi_Oscill").toDouble();
 	if(node->hasAttribute("Интерполяция"))	m_bInterpol		= node->attribute("Интерполяция") == "true";
 
-	if(m_bAperiodic || m_bOscill)	UpdateFiltering();
+	if(m_bAperiodic || m_bOscill)	updateFiltering();
 }
 
-void	GAxe::SetPosition(double x, double y)
+void	GAxe::setPosition(double x, double y)
 {
 	m_BottomRight	= vec2(x,y);
 	m_FrameBR		= vec2(x,y);
 }
 
-void	GAxe::SetPosition(vec2 pt)
+void	GAxe::setPosition(vec2 pt)
 {
 	m_BottomRight	= pt;
 	m_FrameBR		= pt;
@@ -579,7 +579,7 @@ void	GAxe::updateIndices(const double t0, const double TimeScale, const vec2& /*
 	}
 }
 
-void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
+void	GAxe::drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
 {
 	//Контроль деления на ноль
 	if(!grid.y)		return;
@@ -740,7 +740,7 @@ void	GAxe::DrawFrame(const double t0, const double TimeScale, const vec2& grid, 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void	GAxe::Draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
+void	GAxe::draw(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float alpha)
 {
 	//Контроль деления на ноль
 	if(!TimeScale)	return;
@@ -955,12 +955,12 @@ bool	GAxe::getCursor(const vec2& /*pt*/, Qt::CursorShape& shape)
 	return	true;
 }
 
-void	GAxe::OnStopMoving()
+void	GAxe::onStopMoving()
 {
 	m_FrameBR	= m_BottomRight;
 }
 
-void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
+void	GAxe::moveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, const Qt::KeyboardModifiers& mdf)
 {
 	//Переместим рамку
 	m_FrameBR		+= delta;
@@ -973,60 +973,6 @@ void	GAxe::MoveOffset(const vec2& delta, const Qt::MouseButtons& /*buttons*/, co
 	else								m_BottomRight.y	= int(m_FrameBR.y/step + 0.5f)*step;
 
 	return;
-/*
-	//Дальше в зависимости от типа перетаскивания
-	switch(m_Direction)
-	{
-		case Graph::GAxe::TOP:
-		{
-			//Растягиваем верх
-			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
-			{
-				m_AxeLength++;
-				setAxeLength(m_AxeLength);
-			}
-			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
-			{
-				m_AxeLength--;
-				if(m_AxeLength < 1)	m_AxeLength	= 1;
-				setAxeLength(m_AxeLength);
-			}
-		}break;
-
-		case Graph::GAxe::BOTTOM:
-			//Растягиваем низ
-			if(m_FrameBR.y - m_BottomRight.y > oldGrid.y)
-			{
-				m_AxeLength--;
-				if(m_AxeLength < 1)	m_AxeLength	= 1;
-				else
-				{
-					m_AxeMin += m_AxeScale;
-					m_BottomRight.y	+= oldGrid.y;
-				}
-				setAxeLength(m_AxeLength);
-			}
-			else if(m_FrameBR.y - m_BottomRight.y < -oldGrid.y)
-			{
-				m_AxeLength++;
-				m_AxeMin -= m_AxeScale;
-				m_BottomRight.y	-= oldGrid.y;
-				setAxeLength(m_AxeLength);
-			}
-			break;
-
-		case Graph::GAxe::ALL:
-		{
-			//Положение оси по высоте округлим до сетки
-			float	step	= oldGrid.y;
-			if(m_DataType == Bool)		step	= 0.5f*step;
-			if(mdf & Qt::AltModifier)	m_BottomRight.y	= m_FrameBR.y;
-			else						m_BottomRight.y	= int((m_FrameBR.y - oldAreaBL.y)/step + 0.5f)*step + oldAreaBL.y;
-		}break;
-
-		default:
-			break;
-	}*/
 }
 
 void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdegrees)
@@ -1075,7 +1021,7 @@ void	GAxe::onWheel(const vec2& pt, const Qt::KeyboardModifiers& mdf, vec2 numdeg
 	}
 }
 
-void	GAxe::GetLimits(double* pMin, double* pMax)
+void	GAxe::getLimits(double* pMin, double* pMax)
 {
 	if(m_data.empty())
 	{
@@ -1093,7 +1039,7 @@ void	GAxe::GetLimits(double* pMin, double* pMax)
 	}
 }
 
-void	GAxe::GetLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*pMax*/)
+void	GAxe::getLimits(double /*t0*/, double /*t1*/, double* /*pMin*/, double* /*pMax*/)
 {/*
 	UpdateRecord(false);
 	if(m_Record == -1)
@@ -1211,9 +1157,9 @@ void	GAxe::fitToScale(double t0 /* = 0 */, double t1 /* = 0 */)
 	double	Max;
 
 	if(t0 == 0 && t1 == 0)
-		GetLimits(&Min, &Max);
+		getLimits(&Min, &Max);
 	else
-		GetLimits(t0, t1, &Min, &Max);
+		getLimits(t0, t1, &Min, &Max);
 
 	//Зная минимум и максимум, определим диапазон
 	double Step = (Max - Min)/m_Axe_Length;
@@ -1288,7 +1234,7 @@ void	GAxe::uploadData(size_t size, const double* pTime, const char* pData, const
 		}
 	}
 
-	UpdateFiltering();
+	updateFiltering();
 	return;
 }
 
@@ -1297,7 +1243,7 @@ void	GAxe::clearData()
 	m_data.clear();
 }
 
-double	GAxe::GetValueAtTime(const double Time) const
+double	GAxe::getValueAtTime(const double Time) const
 {
 	//Получаем значение на заданный момент времени
 	if(m_data.size() == 0)			return 0;
@@ -1327,17 +1273,17 @@ double	GAxe::GetValueAtTime(const double Time) const
 		return	f1;
 }
 
-double GAxe::GetTopPosition() const
+double GAxe::getTopPosition() const
 {
 	return m_BottomRight.y + m_Axe_Length*oldGrid.y;
 }
 
-bool	GAxe::IsBoolean() const
+bool	GAxe::isBoolean() const
 {
 	return m_Data_Type	== DataType::Bool;
 }
 
-void	GAxe::GetStatistic() const
+void	GAxe::getStatistic() const
 {/*
 	//Получаем диапазон времени
 	double	T0;
@@ -1489,7 +1435,7 @@ void	GAxe::GetStatistic() const
 	AfxMessageBox(msg);*/
 }
 
-void	GAxe::ErrorsFilter() const
+void	GAxe::errorsFilter() const
 {/*
 	//Фильтруем одиночные сбои
 	if(m_DataType == Float)
@@ -1551,7 +1497,7 @@ void	GAxe::ErrorsFilter() const
 	}*/
 }
 
-void	GAxe::UpdateFiltering()
+void	GAxe::updateFiltering()
 {/*
 	//Фильтрация сигнала
 	if(!m_KARP_Len)	return;

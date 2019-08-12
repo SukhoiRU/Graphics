@@ -543,11 +543,10 @@ void	GraphicsView::paintGL()
 
 		//Обновляем координаты поля графиков в NDC
 		std::vector<Vertex>	data;
-		mat4	mvp	= m_proj*m_view;
-		vec4	BL	= mvp*vec4(areaBL.x, areaBL.y, 0.0f, 1.0f);
-		vec4	BR	= mvp*vec4(areaBL.x + areaSize.x, areaBL.y, 0.0f, 1.0f);
-		vec4	TR	= mvp*vec4(areaBL.x + areaSize.x, areaBL.y + areaSize.y, 0.0f, 1.0f);
-		vec4	TL	= mvp*vec4(areaBL.x, areaBL.y + areaSize.y, 0.0f, 1.0f);
+		vec4	BL	= m_proj*(m_view*vec4(areaBL.x, areaBL.y, 0.0f, 1.0f) + vec4(-0.5f, -0.5f, 0.f, 0.f));
+		vec4	BR	= m_proj*(m_view*vec4(areaBL.x + areaSize.x, areaBL.y, 0.0f, 1.0f) + vec4(0.5f, -0.5f, 0.f, 0.f));
+		vec4	TR	= m_proj*(m_view*vec4(areaBL.x + areaSize.x, areaBL.y + areaSize.y, 0.0f, 1.0f) + vec4(0.5f, 0.5f, 0.f, 0.f));
+		vec4	TL	= m_proj*(m_view*vec4(areaBL.x, areaBL.y + areaSize.y, 0.0f, 1.0f) + vec4(-0.5f, 0.5f, 0.f, 0.f));
 
 		data.push_back(Vertex(vec2(BR.x, BR.y), vec3(0.5f*(BR.x+1.0f), 0.5f*(BR.y+1.0f), 0.0f)));
 		data.push_back(Vertex(vec2(BL.x, BL.y), vec3(0.5f*(BL.x+1.0f), 0.5f*(BL.y+1.0f), 0.0f)));
@@ -698,7 +697,8 @@ void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
 			
 			//Рисуем в отдельную текстуру
 			glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+//			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			glClearColor(pAxe->m_Color.r, pAxe->m_Color.g, pAxe->m_Color.b, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glBlendFunc(GL_ONE, GL_ZERO);
 			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);

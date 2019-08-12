@@ -32,13 +32,13 @@ class GraphicsView : public QWindow
 {
 	Q_OBJECT
 
-// OpenGL Events
-QOpenGLContext *m_context;
-bool			fromInit{false};
+private:
+	QOpenGLContext*	m_context;
+	bool			fromInit	= false;
 
-virtual bool event(QEvent *event) override;
-virtual void resizeEvent(QResizeEvent *e) override;
-virtual void exposeEvent(QExposeEvent *event) override;
+	virtual bool event(QEvent *event) override;
+	virtual void resizeEvent(QResizeEvent *e) override;
+	virtual void exposeEvent(QExposeEvent *event) override;
 
 public:
     explicit GraphicsView();
@@ -158,12 +158,12 @@ private:
 
 	//Текстуры
 	QOpenGLShaderProgram*	m_fbo_program;
-	GLuint	fboPage = 0, fboPageTexture = 0;	//Для сборки поля графиков
-	bool	fboPageValid = false;
+	GLuint	fboGraphArea = 0, fboGraphAreaTexture = 0;	//Для сборки поля графиков
+	bool	fboGraphAreaValid = false;
 
 	GLuint	fboGraph = 0, fboGraphTexture = 0;	//Для отрисовки отдельных графиков
-	bool	fboGraphValid = false;
 
+	void	drawGraphArea(const vec2& areaBL, const vec2& areaSize);
 	QPrinter	printer;
 };
 

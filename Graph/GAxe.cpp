@@ -58,9 +58,9 @@ int		GAxe::u_select_dL			= 0;
 int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
-GLfloat	GAxe::m_width		= 1.0f;
-GLfloat	GAxe::m_selWidth	= 1.0f;
-GLfloat	GAxe::m_interpWidth	= 1.0f;
+GLfloat	GAxe::m_width		= 1.5f;
+GLfloat	GAxe::m_selWidth	= 3.0f;
+GLfloat	GAxe::m_interpWidth	= 1.5f;
 GLfloat	GAxe::m_alias		= 0.5f;
 GLfloat	GAxe::m_selAlias	= 0.5f;
 GLfloat	GAxe::m_interpAlias	= 0.5f;
@@ -746,31 +746,24 @@ void	GAxe::draw(const double t0, const double TimeScale, const vec2& grid, const
 	if(!TimeScale)	return;
 	if(!grid.y)		return;
 
+	if(oldGrid != grid)
+	{
+		oldGrid	= grid;
+		setAxeLength(m_Axe_Length);
+		updateIndices(t0, TimeScale, grid, areaSize);
+	}
+
+	if(oldScale != m_scale)
+	{
+		oldScale	= m_scale;
+		setAxeLength(m_Axe_Length);
+		updateIndices(t0, TimeScale, grid, areaSize);
+	}
+	oldAreaSize	= areaSize;
+	oldAreaBL	= areaBL;
+
 	//Смешиваем цвет с белым
 	vec3 color	= m_Color*alpha + vec3(1.0f)*(1.0f-alpha);
-
-	//Область графиков для трафарета
-	if(0)
-	{
-		m_axe_program->bind();
-		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
-		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
-
-		mat4	areaMat(1.0f);
-		areaMat	= translate(areaMat, vec3(areaBL, 0));
-		areaMat	= scale(areaMat, vec3(areaSize, 1.0f));
-		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &areaMat[0][0]);
-
-		glStencilMask(0xFF);
-		glClear(GL_STENCIL_BUFFER_BIT);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		glStencilMask(0x00);
-	}
 
 	//График с нулевым масштабом не рисуем
 	if(!m_AxeScale)	return;
@@ -821,7 +814,7 @@ void	GAxe::draw(const double t0, const double TimeScale, const vec2& grid, const
 		glUniform1i(u_bool_lineType, 3);
 
 		glDrawArrays(GL_LINE_STRIP, nStartIndex, nStopIndex - nStartIndex + 1);
-		m_data_program->release();
+		m_bool_program->release();
 	}
 	else
 	{

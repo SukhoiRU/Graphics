@@ -5,8 +5,6 @@
 #include <QKeyEvent>
 #include <QTime>
 #include <QScrollBar>
-#include <QPainter>
-#include <QSvgGenerator>
 #include <QDomDocument>
 #include <QPrintDialog>
 #include "Dialogs/pageSetup.h"
@@ -19,6 +17,8 @@
 #include <vector>
 using std::max;
 using namespace Graph;
+
+extern Q_GUI_EXPORT QImage qt_gl_read_framebuffer(const QSize &size, bool alpha_format, bool include_alpha);
 
 #include "Graph/GTextLabel.h"
 
@@ -180,12 +180,12 @@ void GraphicsView::teardownGL()
 	if(m_program)		{delete m_program; m_program = 0;}
 	if(m_fbo_program)	{delete m_fbo_program; m_fbo_program= 0;}
 
-	if(fboPage)	
+	if(fboGraphArea)	
 	{
-		glDeleteTextures(1, &fboPageTexture);
+		glDeleteTextures(1, &fboGraphAreaTexture);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDeleteFramebuffers(1, &fboPage); 
-		fboPage = 0;
+		glDeleteFramebuffers(1, &fboGraphArea); 
+		fboGraphArea = 0;
 	}
 
 	if(fboGraph)
@@ -331,6 +331,12 @@ void	GraphicsView::updatePageBuffer()
 	data.push_back(Vertex(vec2(+1.f, +1.f), vec3(1.f, 1.f, 0.0f)));
 	data.push_back(Vertex(vec2(-1.f, +1.f), vec3(0.f, 1.f, 0.0f)));
 
+	//И еще раз для текстур графиков
+	data.push_back(Vertex(vec2(+1.f, -1.f), vec3(1.f, 0.f, 0.0f)));
+	data.push_back(Vertex(vec2(-1.f, -1.f), vec3(0.f, 0.f, 0.0f)));
+	data.push_back(Vertex(vec2(+1.f, +1.f), vec3(1.f, 1.f, 0.0f)));
+	data.push_back(Vertex(vec2(-1.f, +1.f), vec3(0.f, 1.f, 0.0f)));
+
 	//Пересоздаем буфер
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(Vertex), data.data(), GL_STATIC_DRAW);
@@ -358,73 +364,69 @@ void GraphicsView::resizeGL(int Width, int Height)
 	else
 		m_proj	= glm::ortho<float>(0.f, width, -height, 0.f, 0.1f, 10000.0f);
 
-	if(!oglInited)	return;
-
-	//////////////////////////////////////////////////////////////////////////
-	//Создаем framebuffer для фона
-	if(fboPage)	
+	if(oglInited)
 	{
-		//Очищаем имеюшийся буфер
-		glDeleteTextures(1, &fboPageTexture);
+		//////////////////////////////////////////////////////////////////////////
+		//Создаем framebuffer для области графиков
+		if(fboGraphArea)
+		{
+			//Очищаем имеюшийся буфер
+			glDeleteTextures(1, &fboGraphAreaTexture);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDeleteFramebuffers(1, &fboGraphArea);
+			fboGraphArea		= 0;
+			fboGraphAreaValid	= false;
+		}
+
+		glGenFramebuffers(1, &fboGraphArea);
+		glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
+		{
+			//Текстурное прикрепление
+			glGenTextures(1, &fboGraphAreaTexture);
+			glBindTexture(GL_TEXTURE_2D, fboGraphAreaTexture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboGraphAreaTexture, 0);
+
+			GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if(err != GL_FRAMEBUFFER_COMPLETE)
+				qDebug() << "Framebuffer ERROR!";
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDeleteFramebuffers(1, &fboPage);
-		//delete qFBO;
-		fboPage			= 0;
-		fboPageValid	= false;
-	}
 
-	glGenFramebuffers(1, &fboPage);
-	//qFBO	=  new QOpenGLFramebufferObject(width, height, QOpenGLFramebufferObject::Attachment::NoAttachment);
-	//fboPage	= qFBO->handle();
-	glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
-	{
-		//Текстурное прикрепление
-		glGenTextures(1, &fboPageTexture);
-		//fboPageTexture	= qFBO->texture();
-		glBindTexture(GL_TEXTURE_2D, fboPageTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboPageTexture, 0);
+		//////////////////////////////////////////////////////////////////////////
+		//Создаем framebuffer для области графиков
+		if(fboGraph)
+		{
+			//Очищаем имеюшийся буфер
+			glDeleteTextures(1, &fboGraphTexture);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDeleteFramebuffers(1, &fboGraph);
+			fboGraph		= 0;
+		}
 
-		GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(err != GL_FRAMEBUFFER_COMPLETE)
-			qDebug() << "Framebuffer ERROR!";
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glGenFramebuffers(1, &fboGraph);
+		glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
+		{
+			//Текстурное прикрепление
+			glGenTextures(1, &fboGraphTexture);
+			glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboGraphTexture, 0);
 
-	//////////////////////////////////////////////////////////////////////////
-	//Создаем framebuffer для области графиков
-	if(fboGraph)
-	{
-		//Очищаем имеюшийся буфер
-		glDeleteTextures(1, &fboGraphTexture);
+			GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if(err != GL_FRAMEBUFFER_COMPLETE)
+				qDebug() << "Framebuffer ERROR!";
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDeleteFramebuffers(1, &fboGraph);
-		fboGraph		= 0;
-		fboGraphValid	= false;
 	}
-
-	glGenFramebuffers(1, &fboGraph);
-	glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
-	{
-		//Текстурное прикрепление
-		glGenTextures(1, &fboGraphTexture);
-		glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboGraphTexture, 0);
-
-		GLenum	err	= glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(err != GL_FRAMEBUFFER_COMPLETE)
-			qDebug() << "Framebuffer ERROR!";
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//////////////////////////////////////////////////////////////////////////
 	//Меняем полосы прокрутки
@@ -460,16 +462,14 @@ bool	GraphicsView::event(QEvent* event)
 
 void	GraphicsView::exposeEvent(QExposeEvent* /*event*/)
 {
-	if(isExposed())
-		update();
+	if(isExposed())	update();
 }
 
-void GraphicsView::paintGL()
+void	GraphicsView::paintGL()
 {
 	if(!m_context->makeCurrent(this)) return;
 	if(!isExposed())	return;
 	if(!oglInited)	initializeGL();
-	glViewport(0, 0, width, height);
 
 	//Реальное время
 	timer.start();
@@ -485,6 +485,15 @@ void GraphicsView::paintGL()
 	area.setHeight(pageSize.height() - pageBorders.top() - pageBorders.bottom() - graphBorders.top() - graphBorders.bottom());
 	vec2	areaBL(area.x(), area.y());
 	vec2	areaSize(area.width(), area.height());
+
+	//Биндим VAO
+	glBindVertexArray(pageVAO);
+
+	//При необходимости обновляем текстуру поля графиков
+//	if(!fboGraphAreaValid)
+	{
+		drawGraphArea(areaBL, areaSize);
+	}
 
 	//Очистка вида
 	glViewport(0, 0, width, height);
@@ -502,110 +511,84 @@ void GraphicsView::paintGL()
 	glEnable(GL_PROGRAM_POINT_SIZE);
 
 	//Биндим буфер
-	glBindVertexArray(pageVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	//if(!fboPageValid)
+	//Отрисовка листа
+	m_program->bind();
 	{
-		//Заливаем матрицы в шейдер
-		m_program->bind();
-
 		//Модельная матрица без сдвигов
 		mat4	m_model(1.0f);
 		glUniformMatrix4fv(u_modelToWorld, 1, GL_FALSE, &m_model[0][0]);
 		glUniformMatrix4fv(u_worldToCamera, 1, GL_FALSE, &m_view[0][0]);
 		glUniformMatrix4fv(u_cameraToView, 1, GL_FALSE, &m_proj[0][0]);
 
-		//Рисуем фон в текстуру
-		//qFBO->bind();
-		glBindFramebuffer(GL_FRAMEBUFFER, fboPage);
-		glViewport(0, 0, width, height);
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable(GL_MULTISAMPLE);
-
 		//Два треугольника листа
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 
 		//Рамка
 		glDrawArrays(GL_LINE_LOOP, 8, 4);
-		m_program->release();
+	}
+	m_program->release();
 
-		//Оси графиков
-		for(size_t i = 0; i < m_pPanel->size(); i++)
+	//Отрисовка поля графиков из текстуры
+	m_fbo_program->bind();
+	{
+		glEnable(GL_BLEND);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fboGraphAreaTexture);
+
+		//Обновляем координаты поля графиков в NDC
+		std::vector<Vertex>	data;
+		mat4	mvp	= m_proj*m_view;
+		vec4	BL	= mvp*vec4(areaBL.x, areaBL.y, 0.0f, 1.0f);
+		vec4	BR	= mvp*vec4(areaBL.x + areaSize.x, areaBL.y, 0.0f, 1.0f);
+		vec4	TR	= mvp*vec4(areaBL.x + areaSize.x, areaBL.y + areaSize.y, 0.0f, 1.0f);
+		vec4	TL	= mvp*vec4(areaBL.x, areaBL.y + areaSize.y, 0.0f, 1.0f);
+
+		data.push_back(Vertex(vec2(BR.x, BR.y), vec3(0.5f*(BR.x+1.0f), 0.5f*(BR.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(BL.x, BL.y), vec3(0.5f*(BL.x+1.0f), 0.5f*(BL.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(TR.x, TR.y), vec3(0.5f*(TR.x+1.0f), 0.5f*(TR.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(TL.x, TL.y), vec3(0.5f*(TL.x+1.0f), 0.5f*(TL.y+1.0f), 0.0f)));
+
+		//data.push_back(Vertex(vec2(+1.f, -1.f), vec3(1.f, 0.f, 0.0f)));
+		//data.push_back(Vertex(vec2(-1.f, -1.f), vec3(0.f, 0.f, 0.0f)));
+		//data.push_back(Vertex(vec2(+1.f, +1.f), vec3(1.f, 1.f, 0.0f)));
+		//data.push_back(Vertex(vec2(-1.f, +1.f), vec3(0.f, 1.f, 0.0f)));
+
+		glBufferSubData(GL_ARRAY_BUFFER, 20*sizeof(Vertex), 4*sizeof(Vertex), data.data());
+		glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
+		glBindTexture(GL_TEXTURE_2D, 0);
+//		glEnable(GL_BLEND);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	m_fbo_program->release();
+
+	//Оси графиков
+	for(size_t i = 0; i < m_pPanel->size(); i++)
+	{
+		Graph::GAxe*	pAxe	= m_pPanel->at(i);
+		if(m_SelectedObjects.size())
 		{
-			Graph::GAxe*	pAxe	= m_pPanel->at(i);
-			if(m_SelectedObjects.size())
-			{
-				//Пропускаем выделенные
-				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-					if(m_SelectedObjects.at(j) == pAxe)
-						continue;
-				pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
-			}
-			else
-				pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+			//Пропускаем выделенные
+			for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+				if(m_SelectedObjects.at(j) == pAxe)
+					continue;
+			pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
 		}
-
-		//Дорисовываем выделенные
-		for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-		{
-			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
-			if(pGraph->m_Type == AXE)
-				pGraph->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
-		}
-
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		fboPageValid	= true;
+		else
+			pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 	}
 
-	//Копируем на экран из текстуры
-	glDisable(GL_BLEND);
-	m_fbo_program->bind();
-	glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-	glEnableVertexAttribArray(1);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fboPageTexture);
-	glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	m_fbo_program->release();
-	glEnable(GL_BLEND);
-
-//	if(0)
+	//Дорисовываем выделенные
+	for(size_t j = 0; j < m_SelectedObjects.size(); j++)
 	{
-		//Рисуем список графических объектов
-		for(size_t i = 0; i < m_GraphObjects.size(); i++)
-		{
-			Graph::GraphObject*	pGraph	= m_GraphObjects.at(i);
-			if(m_SelectedObjects.size() && pGraph->m_Type != AXEARG)
-			{
-				//Пропускаем выделенные
-				for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-					if(m_SelectedObjects.at(j) == pGraph)
-						continue;
-				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
-			}
-			else
-				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
-		}
-
-		//Дорисовываем выделенные
-		for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-		{
-			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
-			if(pGraph->m_Type != AXEARG)
-				pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
-		}
+		Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
+		if(pGraph->m_Type == AXE)
+			pGraph->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 	}
 
 	//Надпись
@@ -689,7 +672,94 @@ void GraphicsView::paintGL()
 	m_context->swapBuffers(this);
 }
 
-extern Q_GUI_EXPORT QImage qt_gl_read_framebuffer(const QSize &size, bool alpha_format, bool include_alpha);
+void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
+{
+	//Перерисовка поля графиков
+	glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
+	glViewport(0, 0, width, height);
+
+	//Заливаем белым
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	//Рисуем разлиновку
+	axeArg->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+
+	//Рисуем графики
+	for(size_t i = 0; i < m_pPanel->size(); i++)
+	{
+		Graph::GAxe*	pAxe	= m_pPanel->at(i);
+		if(m_SelectedObjects.size())
+		{
+			//Пропускаем выделенные
+			for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+				if(m_SelectedObjects.at(j) == pAxe)
+					continue;
+			pAxe->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
+		}
+		else
+		{
+			//Рисуем в отдельную текстуру
+			glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glBlendFunc(GL_ONE, GL_ZERO);
+			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+
+			pAxe->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendEquation(GL_FUNC_ADD);
+			//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
+			//img.setDevicePixelRatio(devicePixelRatio());
+			//img.save("c:\\0.png");
+			
+			//Переносим ее в основную
+			glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
+			m_fbo_program->bind();
+			glEnable(GL_BLEND);
+			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+			glEnableVertexAttribArray(1);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
+			glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			m_fbo_program->release();
+		}
+	}
+
+	//Дорисовываем выделенные
+	for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+	{
+		Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
+		if(pGraph->m_Type == AXE)
+			pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+	}
+
+	//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
+	//img.setDevicePixelRatio(devicePixelRatio());
+	//img.save("c:\\0.png");
+
+	////Копируем на экран из текстуры
+	//glDisable(GL_BLEND);
+	//m_fbo_program->bind();
+	//glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+	//glEnableVertexAttribArray(1);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, fboGraphAreaTexture);
+	//glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//m_fbo_program->release();
+	//glEnable(GL_BLEND);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	fboGraphAreaValid	= true;
+}
 
 void GraphicsView::saveSVG()
 {
@@ -792,8 +862,7 @@ void GraphicsView::setScale(float scale)
 
 		m_scale = scale;
 		Graph::GraphObject::m_scale	= m_scale;
-		fboPageValid	= false;
-		fboGraphValid	= false;
+		fboGraphAreaValid	= false;
     }
 	update();
 }
@@ -1049,6 +1118,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 					}
 				}
 			}
+			fboGraphAreaValid	= false;
 			emit axesMoved();
 		}
 		else
@@ -1071,6 +1141,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 					//Мышь в поле графиков
 					vec2	delta	= mousePos - m_mousePos;
 					Time0	-=	delta.x/gridStep.x*TimeScale;
+					fboGraphAreaValid	= false;
 				}
 				else
 				{
@@ -1186,6 +1257,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 				{
 					//Двигаем время
 					Time0 += -numDegrees.x()/120.*TimeScale - numDegrees.y()/120.*TimeScale;
+					fboGraphAreaValid	= false;
 				}
 				else
 				{
@@ -1226,6 +1298,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 					//Двигаем ноль так, чтобы попасть в то же время
 					Time0	= curTime - dLen*TimeScale;
+					fboGraphAreaValid	= false;
 				}
 				else
 				{
@@ -1238,6 +1311,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 
 					//Сдвигаем прокрутку, чтобы точка осталась на месте
 					m_shift	+= delta*(m_scale - oldScale);
+					fboGraphAreaValid	 = false;
 					shiftToScroll();
 				}
 			}
@@ -1423,6 +1497,7 @@ void	GraphicsView::on_deleteAxes()
 		{
 			emit delete_axe(&axes);
 			setCursor(Qt::ArrowCursor);
+			fboGraphAreaValid	 = false;
 		}
 	}
 }
@@ -1733,8 +1808,7 @@ void	GraphicsView::shiftToScroll()
 		m_shift.y	= vValue + m_shift.y;
 	}
 	connect(ui->verticalScrollBar, &QScrollBar::valueChanged, this, &GraphicsView::shiftToScroll);
-	fboPageValid	= false;
-	fboGraphValid	= false;
+	fboGraphAreaValid	= false;
 	update();
 }
 

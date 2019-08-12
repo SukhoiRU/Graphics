@@ -59,7 +59,7 @@ struct Vertex
 };
 
 void	GAxeArg::drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float /*alpha*/)
-{
+{return;
 	//Рисуем шкалу и сетку
 	if(!TimeScale)	return;
 

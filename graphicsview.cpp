@@ -566,6 +566,9 @@ void	GraphicsView::paintGL()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	m_fbo_program->release();
 
+	//Шкала времени
+	axeArg->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+
 	//Оси графиков
 	for(size_t i = 0; i < m_pPanel->size(); i++)
 	{
@@ -573,9 +576,7 @@ void	GraphicsView::paintGL()
 		if(m_SelectedObjects.size())
 		{
 			//Пропускаем выделенные
-			for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-				if(m_SelectedObjects.at(j) == pAxe)
-					continue;
+			if(pAxe->m_IsSelected) continue;
 			pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
 		}
 		else
@@ -583,11 +584,11 @@ void	GraphicsView::paintGL()
 	}
 
 	//Дорисовываем выделенные
-	for(size_t j = 0; j < m_SelectedObjects.size(); j++)
+	for(size_t i = 0; i < m_pPanel->size(); i++)
 	{
-		Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
-		if(pGraph->m_Type == AXE)
-			pGraph->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+		Graph::GAxe*	pAxe	= m_pPanel->at(i);
+		if(pAxe->m_IsSelected)
+			pAxe->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 	}
 
 	//Надпись
@@ -919,7 +920,7 @@ void GraphicsView::update()
     m_view  = translate(m_view, vec3(0.5*pageSize.width(), 0.5*pageSize.height(), 0.f));
 	if(m_bTurning)
 	{
-		float angle	= 500.;
+		float angle	= 50.;
 		GLfloat	anglez	= glm::radians(angle)*sin(0.1*modelTime*6.28);
 		GLfloat	anglex	= glm::radians(3.*angle)*sin(0.02*modelTime*6.28);
 		GLfloat	angley	= glm::radians(10.*angle)*sin(0.04*modelTime*6.28);
@@ -928,7 +929,7 @@ void GraphicsView::update()
 			m_view  = rotate(m_view, anglex, vec3(1.f, 0.f, 0.0f));
 			m_view  = rotate(m_view, angley, vec3(0.f, 1.f, 0.0f));
 		}
-//		m_view  = rotate(m_view, anglez, vec3(0.f, 0.f, 1.0f));
+		m_view  = rotate(m_view, anglez, vec3(0.f, 0.f, 1.0f));
 		m_view	= translate(m_view, vec3(anglex, anglez, 0.f));
 	}
 
@@ -1051,6 +1052,7 @@ void	GraphicsView::on_axeAdded(Graph::GAxe* pAxe)
 
 void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
+	modelTime += 0.01;
 	QPointF	pLocal	= event->pos();
 	Qt::MouseButtons		buttons	= event->buttons();
 	Qt::KeyboardModifiers	mdf		= event->modifiers();

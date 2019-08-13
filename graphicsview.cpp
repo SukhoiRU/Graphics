@@ -553,21 +553,31 @@ void	GraphicsView::paintGL()
 		data.push_back(Vertex(vec2(TR.x, TR.y), vec3(0.5f*(TR.x+1.0f), 0.5f*(TR.y+1.0f), 0.0f)));
 		data.push_back(Vertex(vec2(TL.x, TL.y), vec3(0.5f*(TL.x+1.0f), 0.5f*(TL.y+1.0f), 0.0f)));
 
-		//data.push_back(Vertex(vec2(+1.f, -1.f), vec3(1.f, 0.f, 0.0f)));
-		//data.push_back(Vertex(vec2(-1.f, -1.f), vec3(0.f, 0.f, 0.0f)));
-		//data.push_back(Vertex(vec2(+1.f, +1.f), vec3(1.f, 1.f, 0.0f)));
-		//data.push_back(Vertex(vec2(-1.f, +1.f), vec3(0.f, 1.f, 0.0f)));
-
 		glBufferSubData(GL_ARRAY_BUFFER, 20*sizeof(Vertex), 4*sizeof(Vertex), data.data());
 		glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
 		glBindTexture(GL_TEXTURE_2D, 0);
-//		glEnable(GL_BLEND);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	m_fbo_program->release();
 
-	//Шкала времени
-	axeArg->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+		//Шкала времени из промежуточной текстуры
+		data.clear();
+		BL	= m_proj*(m_view*vec4(areaBL.x, areaBL.y - 2.f*gridStep.y + axeArg->m_y, 0.0f, 1.0f) + vec4(-0.5f, -0.5f, 0.f, 0.f));
+		BR	= m_proj*(m_view*vec4(areaBL.x + areaSize.x, areaBL.y - 2.f*gridStep.y + axeArg->m_y, 0.0f, 1.0f) + vec4(0.5f, -0.5f, 0.f, 0.f));
+		TR	= m_proj*(m_view*vec4(areaBL.x + areaSize.x, areaBL.y + axeArg->m_y, 0.0f, 1.0f) + vec4(0.5f, 0.5f, 0.f, 0.f));
+		TL	= m_proj*(m_view*vec4(areaBL.x, areaBL.y + axeArg->m_y, 0.0f, 1.0f) + vec4(-0.5f, 0.5f, 0.f, 0.f));
+
+		data.push_back(Vertex(vec2(BR.x, BR.y), vec3(0.5f*(BR.x+1.0f), 0.5f*(BR.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(BL.x, BL.y), vec3(0.5f*(BL.x+1.0f), 0.5f*(BL.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(TR.x, TR.y), vec3(0.5f*(TR.x+1.0f), 0.5f*(TR.y+1.0f), 0.0f)));
+		data.push_back(Vertex(vec2(TL.x, TL.y), vec3(0.5f*(TL.x+1.0f), 0.5f*(TL.y+1.0f), 0.0f)));
+
+		glBufferSubData(GL_ARRAY_BUFFER, 20*sizeof(Vertex), 4*sizeof(Vertex), data.data());
+		glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
+		glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	m_fbo_program->release();
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//axeArg->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 
 	//Оси графиков
 	for(size_t i = 0; i < m_pPanel->size(); i++)
@@ -795,6 +805,17 @@ void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
 			m_fbo_program->release();
 		}
 	}
+
+	//Последней в промежуточную текстуру кладем шкалу времени
+	glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+	axeArg->drawFrame(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	fboGraphAreaValid	= true;

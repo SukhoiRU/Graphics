@@ -22,7 +22,7 @@ vec4 stroke(float distance,  // Signed distance to line
   float signed_distance = distance;
   float border_distance = abs(signed_distance) - t;
   float alpha = border_distance / antialias;
-  alpha = exp(-alpha * alpha);
+  alpha = exp(-2.0*alpha * alpha);
 
 	/*if(border_distance > (linewidth/2. + antialias))	discard;
 	else*/ if (border_distance < 0.0)	return stroke;

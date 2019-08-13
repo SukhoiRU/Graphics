@@ -300,7 +300,7 @@ void	GAxe::setAxeLength(int len, int highlighted)
 
 	textLabel->clearGL();
 	textLabel->initializeGL();
-	textLabel->setFont(3.5f);
+	textLabel->setFont(3.8f);
 
 	//Заливка данных в видеопамять
 	vector<vec2>	data;

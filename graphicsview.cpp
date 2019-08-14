@@ -695,6 +695,39 @@ void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
 	//Рисуем разлиновку
 	axeArg->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
 
+	const auto draw_to_texture = [&](Graph::GraphObject* pAxe, const float alpha)
+	{
+		//Рисуем в отдельную текстуру
+		glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glBlendFunc(GL_ONE, GL_ZERO);
+		glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+
+		pAxe->draw(Time0, TimeScale, gridStep, areaBL, areaSize, alpha);
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
+		//img.setDevicePixelRatio(devicePixelRatio());
+		//img.save("c:\\0.png");
+
+		//Переносим ее в основную
+		glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
+		m_fbo_program->bind();
+		glEnable(GL_BLEND);
+		glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
+		glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		m_fbo_program->release();
+	};
+
 	//Рисуем графики
 	for(size_t i = 0; i < m_pPanel->size(); i++)
 	{
@@ -703,70 +736,11 @@ void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
 		{
 			//Пропускаем выделенные
 			for(size_t j = 0; j < m_SelectedObjects.size(); j++)
-				if(m_SelectedObjects.at(j) == pAxe)
-					continue;
-			
-			//Рисуем в отдельную текстуру
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
-//			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClearColor(pAxe->m_Color.r, pAxe->m_Color.g, pAxe->m_Color.b, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBlendFunc(GL_ONE, GL_ZERO);
-			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-
-			pAxe->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 0.3f);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBlendEquation(GL_FUNC_ADD);
-			//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
-			//img.setDevicePixelRatio(devicePixelRatio());
-			//img.save("c:\\0.png");
-
-			//Переносим ее в основную
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
-			m_fbo_program->bind();
-			glEnable(GL_BLEND);
-			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
-			glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			m_fbo_program->release();
+				if(m_SelectedObjects.at(j) == pAxe)	continue;			
+			draw_to_texture(pAxe, 0.3f);
 		}
 		else
-		{
-			//Рисуем в отдельную текстуру
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBlendFunc(GL_ONE, GL_ZERO);
-			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-
-			pAxe->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBlendEquation(GL_FUNC_ADD);
-			//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
-			//img.setDevicePixelRatio(devicePixelRatio());
-			//img.save("c:\\0.png");
-			
-			//Переносим ее в основную
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
-			m_fbo_program->bind();
-			glEnable(GL_BLEND);
-			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
-			glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			m_fbo_program->release();
-		}
+			draw_to_texture(pAxe, 1.0f);
 	}
 
 	//Дорисовываем выделенные
@@ -775,34 +749,7 @@ void	GraphicsView::drawGraphArea(const vec2& areaBL, const vec2& areaSize)
 		Graph::GraphObject*	pGraph	= m_SelectedObjects.at(j);
 		if(pGraph->m_Type == AXE)
 		{
-			//Рисуем в отдельную текстуру
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraph);
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBlendFunc(GL_ONE, GL_ZERO);
-			glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-
-			pGraph->draw(Time0, TimeScale, gridStep, areaBL, areaSize, 1.0f);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBlendEquation(GL_FUNC_ADD);
-			//QImage img = qt_gl_read_framebuffer(size() * devicePixelRatio(), false, false);
-			//img.setDevicePixelRatio(devicePixelRatio());
-			//img.save("c:\\0.png");
-
-			//Переносим ее в основную
-			glBindFramebuffer(GL_FRAMEBUFFER, fboGraphArea);
-			m_fbo_program->bind();
-			glEnable(GL_BLEND);
-			glBindBuffer(GL_ARRAY_BUFFER, pageVBO);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(2*sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, fboGraphTexture);
-			glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			m_fbo_program->release();
+			draw_to_texture(pGraph, 1.0f);
 		}
 	}
 

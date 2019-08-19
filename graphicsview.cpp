@@ -490,7 +490,7 @@ void	GraphicsView::paintGL()
 	glBindVertexArray(pageVAO);
 
 	//При необходимости обновляем текстуру поля графиков
-//	if(!fboGraphAreaValid)
+	if(!fboGraphAreaValid)
 	{
 		drawGraphArea(areaBL, areaSize);
 	}
@@ -984,6 +984,7 @@ void	GraphicsView::SelectObject(Graph::GraphObject* pGraph)
 		}
 		m_SelectedObjects.clear();
 	}
+	fboGraphAreaValid	= false;
 
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
@@ -1008,6 +1009,7 @@ void	GraphicsView::UnSelectObject(Graph::GraphObject* pGraph)
 			}
 		}
 	}
+	fboGraphAreaValid	= false;
 
 	emit hasSelectedAxes(m_SelectedObjects.size() > 0);
 }
@@ -1239,6 +1241,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 		{
 			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(i);
 			pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
+			fboGraphAreaValid	= false;
 		}
 	}
 	else
@@ -1252,6 +1255,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			{
 				//pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
 				bFound	= true;
+				fboGraphAreaValid	= false;
 				break;
 			}
 		}
@@ -1572,10 +1576,10 @@ void	GraphicsView::keyPressEvent(QKeyEvent *event)
 		//case Qt::Key_Right:		timeMoving	= +10.*TimeScale;	break;
 		//case Qt::Key_PageUp:	timeMoving	= -50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
 		//case Qt::Key_PageDown:	timeMoving	= 50.*TimeScale; break;//0.5*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	break;
-		case Qt::Key_Left:		{Time0	-= TimeScale; curTime -= TimeScale;}	break;
-		case Qt::Key_Right:		{Time0	+= TimeScale; curTime += TimeScale;}	break;
-		case Qt::Key_PageUp:	{Time0	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale; curTime	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;}	break;
-		case Qt::Key_PageDown:	{Time0	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	curTime	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;}	break;
+		case Qt::Key_Left:		{Time0	-= TimeScale; curTime -= TimeScale;fboGraphAreaValid	= false;}	break;
+		case Qt::Key_Right:		{Time0	+= TimeScale; curTime += TimeScale;fboGraphAreaValid	= false;}	break;
+		case Qt::Key_PageUp:	{Time0	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale; curTime	-= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;fboGraphAreaValid	= false;}	break;
+		case Qt::Key_PageDown:	{Time0	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;	curTime	+= 0.7*(pageSize.width() - pageBorders.left() - pageBorders.right() - graphBorders.left() - graphBorders.right())/gridStep.x*TimeScale;fboGraphAreaValid	= false;}	break;
 		
 		default:
 			break;
@@ -1648,6 +1652,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 	}
 	m_SelectedObjects.clear();
 	modelTime	= 0;
+	fboGraphAreaValid	= false;
 	if(!fromInit)
 		update();
 }
@@ -1655,6 +1660,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
 {
 	m_pPanel	= nullptr;
+	fboGraphAreaValid	= false;
 	update();
 }
 
@@ -1739,6 +1745,7 @@ void	GraphicsView::fitTime()
 
 	//Центруем время
 	Time0 -= 0.5*(Time0 + nGrids*TimeScale - tMax);
+	fboGraphAreaValid	= false;
 	update();
 }
 

@@ -59,7 +59,7 @@ int		GAxe::u_select_color		= 0;
 int		GAxe::u_select_round		= 0;
 
 GLfloat	GAxe::m_width		= 1.5f;
-GLfloat	GAxe::m_selWidth	= 3.0f;
+GLfloat	GAxe::m_selWidth	= 1.5f;
 GLfloat	GAxe::m_interpWidth	= 1.5f;
 GLfloat	GAxe::m_alias		= 0.5f;
 GLfloat	GAxe::m_selAlias	= 0.5f;

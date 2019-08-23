@@ -92,6 +92,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 		preloadPanel();
 		emit panelChanged(&m_pActivePanel->Axes);}
 	);
+	connect(ui->actionAddAcc, &QAction::triggered, [this]{m_bAddAcc_Mode = !m_bAddAcc_Mode; ui->actionAddAcc->setChecked(m_bAddAcc_Mode);});
 }
 
 GraphicsDoc::~GraphicsDoc()

@@ -122,6 +122,7 @@
     </widget>
     <addaction name="menu_LoadData"/>
     <addaction name="actionReload"/>
+    <addaction name="actionAddAcc"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -340,6 +341,14 @@
   <action name="actionPrint">
    <property name="text">
     <string>Печать</string>
+   </property>
+  </action>
+  <action name="actionAddAcc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Добавлять накопления</string>
    </property>
   </action>
  </widget>

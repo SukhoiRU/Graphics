@@ -1482,7 +1482,43 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 		{
 			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->centralwidget);
 			connect(dlg, &GAxe_dialog::change_axe, [=](GAxe* pAxe){emit change_axe(pAxe, dlg); });
-			connect(dlg, &GAxe_dialog::substract_axe, [=](GAxe* pAxe){emit substract_axe(pAxe, dlg);});
+			connect(dlg, &GAxe_dialog::substract_axe, [=](GAxe* pAxe) {emit substract_axe(pAxe, dlg); });
+			connect(dlg, &GAxe_dialog::accepted, [=]
+			{
+				//Перерисовываем графики
+				fboGraphAreaValid = false;
+				update();
+			});
+			connect(dlg, &GAxe_dialog::getStatistic, [=](const GAxe* pAxe)
+			{
+				if(!(bDrawLeftTime && bDrawRightTime))
+					QMessageBox::warning(dlg, "Статистика", "Нет выделенного участка!");
+				else
+				{
+					double	Min;
+					double	Max;
+					double	MO;			//Матожидание
+					double	D;			//Дисперсия
+					double	Sigma;		//СКО
+					int		nPoints;	//Количество точек
+					bool	SKO_from_Mid = (QMessageBox::Yes == QMessageBox::question(dlg, "Статистика", "СКО от среднего?", QMessageBox::Yes, QMessageBox::No));
+
+					pAxe->getStatistic(timeLeft, timeRight, SKO_from_Mid, Min, Max, MO, D, Sigma, nPoints);
+					
+					if (nPoints)
+					{
+						QString	msg;
+						msg = "Статистика для сигнала \"" + pAxe->m_Name + "\" по выборке\n";
+						msg += QString("T0 = %1, dT = %2 сек. (%3 точек).\n\n").arg(timeLeft).arg(timeRight - timeLeft).arg(nPoints);
+						msg += QString("Минимум:\t%1\n").arg(Min);
+						msg += QString("Максимум:\t%1\n").arg(Max);
+						msg += QString("Матожидание:\t%1\n").arg(MO);
+						msg += QString("Дисперсия:\t%1\n").arg(D);
+						msg += QString("Sigma:\t\t%1\n").arg(Sigma);
+						QMessageBox::information(dlg, "Статистика", msg);
+					}
+				}
+			});
 			dlg->exec();
 			emit axesRenamed();
 			delete	dlg;

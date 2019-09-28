@@ -529,6 +529,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 
 			GAxe_dialog*	dlg	= new GAxe_dialog(&axes, ui->centralwidget);
 			connect(dlg, &GAxe_dialog::change_axe, [=](Graph::GAxe* pAxe){on_changeAxe(pAxe, dlg);});
+			connect(dlg, &GAxe_dialog::substract_axe, [=](Graph::GAxe* pAxe) {on_substractAxe(pAxe, dlg);});
 			dlg->exec();
 			delete	dlg;
 		}

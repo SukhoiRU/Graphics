@@ -490,7 +490,7 @@ void	GraphicsView::paintGL()
 	glBindVertexArray(pageVAO);
 
 	//При необходимости обновляем текстуру поля графиков
-	//if(!fboGraphAreaValid)
+	if(!fboGraphAreaValid)
 	{
 		drawGraphArea(areaBL, areaSize);
 	}

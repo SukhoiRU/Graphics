@@ -34,7 +34,14 @@ class Ui_GAxe_dialog
 {
 public:
     QGridLayout *gridLayout_3;
+    QDialogButtonBox *buttonBox;
+    QVBoxLayout *verticalLayout_3;
+    QPushButton *pushButton_Replace;
+    QPushButton *pushButton_Substract;
+    QPushButton *pushButton_Stat;
+    QSpacerItem *verticalSpacer_3;
     QPushButton *pushButton_Additional;
+    QVBoxLayout *verticalLayout_5;
     QVBoxLayout *verticalLayout_2;
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout;
@@ -49,11 +56,6 @@ public:
     QLabel *label_Max;
     QSpacerItem *horizontalSpacer_3;
     QSpacerItem *verticalSpacer_2;
-    QVBoxLayout *verticalLayout_3;
-    QPushButton *pushButton_Replace;
-    QPushButton *pushButton_Substract;
-    QPushButton *pushButton_Stat;
-    QSpacerItem *verticalSpacer;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout_4;
     QGridLayout *gridLayout;
@@ -69,21 +71,56 @@ public:
     QComboBox *comboStyle;
     QComboBox *comboType;
     QCheckBox *checkBox_Interpol;
-    QDialogButtonBox *buttonBox;
+    QSpacerItem *verticalSpacer;
 
     void setupUi(QDialog *GAxe_dialog)
     {
         if (GAxe_dialog->objectName().isEmpty())
             GAxe_dialog->setObjectName(QStringLiteral("GAxe_dialog"));
-        GAxe_dialog->resize(306, 389);
+        GAxe_dialog->resize(365, 418);
         GAxe_dialog->setSizeGripEnabled(true);
         gridLayout_3 = new QGridLayout(GAxe_dialog);
         gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
+        buttonBox = new QDialogButtonBox(GAxe_dialog);
+        buttonBox->setObjectName(QStringLiteral("buttonBox"));
+        buttonBox->setLayoutDirection(Qt::RightToLeft);
+        buttonBox->setOrientation(Qt::Vertical);
+        buttonBox->setStandardButtons(QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+
+        gridLayout_3->addWidget(buttonBox, 0, 1, 1, 1);
+
+        verticalLayout_3 = new QVBoxLayout();
+        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
+        pushButton_Replace = new QPushButton(GAxe_dialog);
+        pushButton_Replace->setObjectName(QStringLiteral("pushButton_Replace"));
+        pushButton_Replace->setMinimumSize(QSize(0, 80));
+
+        verticalLayout_3->addWidget(pushButton_Replace);
+
+        pushButton_Substract = new QPushButton(GAxe_dialog);
+        pushButton_Substract->setObjectName(QStringLiteral("pushButton_Substract"));
+
+        verticalLayout_3->addWidget(pushButton_Substract);
+
+        pushButton_Stat = new QPushButton(GAxe_dialog);
+        pushButton_Stat->setObjectName(QStringLiteral("pushButton_Stat"));
+
+        verticalLayout_3->addWidget(pushButton_Stat);
+
+        verticalSpacer_3 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout_3->addItem(verticalSpacer_3);
+
         pushButton_Additional = new QPushButton(GAxe_dialog);
         pushButton_Additional->setObjectName(QStringLiteral("pushButton_Additional"));
 
-        gridLayout_3->addWidget(pushButton_Additional, 4, 1, 1, 1);
+        verticalLayout_3->addWidget(pushButton_Additional);
 
+
+        gridLayout_3->addLayout(verticalLayout_3, 1, 1, 1, 1);
+
+        verticalLayout_5 = new QVBoxLayout();
+        verticalLayout_5->setObjectName(QStringLiteral("verticalLayout_5"));
         verticalLayout_2 = new QVBoxLayout();
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         verticalLayout = new QVBoxLayout();
@@ -149,32 +186,7 @@ public:
         verticalLayout_2->addLayout(verticalLayout);
 
 
-        gridLayout_3->addLayout(verticalLayout_2, 0, 0, 1, 1);
-
-        verticalLayout_3 = new QVBoxLayout();
-        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
-        pushButton_Replace = new QPushButton(GAxe_dialog);
-        pushButton_Replace->setObjectName(QStringLiteral("pushButton_Replace"));
-        pushButton_Replace->setMinimumSize(QSize(0, 80));
-
-        verticalLayout_3->addWidget(pushButton_Replace);
-
-        pushButton_Substract = new QPushButton(GAxe_dialog);
-        pushButton_Substract->setObjectName(QStringLiteral("pushButton_Substract"));
-
-        verticalLayout_3->addWidget(pushButton_Substract);
-
-        pushButton_Stat = new QPushButton(GAxe_dialog);
-        pushButton_Stat->setObjectName(QStringLiteral("pushButton_Stat"));
-
-        verticalLayout_3->addWidget(pushButton_Stat);
-
-
-        gridLayout_3->addLayout(verticalLayout_3, 2, 1, 1, 1);
-
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-        gridLayout_3->addItem(verticalSpacer, 4, 0, 1, 1);
+        verticalLayout_5->addLayout(verticalLayout_2);
 
         groupBox = new QGroupBox(GAxe_dialog);
         groupBox->setObjectName(QStringLiteral("groupBox"));
@@ -251,15 +263,14 @@ public:
         verticalLayout_4->addWidget(checkBox_Interpol);
 
 
-        gridLayout_3->addWidget(groupBox, 2, 0, 1, 1);
+        verticalLayout_5->addWidget(groupBox);
 
-        buttonBox = new QDialogButtonBox(GAxe_dialog);
-        buttonBox->setObjectName(QStringLiteral("buttonBox"));
-        buttonBox->setLayoutDirection(Qt::RightToLeft);
-        buttonBox->setOrientation(Qt::Vertical);
-        buttonBox->setStandardButtons(QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 
-        gridLayout_3->addWidget(buttonBox, 0, 1, 2, 1);
+        gridLayout_3->addLayout(verticalLayout_5, 0, 0, 2, 1);
+
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        gridLayout_3->addItem(verticalSpacer, 2, 0, 1, 1);
 
         QWidget::setTabOrder(lineEdit_Name, lineEdit_Min);
         QWidget::setTabOrder(lineEdit_Min, lineEdit_Scale);
@@ -268,8 +279,7 @@ public:
         QWidget::setTabOrder(comboType, comboStyle);
         QWidget::setTabOrder(comboStyle, pushButton_Replace);
         QWidget::setTabOrder(pushButton_Replace, pushButton_Stat);
-        QWidget::setTabOrder(pushButton_Stat, pushButton_Additional);
-        QWidget::setTabOrder(pushButton_Additional, pushButton_Color);
+        QWidget::setTabOrder(pushButton_Stat, pushButton_Color);
 
         retranslateUi(GAxe_dialog);
         QObject::connect(buttonBox, SIGNAL(accepted()), GAxe_dialog, SLOT(accept()));
@@ -281,15 +291,15 @@ public:
     void retranslateUi(QDialog *GAxe_dialog)
     {
         GAxe_dialog->setWindowTitle(QApplication::translate("GAxe_dialog", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\260 \320\276\321\201\320\265\320\271", Q_NULLPTR));
+        pushButton_Replace->setText(QApplication::translate("GAxe_dialog", "\320\227\320\260\320\274\320\265\320\275\320\260", Q_NULLPTR));
+        pushButton_Substract->setText(QApplication::translate("GAxe_dialog", "\320\222\321\213\321\207\320\265\321\201\321\202\321\214", Q_NULLPTR));
+        pushButton_Stat->setText(QApplication::translate("GAxe_dialog", "\320\241\321\202\320\260\321\202\320\270\321\201\321\202\320\270\320\272\320\260", Q_NULLPTR));
         pushButton_Additional->setText(QApplication::translate("GAxe_dialog", "\320\224\320\276\320\277\320\276\320\273\320\275\320\270\321\202\320\265\320\273\321\214\320\275\320\276 >>", Q_NULLPTR));
         label->setText(QApplication::translate("GAxe_dialog", "\320\235\320\260\320\267\320\262\320\260\320\275\320\270\320\265", Q_NULLPTR));
         label_2->setText(QApplication::translate("GAxe_dialog", "\320\234\320\260\320\272\321\201\320\270\320\274\321\203\320\274:", Q_NULLPTR));
         label_3->setText(QApplication::translate("GAxe_dialog", "\320\234\320\270\320\275\320\270\320\274\321\203\320\274:", Q_NULLPTR));
         label_Min->setText(QApplication::translate("GAxe_dialog", "\320\234\320\270\320\275\320\270\320\274\321\203\320\274:", Q_NULLPTR));
         label_Max->setText(QApplication::translate("GAxe_dialog", "\320\234\320\260\320\272\321\201\320\270\320\274\321\203\320\274:", Q_NULLPTR));
-        pushButton_Replace->setText(QApplication::translate("GAxe_dialog", "\320\227\320\260\320\274\320\265\320\275\320\260", Q_NULLPTR));
-        pushButton_Substract->setText(QApplication::translate("GAxe_dialog", "\320\222\321\213\321\207\320\265\321\201\321\202\321\214", Q_NULLPTR));
-        pushButton_Stat->setText(QApplication::translate("GAxe_dialog", "\320\241\321\202\320\260\321\202\320\270\321\201\321\202\320\270\320\272\320\260", Q_NULLPTR));
         groupBox->setTitle(QApplication::translate("GAxe_dialog", "\320\236\321\201\321\214", Q_NULLPTR));
         label_7->setText(QApplication::translate("GAxe_dialog", "\320\246\320\262\320\265\321\202", Q_NULLPTR));
         label_4->setText(QApplication::translate("GAxe_dialog", "\320\235\320\260\321\207\320\260\320\273\320\276", Q_NULLPTR));

@@ -2,6 +2,7 @@
 #include "GAxe.h"
 #include <QDomElement>
 #include "GTextLabel.h"
+//#include <exprtk/exprtk.hpp>
 using std::min;
 using std::max;
 
@@ -1555,5 +1556,46 @@ void	GAxe::getTime(double& t0, double& t1)
 	}
 	t0	= m_data.front().x;
 	t1	= m_data.back().x;
+/*
+	//Тест
+	std::string expression_str = "z := 2 [sin(x * pi)^3.3 + cos(pi / y)^4.4] % (2.3/3.2x + 3.4/4.3y)";
+
+	double x = 1.1;
+	double y = 2.2;
+	double z = 3.3;
+
+	exprtk::symbol_table<double> symbol_table;
+	symbol_table.add_constants();
+	symbol_table.add_variable("x", x);
+	symbol_table.add_variable("y", y);
+	symbol_table.add_variable("z", z);
+
+	exprtk::expression<double> expression;
+	expression.register_symbol_table(symbol_table);
+
+	exprtk::parser<double> parser;
+
+	if (!parser.compile(expression_str, expression))
+	{
+		printf("Error: %s\tExpression: %s\n",
+			parser.error().c_str(),
+			expression_str.c_str());
+
+		for (std::size_t i = 0; i < parser.error_count(); ++i)
+		{
+			const exprtk::parser_error::type error = parser.get_error(i);
+			printf("Error: %02d Position: %02d Type: [%s] Msg: %s Expr: %s\n",
+				static_cast<int>(i),
+				static_cast<int>(error.token.position),
+				exprtk::parser_error::to_str(error.mode).c_str(),
+				error.diagnostic.c_str(),
+				expression_str.c_str());
+		}
+
+		return;
+	}
+
+	double result = expression.value();
+*/
 }
 }

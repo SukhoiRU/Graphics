@@ -1,6 +1,7 @@
 #ifndef GTEXTLABEL_H
 #define GTEXTLABEL_H
 
+#define GLM_FORCE_SIMD_AVX2
 #include <glm/glm.hpp>
 using glm::ivec2;
 using glm::vec2;

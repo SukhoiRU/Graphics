@@ -1,5 +1,7 @@
 #ifndef GRAPH_OBJECT_H
 #define GRAPH_OBJECT_H
+
+#define GLM_FORCE_SIMD_AVX2
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

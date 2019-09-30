@@ -2,8 +2,10 @@
 #define GRAPHICS_VIEW_H
 
 #include "stdafx.h"
-#include <QPrinter>
+#define GLM_FORCE_SIMD_AVX2
 #include <glm/glm.hpp>
+
+#include <QPrinter>
 using glm::vec2;
 using glm::mat4;
 #include <vector>

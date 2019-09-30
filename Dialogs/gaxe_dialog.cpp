@@ -10,6 +10,11 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
     ui(new Ui::GAxe_dialog)
 {
     ui->setupUi(this);
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.beginGroup("GAxe_dialog");
+	if(settings.contains("size"))
+		resize(settings.value("size").toSize());
+
     QList<QAbstractButton*> butList = ui->buttonBox->buttons();
     for(auto i = butList.begin(); i != butList.end(); i++)	(*i)->setIcon(QIcon());
 
@@ -17,6 +22,7 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);
 	connect(ui->pushButton_Substract, &QPushButton::clicked, this, &GAxe_dialog::on_substract);
 	connect(ui->pushButton_Color, &ColorButton::colorChanged, this, &GAxe_dialog::on_colorChanged);
+	connect(ui->pushButton_Stat, &QPushButton::clicked, this, &GAxe_dialog::on_statistic);
 	axes		= *pAxes;
 
 	//Заполняем поля
@@ -133,7 +139,10 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 
 	//Отключаем кнопку замены для списков
 	if(axes.size() > 1)
+	{
 		ui->pushButton_Replace->setDisabled(true);
+		ui->pushButton_Stat->setDisabled(true);
+	}
 
 	//Выделяем минимум для удобства Tab
 	ui->lineEdit_Min->setFocus();
@@ -141,6 +150,11 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 
 GAxe_dialog::~GAxe_dialog()
 {
+	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
+	settings.beginGroup("GAxe_dialog");
+	settings.setValue("size", size());
+	settings.sync();
+
     delete ui;
 }
 
@@ -190,6 +204,8 @@ void GAxe_dialog::on_accept(QAbstractButton* pButton)
 		if(ui->checkBox_Interpol->checkState() != Qt::PartiallyChecked)
 			for(size_t i = 0; i < axes.size(); i++)
 				axes.at(i)->m_bInterpol = ui->checkBox_Interpol->checkState() == Qt::Checked;
+
+		emit accepted();
 	}
 }
 
@@ -236,4 +252,14 @@ void	GAxe_dialog::on_colorChanged()
 	if(ui->pushButton_Color->getColor(color))
 		for(size_t i = 0; i < axes.size(); i++)
 			axes.at(i)->m_Color = vec3(color.red()/255., color.green()/255., color.blue()/255.);
+}
+
+void	GAxe_dialog::on_statistic()
+{
+	//Делаем только для одной оси
+	if (axes.empty())		return;
+	if (axes.size() > 1)	return;
+
+	const GAxe*	pAxe = axes.front();
+	emit	getStatistic(pAxe);
 }

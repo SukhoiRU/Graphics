@@ -1277,26 +1277,10 @@ bool	GAxe::isBoolean() const
 	return m_Data_Type	== DataType::Bool;
 }
 
-void	GAxe::getStatistic() const
-{/*
-	//Получаем диапазон времени
-	double	T0;
-	double	T1;
-	if(!m_pDoc->GetSelectedTime(T0, T1))	
-	{
-		AfxMessageBox("Нет выделенного участка!");
-		return;
-	}
-
-	//Перебор по диапазону
-	double	Min;
-	double	Max;
-	double	MO;		//Матожидание
-	double	D;		//Дисперсия
-	double	Sigma;	//СКО
-	int		nPoints;	//Количество точек
-	
-	if(m_Record == -1)
+void	GAxe::getStatistic(const double& t0, const double& t1, bool SKO_from_Mid, double& Min, double& Max, double& MO, double& D, double& Sigma, int& nPoints) const
+{
+	//Перебор по диапазону	
+	if(m_data.empty())
 	{
 		Min 	= 0;
 		Max 	= 0;
@@ -1308,37 +1292,14 @@ void	GAxe::getStatistic() const
 		return;
 	}
 
-	if(m_pDoc->GetBufArray().empty())	return;
-
-	const Accumulation*				pBuffer		= m_pDoc->GetBufArray().at(m_nAcc);
-	const BYTE*						pData		= pBuffer->GetData();
-	const int						RecCount	= pBuffer->GetRecCount();
-	const int						RecSize		= pBuffer->GetRecSize();
-	const int						Offset		= m_Offset;
-
-	if(pBuffer->GetType() == Acc_Orion && (!m_pOrionTime || !m_pOrionData))	return;
-
 	//Определяем диапазон записей
-	int	nStart	= 0;
-	int	nStop	= 0;
-	int	len		= RecCount;
-	if(pBuffer->GetType() == Acc_Orion)	len	= m_KARP_Len;
-	for(int i = 0; i < len; i++)
+	size_t	nStart	= 0;
+	size_t	nStop	= 0;
+	for(size_t i = 0; i < m_data.size(); i++)
 	{
-		//Берем запись
-		double	t;
-		if(pBuffer->GetType() == Acc_Orion)	t	= m_pOrionTime[i];
-		else								t	= GetTime(pData + i*RecSize);
-
-		if(t <= T0)	
-		{
-			nStart	= nStop	= i;
-		}
-		if(t >= T1)	
-		{
-			nStop	= i;
-			break;
-		}
+		const double&	t	= m_data.at(i).x;
+		if(t <= t0)	nStart	= nStop	= i;
+		if(t >= t1)	{nStop	= i;	break;}
 	}
 
 	nPoints	= nStop - nStart;
@@ -1346,35 +1307,11 @@ void	GAxe::getStatistic() const
 
 	//Расчет матожидания и пределов
 	double	Sum	= 0;
-	double	f_Start;
-	if(pBuffer->GetType() == Acc_Orion)
-	{
-		switch(m_DataType)
-		{
-		case Bool:	{f_Start	= *(bool*)(m_pOrionData + nStart*sizeof(bool));}		break;
-		case Int:	{f_Start	= *(int*)(m_pOrionData + nStart*sizeof(int));}			break;
-		case Double:{f_Start	= *(double*)(m_pOrionData + nStart*sizeof(double));}	break;
-		};
-	}
-	else	
-		f_Start	= GetValue(pData + nStart*RecSize);
-
+	double	f_Start	= m_data.at(nStart).y;
 	Min	= Max	= f_Start;
-	for(int i = nStart; i < nStop; i++)
+	for(size_t i = nStart; i < nStop; i++)
 	{
-		double	f;
-		if(pBuffer->GetType() == Acc_Orion)
-		{
-			switch(m_DataType)
-			{
-			case Bool:	{f	= *(bool*)(m_pOrionData + i*sizeof(bool));}		break;
-			case Int:	{f	= *(int*)(m_pOrionData + i*sizeof(int));}		break;
-			case Double:{f	= *(double*)(m_pOrionData + i*sizeof(double));}	break;
-			};
-		}
-		else	
-			f	= GetValue(pData + i*RecSize);
-
+		const double&	f	= m_data.at(i).y;
 		Sum	+= f;
 		if(f < Min)	Min	= f;
 		if(f > Max)	Max	= f;
@@ -1382,51 +1319,16 @@ void	GAxe::getStatistic() const
 	MO	= Sum/nPoints;
 
 	//Расчет СКО
-	int	Res	= MessageBox(GetFocus(), "СКО от среднего?", "Статистика", MB_YESNO | MB_ICONQUESTION);
-	if(Res == IDNO)	MO	= f_Start;
-	Sum	= 0;
-	for(int i = nStart; i < nStop; i++)
-	{
-		double	f;
-		if(pBuffer->GetType() == Acc_Orion)
-		{
-			switch(m_DataType)
-			{
-			case Bool:	{f	= *(bool*)(m_pOrionData + i*sizeof(bool));}		break;
-			case Int:	{f	= *(int*)(m_pOrionData + i*sizeof(int));}		break;
-			case Double:{f	= *(double*)(m_pOrionData + i*sizeof(double));}	break;
-			};
-		}
-		else	
-			f	= GetValue(pData + i*RecSize);
+	if(!SKO_from_Mid)	MO	= f_Start;
 
+	Sum	= 0;
+	for(size_t i = nStart; i < nStop; i++)
+	{
+		const double&	f = m_data.at(i).y;
 		Sum	+= (f-MO)*(f-MO);
 	}
 	D		= Sum/nPoints;
 	Sigma	= sqrt(D);
-
-	//Выдача в диалог
-	CString	msg;
-	msg.AppendFormat("Статистика для сигнала \"%s\" по выборке\n", m_Name);
-	msg.AppendFormat("T0 = %g, dT = %g сек. (%d точек).\n\n", T0, T1-T0, nPoints);
-	msg.AppendFormat("Минимум:\t%g\n", Min);
-	msg.AppendFormat("Максимум:\t%g\n", Max);
-	msg.AppendFormat("Матожидание:\t%g\n", MO);
-	msg.AppendFormat("Дисперсия:\t%g\n", D);
-	msg.AppendFormat("Sigma:\t\t%g\n", Sigma);
-
-	//Копируем полученный текст
-	HANDLE	hText	= GlobalAlloc(GMEM_MOVEABLE, msg.GetLength()+1);
-	char*	cText	= (char*)GlobalLock(hText);
-	strcpy(cText, msg);
-	GlobalUnlock(hText);
-
-	OpenClipboard(NULL);
-	EmptyClipboard();
-	SetClipboardData(CF_TEXT, hText);
-	CloseClipboard();
-
-	AfxMessageBox(msg);*/
 }
 
 void	GAxe::errorsFilter() const

@@ -174,7 +174,7 @@ public:
 	double		getValueAtTime(const double Time) const;	//Получение данных из конкретной записи
 	double		getTopPosition() const;						//Координата верхнего угла по высоте
 	bool		isBoolean() const;						//Признак логической оси
-	void		getStatistic() const;					//Выдача статистической информации
+	void		getStatistic(const double& t0, const double& t1, bool SKO_from_Mid, double& Min, double& Max, double& MO, double& D, double& Sigma, int& nPoints) const;					//Выдача статистической информации
 	void		errorsFilter() const;					//Фильтрация сбоев
 	void		updateFiltering();						//Фильтрация сигнала
 	int			getAxeLength() const {return m_Axe_Length;}

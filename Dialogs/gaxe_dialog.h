@@ -27,10 +27,12 @@ private slots:
 	void	on_replace();
 	void	on_substract();
 	void	on_colorChanged();
+	void	on_statistic();
 
 signals:
 	void	change_axe(Graph::GAxe* pAxe);
 	void	substract_axe(Graph::GAxe* pAxe);
+	void	getStatistic(const Graph::GAxe* pAxe);
 
 private:
     Ui::GAxe_dialog *ui;

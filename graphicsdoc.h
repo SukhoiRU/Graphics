@@ -44,7 +44,9 @@ private slots:
 	void	on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg);
 	void	on_deleteAxe(vector<Graph::GAxe*>* pAxes);
 	void	on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg);
-
+protected:
+	virtual void	dragEnterEvent(QDragEnterEvent *event) override;
+	virtual void	dropEvent(QDropEvent *event) override;
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes);
 	void	panelDeleted(vector<Graph::GAxe*>* axes);

@@ -34,9 +34,11 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	oglView = new GraphicsView();
 	oglView->setObjectName(QStringLiteral("oglView"));
 	container	= createWindowContainer(oglView, this);
+	container->setAcceptDrops(false);
 	ui->gridLayout->addWidget(container, 0, 0, 1, 1);
 	container->setFocus();
 	oglView->setUI(ui);
+	setAcceptDrops(true);
 
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
@@ -730,6 +732,31 @@ void	GraphicsDoc::preloadPanel()
 			//Принудительно выставляем тип Double
 			pAxe->uploadData(len, pTime, (const char*)pDelta, Graph::GAxe::DataType::Double);
 			delete[] pDelta;
+		}
+	}
+}
+
+void	GraphicsDoc::dragEnterEvent(QDragEnterEvent *event)
+{
+	if(event->mimeData()->hasUrls())
+		event->acceptProposedAction();
+}
+
+void	GraphicsDoc::dropEvent(QDropEvent *event)
+{
+	//Обработка перетащенных файлов
+	const QMimeData*	mime	= event->mimeData();
+	if(mime->hasUrls())
+	{
+		foreach(const QUrl& url, mime->urls())
+		{
+			QString		fileName = url.toLocalFile();
+			QFileInfo	fileInfo(fileName);
+			QString		ext	= fileInfo.suffix().toLower();
+			if(ext == "grf")		loadScreen(fileName);
+			else if(ext == "orion")	loadData(fileName, Accumulation::AccType::Acc_Orion);
+			else if(ext == "trf")	loadData(fileName, Accumulation::AccType::Acc_TRF);
+			else if(ext == "buf")	loadData(fileName, Accumulation::AccType::Acc_SAPR);
 		}
 	}
 }

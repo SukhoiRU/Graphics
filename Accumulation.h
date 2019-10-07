@@ -27,6 +27,9 @@ public:
 	//Типы данных
 	enum class	DataType{Bool, Int, Double, Float, Short};
 
+	//Файл данных
+	QString	m_Filename;
+
 protected:
 	vector<SignalInfo*>	m_Header;		//Описатель данных в массиве	
 	AccType				m_Type;			//Тип накопления

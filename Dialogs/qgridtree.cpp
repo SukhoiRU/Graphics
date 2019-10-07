@@ -130,6 +130,16 @@ void	QGridTree::keyPressEvent(QKeyEvent* evnt)
 			}
 		}
 	}break;
+
+	case Qt::Key_Asterisk:
+	{
+		//Для ускорения полной развертки отключаем автоподбор ширины
+		QHeaderView*	h	= header();
+		h->setSectionResizeMode(QHeaderView::Interactive);
+		QTreeView::keyPressEvent(evnt);
+		if(m_bAutoSize)	h->setSectionResizeMode(QHeaderView::ResizeToContents);
+		return;
+	}break;
 	}
 
 	QTreeView::keyPressEvent(evnt);

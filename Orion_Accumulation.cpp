@@ -17,6 +17,7 @@ Orion_Accumulation::~Orion_Accumulation()
 
 void	Orion_Accumulation::load(const QString& filename)
 {
+	m_Filename	= filename;
 	//Для начала все стираем
 	m_Header.clear();
 

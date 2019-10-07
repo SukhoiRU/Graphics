@@ -38,6 +38,8 @@ void	Sapr_Accumulation::clearData()
 //Чтение из файла САПР
 void	Sapr_Accumulation::load(const QString& filename)
 {
+	m_Filename	= filename;
+
 	struct Head
 	{
 		int		nParams;		//Количество параметров

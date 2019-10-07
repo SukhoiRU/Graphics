@@ -45,6 +45,8 @@ void	TRF_Accumulation::clearData()
 //Чтение из файла TRF
 void	TRF_Accumulation::load(const QString& filename)
 {
+	m_Filename	= filename;
+
 	QTextCodec* codec	= QTextCodec::codecForName("CP866");
 
 	//Для начала все стираем

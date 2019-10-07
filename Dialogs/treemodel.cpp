@@ -108,6 +108,11 @@ void	TreeModel::loadAcc(const vector<Accumulation*>* pBuffer)
         default:
             break;
         }
+		
+		//Вместо типа накопления указываем путь к файлу
+		QFileInfo	fileInfo(pAcc->m_Filename);
+		data.comm	= fileInfo.fileName();
+
         TreeItem*	pAccItem	= m_rootItem->addChildren(data);
 
         //Загружаем содержимое

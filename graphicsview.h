@@ -59,7 +59,7 @@ public slots:
     void    setScale(float scale);
     void    saveSVG();
 	void	on_panelChanged(vector<Graph::GAxe*>* axes);
-    void	on_panelDeleted(vector<Graph::GAxe*>* axes);
+    void	on_panelDeleted();
 	void	on_graphSettings();
 	void	saveAxeArg(QXmlStreamWriter& xml);
 	void	loadAxeArg(QDomElement* e, double ver);

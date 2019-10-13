@@ -813,7 +813,7 @@ void	GraphicsView::print()
 		QRect		rect	= painter.viewport();
 
 		QOpenGLFramebufferObject	fbo(rect.size(), QOpenGLFramebufferObject::Attachment::CombinedDepthStencil);
-		bool	res	= fbo.isValid();
+//		bool	res	= fbo.isValid();
 		resizeGL(rect.width(), rect.height());
 
 		//Подстраиваем лист под окно
@@ -1693,7 +1693,7 @@ void	GraphicsView::on_panelChanged(vector<Graph::GAxe*>* axes)
 		update();
 }
 
-void	GraphicsView::on_panelDeleted(vector<Graph::GAxe *>* /*axes*/)
+void	GraphicsView::on_panelDeleted()
 {
 	m_pPanel	= nullptr;
 	fboGraphAreaValid	= false;

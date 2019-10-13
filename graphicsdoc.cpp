@@ -183,6 +183,7 @@ void GraphicsDoc::loadScreen(QString FileName)
 		delete p;
 	}
 	m_PanelList.clear();
+	emit panelDeleted();
 
 	//Читаем список панелей
 	QDomElement	e	= root.firstChildElement("Список_панелей");
@@ -427,7 +428,7 @@ void	GraphicsDoc::on_PanelDelete()
 	int	cur	= pBox->currentIndex();
 	if(cur == -1)	return;
 
-	emit panelDeleted(&m_PanelList.at(cur)->Axes);
+	emit panelDeleted();
 	delete m_PanelList.at(cur);
 	m_PanelList.erase(m_PanelList.begin()+cur);
 

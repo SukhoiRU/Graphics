@@ -49,7 +49,7 @@ protected:
 	virtual void	dropEvent(QDropEvent *event) override;
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes);
-	void	panelDeleted(vector<Graph::GAxe*>* axes);
+	void	panelDeleted();
 	void	dataChanged(std::vector<Accumulation*>* pBuffer);	//Признак загрузки новых данных
 	void	dataRemoved(std::vector<Accumulation*>* pBuffer);	//Признак смены данных в том же накоплении
 	void	axeAdded(Graph::GAxe* pAxe);

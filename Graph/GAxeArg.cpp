@@ -58,7 +58,7 @@ struct Vertex
 	Vertex(vec2 p, vec3 c) :pos(p), color(c){}
 };
 
-void	GAxeArg::drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& areaSize, const float /*alpha*/)
+void	GAxeArg::drawFrame(const double t0, const double TimeScale, const vec2& grid, const vec2& areaBL, const vec2& /*areaSize*/, const float /*alpha*/)
 {
 	//Рисуем шкалу
 	if(!TimeScale)	return;

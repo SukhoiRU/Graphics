@@ -513,7 +513,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 
 		//Сдвигаем индексы цвета и маркера
 		if(m_colorIndex++ > 48)		m_colorIndex	= 0;
-		if(m_markerIndex++ > 20)	m_colorIndex	= 0;
+		if(m_markerIndex++ > 20)	m_markerIndex	= 0;
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);

@@ -31,8 +31,8 @@
 #endif
 #include <glad/glad.h>
 
-#define ORGANIZATION_NAME "RAA ST"
-#define ORGANIZATION_DOMAIN "www.raa-st.com"
-#define APPLICATION_NAME "Graphics"
+constexpr char	ORGANIZATION_NAME[]		= "RAA ST";
+constexpr char	ORGANIZATION_DOMAIN[]	= "www.raa-st.com";
+constexpr char	APPLICATION_NAME[]		= "Graphics";
 
 #endif //STDAFX_H

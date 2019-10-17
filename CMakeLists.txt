@@ -51,8 +51,6 @@ set(NAME_SRC
     shaders/gaxearg.vert
     shaders/simple.frag
     shaders/simple.vert
-    shaders/text.frag
-    shaders/text.vert
     shaders/textlabel.frag
     shaders/textlabel.vert
 )
@@ -77,6 +75,7 @@ set(NAME_HEADERS
 )
 
 add_executable(${PROJECT_NAME} ${NAME_SRC} ${NAME_HEADERS})
+qt5_use_package(${PROJECT_NAME} Widgets)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

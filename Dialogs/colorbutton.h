@@ -21,7 +21,7 @@ signals:
 	void	colorChanged();
 private:
 	QColor	m_color;
-	bool	m_bDiff;
+    bool	m_bDiff = false;
 };
 
 #endif // COLORBUTTON_H

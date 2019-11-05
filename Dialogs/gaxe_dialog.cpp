@@ -16,7 +16,10 @@ GAxe_dialog::GAxe_dialog(vector<GAxe*>* pAxes, QWidget *parent) :
 		resize(settings.value("size").toSize());
 
     QList<QAbstractButton*> butList = ui->buttonBox->buttons();
-    for(auto i = butList.begin(); i != butList.end(); i++)	(*i)->setIcon(QIcon());
+    for(QAbstractButton* i : butList)
+    {
+        i->setIcon(QIcon());
+    }
 
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &GAxe_dialog::on_accept);
 	connect(ui->pushButton_Replace, &QPushButton::clicked, this, &GAxe_dialog::on_replace);

@@ -11,11 +11,7 @@ Accumulation::Accumulation()
 Accumulation::~Accumulation()
 {
 	//Очищаем заголовок
-	for(size_t i = 0; i < m_Header.size(); i++)
-	{
-		SignalInfo*	pInfo	= m_Header.at(i);
-		delete pInfo;
-	}
+    for(SignalInfo* pInfo: m_Header)  delete  pInfo;
 	m_Header.clear();
 
 	//Закрываем файл

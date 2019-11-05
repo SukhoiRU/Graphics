@@ -52,9 +52,6 @@ void	ColorButton::paintEvent(QPaintEvent * event)
 void ColorButton::mousePressEvent(QMouseEvent* /*e*/)
 {
 	QColorDialog	dlg(m_color, this);
-#ifdef __linux__
-    dlg.setOption(QColorDialog::DontUseNativeDialog);
-#endif
 	if(dlg.exec())
 	{
 		m_color	= dlg.currentColor();

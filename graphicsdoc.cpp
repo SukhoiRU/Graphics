@@ -125,11 +125,7 @@ GraphicsDoc::~GraphicsDoc()
 void GraphicsDoc::on_actionOpen_triggered()
 {
 	//Открываем файл экрана
-    QFileDialog::Options option;
-#ifdef __linux__
-    option = QFileDialog::DontUseNativeDialog;
-#endif
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf", nullptr, option);
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
     if(FileName.isEmpty())  return;
 
 	loadScreen(FileName);
@@ -238,11 +234,7 @@ void	GraphicsDoc::on_actionSave_triggered()
 void	GraphicsDoc::on_actionSaveAs_triggered()
 {
 	//Сохраняем файл экрана
-	QFileDialog::Options option;
-#ifdef __linux__
-	option = QFileDialog::DontUseNativeDialog;
-#endif
-	QString	FileName	= QFileDialog::getSaveFileName(this, "Запись файла экрана", "", "*.grf", nullptr, option);
+    QString	FileName	= QFileDialog::getSaveFileName(this, "Запись файла экрана", "", "*.grf");
 	if(FileName.isEmpty())  return;
 
 	saveScreen(FileName);
@@ -313,12 +305,7 @@ void GraphicsDoc::on_menu_LoadData(QAction* pAction)
 		fileType	= "*.trf";
 	}
 
-
-    QFileDialog::Options option;
-#ifdef __linux__
-    option = QFileDialog::DontUseNativeDialog;
-#endif
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления " + title, "", fileType, nullptr, option);
+    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления " + title, "", fileType);
     if(FileName.isEmpty())  return;
 
     // TODO: Add your dispatch handler code here

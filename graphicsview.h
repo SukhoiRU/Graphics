@@ -35,6 +35,7 @@ class GraphicsView : public QWindow
 	Q_OBJECT
 
 private:
+	QWidget*		m_parentWidget	= nullptr;
 	QOpenGLContext*	m_context;
 	bool			fromInit	= false;
 
@@ -43,7 +44,7 @@ private:
 	virtual void exposeEvent(QExposeEvent *event) override;
 
 public:
-    explicit GraphicsView();
+    explicit GraphicsView(QWidget* pParent);
     virtual ~GraphicsView();
 	void	setUI(Ui::GraphicsDoc* pUI);
 

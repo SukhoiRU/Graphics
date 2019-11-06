@@ -240,7 +240,7 @@ public:
 
     void retranslateUi(QMainWindow *GraphicsDoc)
     {
-        GraphicsDoc->setWindowTitle(QApplication::translate("GraphicsDoc", "Graphics", Q_NULLPTR));
+        GraphicsDoc->setWindowTitle(QApplication::translate("GraphicsDoc", "Graphics[*]", Q_NULLPTR));
         actionOpen->setText(QApplication::translate("GraphicsDoc", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", Q_NULLPTR));
         actionSave->setText(QApplication::translate("GraphicsDoc", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", Q_NULLPTR));
 #ifndef QT_NO_SHORTCUT

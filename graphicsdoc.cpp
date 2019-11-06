@@ -31,7 +31,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
-	oglView = new GraphicsView();
+	oglView = new GraphicsView(this);
 	oglView->setObjectName(QStringLiteral("oglView"));
 	container	= createWindowContainer(oglView, this);
 	container->setAcceptDrops(false);
@@ -122,13 +122,37 @@ GraphicsDoc::~GraphicsDoc()
 	delete ui;
 }
 
-void GraphicsDoc::on_actionOpen_triggered()
+void	GraphicsDoc::closeEvent(QCloseEvent *event)
 {
-	//Открываем файл экрана
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
-    if(FileName.isEmpty())  return;
+	if(maybeSave()) event->accept();
+	else			event->ignore();
+}
 
-	loadScreen(FileName);
+bool GraphicsDoc::maybeSave()
+{
+	if(!isWindowModified())		return true;
+
+	const QMessageBox::StandardButton ret	= QMessageBox::question(this, "Graphics", "Сохранить изменения?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+	switch (ret) 
+	{
+	case QMessageBox::Save:		{on_actionSave_triggered(); return true;} break;
+	case QMessageBox::Cancel:	return false;
+	default:
+		break;
+	}
+	return true;
+}
+
+void	GraphicsDoc::on_actionOpen_triggered()
+{
+	if(maybeSave())
+	{
+		//Открываем файл экрана
+		QString	FileName = QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
+		if (FileName.isEmpty())  return;
+
+		loadScreen(FileName);
+	}
 }
 
 void GraphicsDoc::loadScreen(QString FileName)
@@ -222,6 +246,7 @@ void GraphicsDoc::loadScreen(QString FileName)
 
 	//Сохраняем путь к файлу
 	m_screenFileName	= FileName;
+	setWindowModified(false);
 }
 
 void	GraphicsDoc::on_actionSave_triggered()
@@ -229,6 +254,8 @@ void	GraphicsDoc::on_actionSave_triggered()
 	//Сохраняем файл экрана
 	if(!m_screenFileName.isEmpty())
 		saveScreen(m_screenFileName);
+	else
+		on_actionSave_triggered();
 }
 
 void	GraphicsDoc::on_actionSaveAs_triggered()
@@ -281,6 +308,8 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.writeEndElement();	//Файл_экрана
 	xml.writeEndDocument();
 	file.close();
+
+	setWindowModified(false);
 }
 
 void GraphicsDoc::on_menu_LoadData(QAction* pAction)

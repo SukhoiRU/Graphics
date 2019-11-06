@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 	//QColorDialog::setStandardColor(4, Qt::darkBlue);
 
 	GraphicsDoc w;
+//	w.setWindowModified(true);
 	w.showMaximized();
 //	w.show();
 	if(parser.isSet(grfOption))		w.loadScreen(parser.value(grfOption));

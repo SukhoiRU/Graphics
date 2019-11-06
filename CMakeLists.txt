@@ -75,9 +75,6 @@ set(NAME_HEADERS
 )
 
 add_executable(${PROJECT_NAME} ${NAME_SRC} ${NAME_HEADERS})
-qt5_use_package(${PROJECT_NAME} Widgets)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-#target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:NO_DEBUG>)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets)

@@ -6,6 +6,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
+
 	QTranslator*	tr	= new QTranslator;
 	tr->load(":/Resources/tranlations/qtbase_ru.qm");
 	a.installTranslator(tr);

@@ -31,6 +31,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
+	setDocumentMode(true);
 	oglView = new GraphicsView(this);
 	oglView->setObjectName(QStringLiteral("oglView"));
 	container	= createWindowContainer(oglView, this);

@@ -35,7 +35,7 @@ class GraphicsView : public QWindow
 	Q_OBJECT
 
 private:
-	QWidget*		m_parentWidget	= nullptr;
+	QWidget*		m_pDoc	= nullptr;
 	QOpenGLContext*	m_context;
 	bool			fromInit	= false;
 

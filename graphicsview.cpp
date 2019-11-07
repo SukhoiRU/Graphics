@@ -25,9 +25,8 @@ extern Q_GUI_EXPORT QImage qt_gl_read_framebuffer(const QSize &size, bool alpha_
 /*******************************************************************************
  * OpenGL Events
  ******************************************************************************/
-GraphicsView::GraphicsView(QWidget* pParent)
+GraphicsView::GraphicsView()
 {
-	m_pDoc	= pParent;
 	setSurfaceType(QWindow::OpenGLSurface);
 
 	QSurfaceFormat format;
@@ -1111,7 +1110,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 					GraphObject*	pGraph	= m_SelectedObjects.at(i);
 					pGraph->m_IsMoving	= true;
 					pGraph->onStartMoving();
-					m_pDoc->setWindowModified(true);
+					emit axes_changed();
 				}
 			}
 

@@ -35,7 +35,6 @@ class GraphicsView : public QWindow
 	Q_OBJECT
 
 private:
-	QWidget*		m_pDoc	= nullptr;
 	QOpenGLContext*	m_context;
 	bool			fromInit	= false;
 
@@ -44,7 +43,7 @@ private:
 	virtual void exposeEvent(QExposeEvent *event) override;
 
 public:
-    explicit GraphicsView(QWidget* pParent);
+    explicit GraphicsView();
     virtual ~GraphicsView();
 	void	setUI(Ui::GraphicsDoc* pUI);
 
@@ -85,6 +84,7 @@ signals:
 	void	change_axe(Graph::GAxe* pAxe, QWidget* pDlg);
 	void	delete_axe(vector<Graph::GAxe*>* pAxes);
 	void	substract_axe(Graph::GAxe* pAxe, QWidget* pDlg);
+	void	axes_changed();	//Сообщение о наличии изменений в документе
 
 protected:
 	//Обработка мыши и клавиатуры

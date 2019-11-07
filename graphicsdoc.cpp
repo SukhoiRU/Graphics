@@ -32,7 +32,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 {
     ui->setupUi(this);
 	setDocumentMode(true);
-	oglView = new GraphicsView(this);
+	oglView = new GraphicsView();
 	oglView->setObjectName(QStringLiteral("oglView"));
 	container	= createWindowContainer(oglView, this);
 	container->setAcceptDrops(false);
@@ -58,6 +58,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
+	connect(oglView, &GraphicsView::axes_changed, [this]{setWindowModified(true);});
 
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
     ui->toolBarPanel->addWidget(m_pPanelSelect);

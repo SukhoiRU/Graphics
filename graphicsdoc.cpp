@@ -248,6 +248,9 @@ void GraphicsDoc::loadScreen(QString FileName)
 
 	//Сохраняем путь к файлу
 	m_screenFileName	= FileName;
+	QFileInfo	fileInfo(FileName);
+	setWindowTitle("Graphics - " + fileInfo.fileName() + "[*]");
+
 	setWindowModified(false);
 }
 

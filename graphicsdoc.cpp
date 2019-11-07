@@ -538,6 +538,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);
+		setWindowModified(true);
 
 		preloadPanel();
 		pAxe->fitToScale();
@@ -586,6 +587,7 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 		
 		//Обновляем графики и таблицу
 		emit panelChanged(&m_pActivePanel->Axes);
+		setWindowModified(true);
 	}
 }
 
@@ -609,6 +611,7 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 
 	//Обновляем графики и таблицу
 	emit panelChanged(&m_pActivePanel->Axes);
+	setWindowModified(true);
 }
 
 void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
@@ -633,6 +636,7 @@ void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 
 		//Обновляем графики и таблицу
 		emit panelChanged(&m_pActivePanel->Axes);
+		setWindowModified(true);
 	}
 }
 

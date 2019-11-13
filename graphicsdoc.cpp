@@ -248,8 +248,7 @@ void GraphicsDoc::loadScreen(QString FileName)
 
 	//Сохраняем путь к файлу
 	m_screenFileName	= FileName;
-	QFileInfo	fileInfo(FileName);
-	setWindowTitle("Graphics - " + fileInfo.fileName() + "[*]");
+	setWindowTitle("Graphics - " + QFileInfo(FileName).fileName() + "[*]");
 
 	setWindowModified(false);
 }
@@ -260,7 +259,7 @@ void	GraphicsDoc::on_actionSave_triggered()
 	if(!m_screenFileName.isEmpty())
 		saveScreen(m_screenFileName);
 	else
-		on_actionSave_triggered();
+		on_actionSaveAs_triggered();
 }
 
 void	GraphicsDoc::on_actionSaveAs_triggered()
@@ -313,6 +312,10 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.writeEndElement();	//Файл_экрана
 	xml.writeEndDocument();
 	file.close();
+
+	//Сохраняем путь к файлу
+	m_screenFileName	= FileName;
+	setWindowTitle("Graphics - " + QFileInfo(FileName).fileName() + "[*]");
 
 	setWindowModified(false);
 }

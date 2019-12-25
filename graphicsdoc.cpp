@@ -43,7 +43,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
-	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+	ui->actionReload->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
 	settings.beginGroup("GraphicsDoc");

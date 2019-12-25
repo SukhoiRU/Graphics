@@ -231,7 +231,7 @@ public:
         mainToolBar->addAction(action_LoadOrion);
         mainToolBar->addAction(actionGraphSettings);
         mainToolBar->addAction(actionPageInfo);
-        mainToolBar->addAction(actionZoom);
+        mainToolBar->addAction(actionReload);
 
         retranslateUi(GraphicsDoc);
 

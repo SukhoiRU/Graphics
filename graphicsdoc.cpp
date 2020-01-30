@@ -31,6 +31,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
     ui(new Ui::GraphicsDoc)
 {
     ui->setupUi(this);
+	setDocumentMode(true);
 	oglView = new GraphicsView();
 	oglView->setObjectName(QStringLiteral("oglView"));
 	container	= createWindowContainer(oglView, this);
@@ -42,7 +43,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 0);
-	ui->actionZoom->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+	ui->actionReload->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
 
 	QSettings settings(ORGANIZATION_NAME, APPLICATION_NAME);
 	settings.beginGroup("GraphicsDoc");
@@ -57,6 +58,7 @@ GraphicsDoc::GraphicsDoc(QWidget *parent) :
 	connect(oglView, &GraphicsView::axesMoved, ui->locator, &LocatorView::on_axesMoved, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::axesRenamed, ui->locator, &LocatorView::on_axesRenamed, Qt::QueuedConnection);
 	connect(oglView, &GraphicsView::hasSelectedAxes, ui->locator, &LocatorView::on_axeSelected);
+	connect(oglView, &GraphicsView::axes_changed, [this]{setWindowModified(true);});
 
     m_pPanelSelect  = new PanelSelect(ui->toolBarPanel);
     ui->toolBarPanel->addWidget(m_pPanelSelect);
@@ -122,13 +124,37 @@ GraphicsDoc::~GraphicsDoc()
 	delete ui;
 }
 
-void GraphicsDoc::on_actionOpen_triggered()
+void	GraphicsDoc::closeEvent(QCloseEvent *event)
 {
-	//Открываем файл экрана
-    QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
-    if(FileName.isEmpty())  return;
+	if(maybeSave()) event->accept();
+	else			event->ignore();
+}
 
-	loadScreen(FileName);
+bool GraphicsDoc::maybeSave()
+{
+	if(!isWindowModified())		return true;
+
+	const QMessageBox::StandardButton ret	= QMessageBox::question(this, "Graphics", "Сохранить изменения?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+	switch (ret) 
+	{
+	case QMessageBox::Save:		{on_actionSave_triggered(); return true;} break;
+	case QMessageBox::Cancel:	return false;
+	default:
+		break;
+	}
+	return true;
+}
+
+void	GraphicsDoc::on_actionOpen_triggered()
+{
+	if(maybeSave())
+	{
+		//Открываем файл экрана
+		QString	FileName = QFileDialog::getOpenFileName(this, "Чтение файла экрана", "", "*.grf");
+		if (FileName.isEmpty())  return;
+
+		loadScreen(FileName);
+	}
 }
 
 void GraphicsDoc::loadScreen(QString FileName)
@@ -222,6 +248,9 @@ void GraphicsDoc::loadScreen(QString FileName)
 
 	//Сохраняем путь к файлу
 	m_screenFileName	= FileName;
+	setWindowTitle("Graphics - " + QFileInfo(FileName).fileName() + "[*]");
+
+	setWindowModified(false);
 }
 
 void	GraphicsDoc::on_actionSave_triggered()
@@ -229,6 +258,8 @@ void	GraphicsDoc::on_actionSave_triggered()
 	//Сохраняем файл экрана
 	if(!m_screenFileName.isEmpty())
 		saveScreen(m_screenFileName);
+	else
+		on_actionSaveAs_triggered();
 }
 
 void	GraphicsDoc::on_actionSaveAs_triggered()
@@ -281,6 +312,12 @@ void	GraphicsDoc::saveScreen(QString FileName)
 	xml.writeEndElement();	//Файл_экрана
 	xml.writeEndDocument();
 	file.close();
+
+	//Сохраняем путь к файлу
+	m_screenFileName	= FileName;
+	setWindowTitle("Graphics - " + QFileInfo(FileName).fileName() + "[*]");
+
+	setWindowModified(false);
 }
 
 void GraphicsDoc::on_menu_LoadData(QAction* pAction)
@@ -504,6 +541,7 @@ void GraphicsDoc::on_actionAddAxe_triggered()
 
 		//Добавляем информацию в активную панель
 		m_pActivePanel->Axes.push_back(pAxe);
+		setWindowModified(true);
 
 		preloadPanel();
 		pAxe->fitToScale();
@@ -552,6 +590,7 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 		
 		//Обновляем графики и таблицу
 		emit panelChanged(&m_pActivePanel->Axes);
+		setWindowModified(true);
 	}
 }
 
@@ -575,6 +614,7 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 
 	//Обновляем графики и таблицу
 	emit panelChanged(&m_pActivePanel->Axes);
+	setWindowModified(true);
 }
 
 void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
@@ -599,6 +639,7 @@ void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 
 		//Обновляем графики и таблицу
 		emit panelChanged(&m_pActivePanel->Axes);
+		setWindowModified(true);
 	}
 }
 

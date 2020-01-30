@@ -1110,6 +1110,7 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 					GraphObject*	pGraph	= m_SelectedObjects.at(i);
 					pGraph->m_IsMoving	= true;
 					pGraph->onStartMoving();
+					emit axes_changed();
 				}
 			}
 
@@ -1242,6 +1243,7 @@ void GraphicsView::wheelEvent(QWheelEvent *event)
 			Graph::GraphObject*	pGraph	= m_SelectedObjects.at(i);
 			pGraph->onWheel(mousePos, mdf, vec2(numDegrees.x(), numDegrees.y()));
 			fboGraphAreaValid	= false;
+			emit axes_changed();
 		}
 	}
 	else
@@ -1521,6 +1523,7 @@ void	GraphicsView::mouseDoubleClickEvent(QMouseEvent *event)
 			});
 			dlg->exec();
 			emit axesRenamed();
+			emit axes_changed();
 			delete	dlg;
 		}
 	}

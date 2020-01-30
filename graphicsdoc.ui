@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Graphics</string>
+   <string>Graphics[*]</string>
   </property>
   <property name="windowIcon">
    <iconset resource="graphics.qrc">
@@ -167,7 +167,7 @@
    <addaction name="action_LoadOrion"/>
    <addaction name="actionGraphSettings"/>
    <addaction name="actionPageInfo"/>
-   <addaction name="actionZoom"/>
+   <addaction name="actionReload"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="toolBarPanel">

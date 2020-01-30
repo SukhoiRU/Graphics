@@ -44,9 +44,12 @@ private slots:
 	void	on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg);
 	void	on_deleteAxe(vector<Graph::GAxe*>* pAxes);
 	void	on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg);
+
 protected:
+	virtual void	closeEvent(QCloseEvent *event) override;
 	virtual void	dragEnterEvent(QDragEnterEvent *event) override;
 	virtual void	dropEvent(QDropEvent *event) override;
+
 signals:
     void	panelChanged(vector<Graph::GAxe*>* axes);
 	void	panelDeleted();
@@ -80,6 +83,7 @@ private:
 	void on_PanelRenamed(const QString &text);
 	void on_PanelIndexChanged(int index);
 	void preloadPanel();
+	bool	maybeSave();
 };
 
 #endif // GRAPHICSDOC_H

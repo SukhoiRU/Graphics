@@ -52,7 +52,7 @@ void	ColorButton::paintEvent(QPaintEvent * event)
 void ColorButton::mousePressEvent(QMouseEvent* /*e*/)
 {
 	QColorDialog	dlg(m_color, this);
-	if(dlg.exec())
+	if(dlg.exec() == QDialog::Accepted)
 	{
 		m_color	= dlg.currentColor();
 		m_bDiff	= false;

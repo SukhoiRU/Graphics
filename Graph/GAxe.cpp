@@ -128,7 +128,7 @@ GAxe::~GAxe()
 	clearGL();
 	if(dataVBO)	{glDeleteBuffers(1, &dataVBO); dataVBO = 0;}
 	if(axeVBO)	{glDeleteBuffers(1, &axeVBO); axeVBO = 0;}
-	if(textLabel) {delete textLabel; textLabel = 0;}
+    if(textLabel) {delete textLabel; textLabel = nullptr;}
 }
 
 void	GAxe::finalDelete()

@@ -111,7 +111,6 @@ void	Orion_Accumulation::LoadOrionPacket()
 
 	for(int i = 0; i < nCount; i++)
 	{
-		try{
 		int	LenPath;
 		int	LenIcons;
 		char buf[1024];
@@ -200,11 +199,6 @@ void	Orion_Accumulation::LoadOrionPacket()
 		{
 			//Запоминаем положение в списке для обновления времени
 			pos_begin	= m_Header.size()-1;
-		}
-		}
-		catch(...)
-		{
-			int a = 0;
 		}
 	}
 

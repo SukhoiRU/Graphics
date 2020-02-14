@@ -137,7 +137,7 @@ bool GraphicsDoc::maybeSave()
 	const QMessageBox::StandardButton ret	= QMessageBox::question(this, "Graphics", "Сохранить изменения?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 	switch (ret) 
 	{
-	case QMessageBox::Save:		{on_actionSave_triggered(); return true;} break;
+    case QMessageBox::Save:		{on_actionSave_triggered(); return true;}
 	case QMessageBox::Cancel:	return false;
 	default:
 		break;
@@ -341,6 +341,8 @@ void GraphicsDoc::on_menu_LoadData(QAction* pAction)
         acc_type	= Accumulation::AccType::Acc_TRF;
 		fileType	= "*.trf";
 	}
+    else
+        return;
 
     QString	FileName	= QFileDialog::getOpenFileName(this, "Чтение накопления " + title, "", fileType);
     if(FileName.isEmpty())  return;
@@ -377,7 +379,7 @@ void	GraphicsDoc::loadData(QString FileName, const Accumulation::AccType acc_typ
         case Accumulation::AccType::Acc_SAPR:	pAcc	= new Sapr_Accumulation;	break;
         case Accumulation::AccType::Acc_TRF:	pAcc	= new TRF_Accumulation;		break;
 		default:
-			break;
+            return;
 	}
 	
     pAcc->setName(QString("Данные №%1").arg(m_BufArray.size()+1));
@@ -417,14 +419,14 @@ void	GraphicsDoc::on_PanelListChanged()
     for(size_t i = 0; i < m_PanelList.size(); i++)
 	{
 		Panel*	p = m_PanelList.at(i);
-        pBox->addItem(p->Name, (int)i);
+        pBox->addItem(p->Name, int(i));
 	}
 }
 
 void	GraphicsDoc::on_PanelIndexChanged(int index)
 {
 	if(index == -1)	return;
-    if(index > (int)(m_PanelList.size()-1))	return;
+    if(index > int(m_PanelList.size()-1))	return;
 	m_pActivePanel	= m_PanelList.at(index);
 
 	preloadPanel();
@@ -439,7 +441,7 @@ void	GraphicsDoc::on_PanelAdd()
 
 	Panel*	p	= new Panel;
 	p->Name	= "Новая";
-    if(cur < (int)m_PanelList.size())	m_PanelList.insert(m_PanelList.begin()+cur+1, p);
+    if(cur < int(m_PanelList.size()))	m_PanelList.insert(m_PanelList.begin()+cur+1, p);
     else                                m_PanelList.push_back(p);
 	on_PanelListChanged();
 	pBox->setCurrentIndex(cur+1);
@@ -463,7 +465,7 @@ void	GraphicsDoc::on_PanelDelete()
 		on_PanelAdd();
 	}
 	on_PanelListChanged();
-    if(cur > (int)(m_PanelList.size()-1))	cur	= m_PanelList.size()-1;
+    if(cur > int(m_PanelList.size()-1))	cur	= int(m_PanelList.size()-1);
 	pBox->setCurrentIndex(cur);
 }
 
@@ -496,7 +498,7 @@ void	GraphicsDoc::on_PanelRenamed(const QString &text)
 	QComboBox*	pBox	= m_pPanelSelect->ui->comboBox;
 	int	cur	= pBox->currentIndex();
 	if(cur == -1)	return;
-    if(cur > (int)(m_PanelList.size()-1))	return;
+    if(cur > int(m_PanelList.size()-1))	return;
 	Panel*	p	= m_PanelList.at(cur);
 	p->Name	= text;
 	pBox->setItemText(cur, text);
@@ -594,9 +596,10 @@ void	GraphicsDoc::on_changeAxe(Graph::GAxe* pAxe, QWidget* pDlg)
 	}
 }
 
-void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
+void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe*>* pAxes)
 {
 	//Удаляем заданный список осей
+    vector<Graph::GAxe*>    to_Del; //Список на удаление после обработки
 	for(size_t i = 0; i < m_pActivePanel->Axes.size(); i++)
 	{
 		Graph::GAxe*	pAxe	= m_pActivePanel->Axes.at(i);
@@ -606,7 +609,7 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 			{
 				m_pActivePanel->Axes.erase(m_pActivePanel->Axes.begin()+i);
 				pAxes->erase(pAxes->begin()+j);
-				delete pAxe;
+                to_Del.push_back(pAxe);
 				i--;
 			}
 		}
@@ -615,6 +618,12 @@ void	GraphicsDoc::on_deleteAxe(vector<Graph::GAxe *>* pAxes)
 	//Обновляем графики и таблицу
 	emit panelChanged(&m_pActivePanel->Axes);
 	setWindowModified(true);
+
+    //Удаляем графики
+    for(Graph::GAxe* pAxe : to_Del)
+    {
+        delete pAxe;
+    }
 }
 
 void	GraphicsDoc::on_substractAxe(Graph::GAxe* pAxe, QWidget* pDlg)
@@ -759,7 +768,7 @@ void	GraphicsDoc::preloadPanel()
 			}
 			
 			//Принудительно выставляем тип Double
-			pAxe->uploadData(len, pTime, (const char*)pDelta, Graph::GAxe::DataType::Double);
+            pAxe->uploadData(len, pTime, reinterpret_cast<const char*>(pDelta), Graph::GAxe::DataType::Double);
 			delete[] pDelta;
 		}
 	}

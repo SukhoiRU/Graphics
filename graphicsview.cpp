@@ -1058,8 +1058,11 @@ void	GraphicsView::mouseMoveEvent(QMouseEvent *event)
 	double time	= Time0	+ graph.x/gridStep.x*TimeScale;
 	if(time != curTime && m_bOnMouse)
 	{
-		curTime = time;
-		emit timeChanged(curTime);
+		if(!(buttons & Qt::LeftButton))
+		{
+			curTime = time;
+			emit timeChanged(curTime);
+		}
 	}
 
 	vec2	mousePos(world.x, world.y);

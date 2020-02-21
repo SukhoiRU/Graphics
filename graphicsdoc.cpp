@@ -3,7 +3,7 @@
 #include "graphicsview.h"
 #include <QDomDocument>
 #include "ui_graphicsdoc.h"
-#include "ui_panelselect.h"
+#include "Dialogs/ui_panelselect.h"
 #include "Accumulation.h"
 #include "Orion_Accumulation.h"
 #include "Sapr_Accumulation.h"
